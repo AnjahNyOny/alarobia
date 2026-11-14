@@ -9,7 +9,8 @@ export function MobileNav({ links, storeName, signedIn }: { links: { href: strin
   const [open, setOpen] = useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger className="grid size-10 place-items-center rounded-lg hover:bg-muted lg:hidden" aria-label="Ouvrir le menu">
+      {/* Identifiant fixe : un useId généré dans la mise en page asynchrone peut différer entre serveur et navigateur. */}
+      <SheetTrigger id="declencheur-menu" className="grid size-10 place-items-center rounded-lg hover:bg-muted lg:hidden" aria-label="Ouvrir le menu">
         <Menu className="size-5" strokeWidth={1.6} aria-hidden />
       </SheetTrigger>
       <SheetContent side="left" className="w-full gap-0 sm:max-w-sm data-[side=left]:w-[86%]">

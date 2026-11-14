@@ -97,7 +97,7 @@ export function AdminSidebar(props: { toProcess: number; storeName: string; user
       </aside>
       <div className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background px-4 lg:hidden">
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="grid size-9 place-items-center rounded-md hover:bg-muted" aria-label="Ouvrir le menu">
+          <SheetTrigger id="declencheur-menu-admin" className="grid size-9 place-items-center rounded-md hover:bg-muted" aria-label="Ouvrir le menu">
             <Menu className="size-5" aria-hidden />
           </SheetTrigger>
           <SheetContent side="left" showCloseButton={false} className="w-64 gap-0 bg-sidebar p-0 data-[side=left]:w-64">

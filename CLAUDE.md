@@ -93,7 +93,7 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Ne jamais utiliser `pkill -f "next dev"`** : cela tuerait aussi les autres serveurs Next du propriétaire. Cibler le port : `lsof -ti tcp:3001 -sTCP:LISTEN`.
 - **Node** : la machine a Node 21 par défaut (fin de vie). `.nvmrc` demande Node 22. `package.json` épingle `magic-string@0.30.17` pour que Tailwind tourne aussi sur Node 21 ; retirer cet `overrides` une fois sur Node 22.
 - **Turbopack en dev** peut ignorer des fichiers créés pendant qu'il tourne (404 sur une page qui existe, erreurs d'hydratation fantômes). Redémarrer le serveur et supprimer `.next` avant de conclure à un bug.
-- **JSON-LD** : placé comme frère après le conteneur de la page produit. En premier enfant du conteneur, il provoquait une erreur d'hydratation intermittente dont la cause exacte n'a pas été identifiée.
+- **Hydratation et mises en page asynchrones** : quand le JavaScript est en cache, React peut démarrer l'hydratation avant l'arrivée des données d'une mise en page asynchrone. Deux règles en découlent. (1) Ne pas placer plusieurs composants serveur asynchrones côte à côte dans une mise en page : elle charge ses données une fois (`loadShell`) et les passe à des composants synchrones. (2) Un composant client qui s'appuie sur `useId` dans une mise en page asynchrone reçoit un `id` fixe (boutons de menu). Pour reproduire : ajouter un délai aléatoire dans `loadShell` et recharger vingt fois la page dans le même onglet.
 - **Recherche de photos** : l'interface non officielle d'Unsplash est bloquée dans cet environnement. Utiliser les photos de `public/products/` ou celles fournies par le propriétaire.
 
 ## Limites actuelles (voir phase 7)

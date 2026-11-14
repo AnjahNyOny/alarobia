@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { uploadDir } from "@/lib/upload-dir";
 
 const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp", avif: "image/avif" };
 
@@ -8,7 +9,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ name: stri
   const match = /^[\w-]+\.(jpg|png|webp|avif)$/.exec(name);
   if (!match) return new Response("Introuvable", { status: 404 });
   try {
-    const file = await readFile(path.join(process.cwd(), "uploads", name));
+    const file = await readFile(path.join(uploadDir(), name));
     return new Response(new Uint8Array(file), {
       headers: {
         "Content-Type": TYPES[match[1]],

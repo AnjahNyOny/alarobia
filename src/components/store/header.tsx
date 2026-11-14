@@ -2,18 +2,36 @@ import Link from "next/link";
 import { Heart, Search, User } from "lucide-react";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
-import { getCart } from "@/lib/cart";
+import type { StoreSettings } from "@prisma/client";
+import { getCart, type Cart } from "@/lib/cart";
 import { getSettings } from "@/lib/settings";
 import { CartButton, CartDrawer } from "./cart-drawer";
 import { MobileNav } from "./mobile-nav";
 
-export async function Header() {
+export type ShellData = {
+  settings: StoreSettings;
+  user: Awaited<ReturnType<typeof getUser>>;
+  cart: Cart;
+  categories: { name: string; slug: string }[];
+};
+
+/**
+ * Données de l'en-tête et du pied de page, chargées en une fois par la mise en page.
+ * Header et Footer restent synchrones : des composants serveur asynchrones placés côte à côte
+ * décalaient l'hydratation quand leurs données arrivaient après le démarrage de React
+ * (identifiants useId différents, erreur #418 intermittente).
+ */
+export async function loadShell(): Promise<ShellData> {
   const [settings, user, cart, categories] = await Promise.all([
     getSettings(),
     getUser(),
     getCart(),
     db.category.findMany({ orderBy: { position: "asc" }, select: { name: true, slug: true } }),
   ]);
+  return { settings, user, cart, categories };
+}
+
+export function Header({ settings, user, cart, categories }: ShellData) {
   const links = [
     { href: "/produits", label: "Tout voir" },
     ...categories.map((c) => ({ href: `/produits?categorie=${c.slug}`, label: c.name })),

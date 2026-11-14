@@ -1,13 +1,8 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { getSettings } from "@/lib/settings";
+import type { ShellData } from "./header";
 import { NewsletterForm } from "./newsletter-form";
 
-export async function Footer() {
-  const [settings, categories] = await Promise.all([
-    getSettings(),
-    db.category.findMany({ orderBy: { position: "asc" }, select: { name: true, slug: true } }),
-  ]);
+export function Footer({ settings, categories }: Pick<ShellData, "settings" | "categories">) {
   const columns = [
     { title: "Boutique", links: [{ href: "/produits", label: "Tous les produits" }, ...categories.map((c) => ({ href: `/produits?categorie=${c.slug}`, label: c.name }))] },
     {
