@@ -4,6 +4,7 @@ export const cardInclude = {
   images: { orderBy: { position: "asc" }, take: 2 },
   category: { select: { name: true, slug: true } },
   reviews: { where: { status: "PUBLISHED" }, select: { rating: true } },
+  translations: true,
 } satisfies Prisma.ProductInclude;
 
 export type CardProduct = Prisma.ProductGetPayload<{ include: typeof cardInclude }>;

@@ -64,6 +64,8 @@ async function main() {
   await db.order.deleteMany();
   await db.review.deleteMany();
   await db.wishlistItem.deleteMany();
+  await db.productTranslation.deleteMany();
+  await db.categoryTranslation.deleteMany();
   await db.productImage.deleteMany();
   await db.product.deleteMany();
   await db.category.deleteMany();

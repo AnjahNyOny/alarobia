@@ -66,7 +66,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
   const series = Array.from({ length: days }, (_, i) => {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    return { date: d.toISOString(), label: formatDate(d, { day: "numeric", month: "short" }), ...(byDay.get(dayKey(d)) ?? { revenueCents: 0, orders: 0 }) };
+    return { date: d.toISOString(), label: formatDate(d, "fr", "short"), ...(byDay.get(dayKey(d)) ?? { revenueCents: 0, orders: 0 }) };
   });
 
   const top = new Map<string, { name: string; imageUrl: string | null; quantity: number; revenueCents: number }>();

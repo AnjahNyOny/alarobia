@@ -24,9 +24,9 @@ model User {
 }
 
 model Address {
-  id         String @id @default(cuid())
-  userId     String @unique
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName   String
   line1      String
   line2      String?
@@ -37,39 +37,67 @@ model Address {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String    @default("")
-  image       String?
-  position    Int       @default(0)
-  products    Product[]
+  id           String                @id @default(cuid())
+  name         String
+  slug         String                @unique
+  description  String                @default("")
+  image        String?
+  position     Int                   @default(0)
+  products     Product[]
+  translations CategoryTranslation[]
+}
+
+// Les champs de Category et de Product sont la version française de référence.
+// Une ligne de traduction par langue supplémentaire ; un champ vide retombe sur le français.
+model CategoryTranslation {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  locale      String // en | mg
+  name        String   @default("")
+  description String   @default("")
+
+  @@unique([categoryId, locale])
 }
 
 model Product {
-  id             String         @id @default(cuid())
+  id             String               @id @default(cuid())
   name           String
-  slug           String         @unique
-  tagline        String         @default("")
+  slug           String               @unique
+  tagline        String               @default("")
   description    String
-  details        String         @default("") // une caractéristique par ligne
+  details        String               @default("") // une caractéristique par ligne
   priceCents     Int
   compareAtCents Int?
-  sku            String         @unique
-  stock          Int            @default(0)
-  status         String         @default("ACTIVE") // ACTIVE | DRAFT | ARCHIVED
-  featured       Boolean        @default(false)
+  sku            String               @unique
+  stock          Int                  @default(0)
+  status         String               @default("ACTIVE") // ACTIVE | DRAFT | ARCHIVED
+  featured       Boolean              @default(false)
   categoryId     String
-  category       Category       @relation(fields: [categoryId], references: [id])
+  category       Category             @relation(fields: [categoryId], references: [id])
   images         ProductImage[]
   reviews        Review[]
   wishlistedBy   WishlistItem[]
   orderItems     OrderItem[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  translations   ProductTranslation[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
   @@index([categoryId])
   @@index([status])
+}
+
+model ProductTranslation {
+  id          String  @id @default(cuid())
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locale      String // en | mg
+  name        String  @default("")
+  tagline     String  @default("")
+  description String  @default("")
+  details     String  @default("")
+
+  @@unique([productId, locale])
 }
 
 model ProductImage {
@@ -171,6 +199,8 @@ model StoreSettings {
   contactEmail               String @default("bonjour@seve.example")
   currency                   String @default("EUR")
   announcement               String @default("Livraison offerte dès 80 € d'achat")
+  announcementEn             String @default("")
+  announcementMg             String @default("")
   shippingStandardCents      Int    @default(490)
   shippingExpressCents       Int    @default(990)
   freeShippingThresholdCents Int    @default(8000)

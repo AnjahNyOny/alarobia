@@ -46,7 +46,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
                     <Stars value={r.rating} />
                     <span className="font-medium">{r.user.name}</span>
                     <span className="text-muted-foreground">sur <Link href={`/products/${r.product.slug}`} className="underline underline-offset-4 hover:text-foreground">{r.product.name}</Link></span>
-                    <span className="text-xs text-muted-foreground">{formatDate(r.createdAt, { dateStyle: "medium" })}</span>
+                    <span className="text-xs text-muted-foreground">{formatDate(r.createdAt, "fr", "medium")}</span>
                   </div>
                   <p className={`mt-2 text-sm leading-relaxed ${r.status === "HIDDEN" ? "text-muted-foreground" : ""}`}>{r.comment}</p>
                 </div>

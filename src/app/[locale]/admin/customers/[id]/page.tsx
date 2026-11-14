@@ -53,7 +53,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                     {user.orders.map((o) => (
                       <tr key={o.id} className="hover:bg-muted/40">
                         <td className={td}><Link href={`/admin/orders/${o.id}`} className="font-medium underline-offset-4 hover:underline">{o.number}</Link></td>
-                        <td className={cn(td, "text-muted-foreground")}>{formatDate(o.createdAt, { dateStyle: "medium" })}</td>
+                        <td className={cn(td, "text-muted-foreground")}>{formatDate(o.createdAt, "fr", "medium")}</td>
                         <td className={td}><OrderStatus status={o.status} /></td>
                         <td className={cn(td, "text-right tabular-nums")}>{formatPrice(o.totalCents, currency)}</td>
                       </tr>

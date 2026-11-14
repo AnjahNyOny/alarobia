@@ -45,7 +45,7 @@ export default async function PromosPage() {
                         </td>
                         <td className={cn(td, "tabular-nums")}>{p.type === "PERCENT" ? `${p.value} %` : formatPrice(p.value, currency)}</td>
                         <td className={cn(td, "tabular-nums")}>{p.usedCount}{p.maxUses != null && <span className="text-muted-foreground"> / {p.maxUses}</span>}</td>
-                        <td className={cn(td, expired ? "text-destructive" : "text-muted-foreground")}>{p.expiresAt ? `${expired ? "Expiré le " : ""}${formatDate(p.expiresAt, { dateStyle: "medium" })}` : "Sans limite"}</td>
+                        <td className={cn(td, expired ? "text-destructive" : "text-muted-foreground")}>{p.expiresAt ? `${expired ? "Expiré le " : ""}${formatDate(p.expiresAt, "fr", "medium")}` : "Sans limite"}</td>
                         <td className={td}><ToggleAction checked={p.active} action={togglePromo.bind(null, p.id)} label={`Activer le code ${p.code}`} /></td>
                         <td className={td}>
                           <ConfirmAction action={deletePromo.bind(null, p.id)} title={`Supprimer le code ${p.code} ?`} description="Les clients ne pourront plus l'utiliser. Les commandes passées conservent leur réduction.">

@@ -51,7 +51,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                         <p className="text-xs text-muted-foreground">{u.email}</p>
                       </td>
                       <td className={cn(td, "text-muted-foreground")}>{u.address?.city ?? "—"}</td>
-                      <td className={cn(td, "text-muted-foreground")}>{formatDate(u.createdAt, { dateStyle: "medium" })}</td>
+                      <td className={cn(td, "text-muted-foreground")}>{formatDate(u.createdAt, "fr", "medium")}</td>
                       <td className={cn(td, "text-right tabular-nums")}>{u.orders.length}</td>
                       <td className={cn(td, "text-right font-medium tabular-nums")}>{formatPrice(u.orders.reduce((s, o) => s + o.totalCents, 0), currency)}</td>
                     </tr>
