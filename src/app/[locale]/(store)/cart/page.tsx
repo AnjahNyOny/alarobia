@@ -7,7 +7,7 @@ import { TotalsRows } from "@/components/store/summary";
 import { buttonVariants } from "@/components/ui/button";
 import { getCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
-import { shippingCost } from "@/lib/pricing";
+import { promoLabel, shippingCost } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -65,7 +65,7 @@ export default async function CartPage() {
         <aside className="h-fit rounded-lg border bg-card p-6 lg:sticky lg:top-24">
           <h2 className="text-lg font-medium">Récapitulatif</h2>
           <div className="mt-5">
-            <PromoForm applied={cart.promo ? { code: cart.promo.code, label: cart.promo.label } : null} />
+            <PromoForm applied={cart.promo ? { code: cart.promo.code, label: promoLabel(cart.promo, (c) => formatPrice(c, currency)) } : null} />
           </div>
           <div className="mt-6">
             <TotalsRows subtotalCents={cart.subtotalCents} discountCents={cart.discountCents} promoCode={cart.promo?.code} shippingCents={shipping} totalCents={cart.subtotalCents - cart.discountCents + shipping} currency={currency} />

@@ -1,1 +1,46 @@
-{ "common": { "language": "Fiteny" } }
+{
+  "common": {
+    "language": "Fiteny"
+  },
+  "errors": {
+    "formInvalid": "Misy saha mila ahitsy.",
+    "required": "Ilaina ity saha ity.",
+    "emailInvalid": "Tsy mety ny adiresy mailaka.",
+    "passwordMin": "Litera 8 farafahakeliny.",
+    "phoneInvalid": "Tsy mety ny laharana finday.",
+    "countryUnsupported": "Tsy mbola manatitra any amin'io firenena io izahay.",
+    "nameRequired": "Soraty ny anaranao.",
+    "emailTaken": "Efa misy kaonty mampiasa io adiresy io.",
+    "invalidCredentials": "Diso ny mailaka na ny teny miafina.",
+    "quantityInvalid": "Tsy mety ny isa.",
+    "productUnavailable": "Tsy misy intsony io entana io.",
+    "outOfStock": "Lany tahiry io entana io.",
+    "maxQuantity": "Tratra ny isa ambony indrindra ho an'io entana io.",
+    "promoEmpty": "Ampidiro ny kaody.",
+    "promoUnknown": "Tsy misy na tsy mandeha intsony io kaody io.",
+    "promoExpired": "Lany daty io kaody io.",
+    "promoExhausted": "Tratra ny fetra fampiasana io kaody io.",
+    "promoMinimum": "Azo ampiasaina io kaody io raha mividy {amount} farafahakeliny.",
+    "cartEmpty": "Foana ny haronao.",
+    "stockInsufficient": "Tsy ampy ny tahiry ho an'ny « {name} ». Amboary ny haronao.",
+    "justSold": "Vao lafo ny « {name} ». Amboary ny haronao.",
+    "currentPasswordRequired": "Ampidiro ny teny miafinao ankehitriny.",
+    "currentPasswordWrong": "Diso ny teny miafina ankehitriny.",
+    "loginForWishlist": "Midira mba hitahiry ny tianao.",
+    "productNotFound": "Tsy hita ny entana.",
+    "loginForReview": "Midira mba hanome ny hevitrao.",
+    "ratingRequired": "Misafidiana naoty.",
+    "reviewMin": "Litera 10 farafahakeliny ny hevitrao."
+  },
+  "notices": {
+    "addedToCart": "Tafiditra ao anaty harona ny {name}.",
+    "promoApplied": "Nampiharina ny kaody {code}.",
+    "profileUpdated": "Voavao ny mombamomba anao.",
+    "addressSaved": "Voatahiry ny adiresy.",
+    "passwordChanged": "Voaova ny teny miafina.",
+    "wishlistAdded": "Tafiditra ao amin'ny tianao.",
+    "wishlistRemoved": "Nesorina tao amin'ny tianao.",
+    "reviewPublished": "Misaotra, navoaka ny hevitrao.",
+    "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona."
+  }
+}

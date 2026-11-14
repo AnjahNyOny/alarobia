@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useId, useTransition } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -55,17 +55,65 @@ export function Field({ label, name, error, hint, optional, className, as = "inp
 
 const PendingContext = createContext(false);
 
+const DRAFT_SKIP = new Set(["password", "file", "hidden", "submit"]);
+
 /**
  * Formulaire relié à une action serveur. Contrairement à <form action>, il ne vide pas les champs
  * après l'envoi : en cas d'erreur de validation, la saisie de l'utilisateur est conservée.
  * L'attribut action reste en place pour fonctionner avant le chargement du JavaScript.
+ *
+ * `draftKey` garde en plus la saisie dans l'onglet (sessionStorage) : elle survit à un changement
+ * de langue ou à un rechargement. Les mots de passe ne sont jamais enregistrés.
  */
-export function Form({ action, children, ...props }: Omit<React.ComponentProps<"form">, "action" | "onSubmit"> & { action: (formData: FormData) => void }) {
+export function Form({
+  action,
+  children,
+  draftKey,
+  ref,
+  ...props
+}: Omit<React.ComponentProps<"form">, "action" | "onSubmit"> & { action: (formData: FormData) => void; draftKey?: string }) {
   const [pending, start] = useTransition();
+  const inner = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const form = inner.current;
+    if (!draftKey || !form) return;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(draftKey) ?? "{}") as Record<string, string>;
+      for (const [name, value] of Object.entries(saved)) {
+        const field = form.elements.namedItem(name);
+        if (field instanceof RadioNodeList) continue; // les choix exclusifs sont pilotés par React
+        if (field instanceof HTMLSelectElement) field.value = value;
+        // Une valeur déjà modifiée (ou préremplie différemment par le serveur après une erreur) n'est pas écrasée.
+        else if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) && !DRAFT_SKIP.has(field.type) && field.value === field.defaultValue) field.value = value;
+      }
+    } catch {
+      // stockage indisponible (navigation privée) : on s'en passe
+    }
+  }, [draftKey]);
+
+  const saveDraft = () => {
+    const form = inner.current;
+    if (!draftKey || !form) return;
+    const draft: Record<string, string> = {};
+    for (const field of Array.from(form.elements)) {
+      if ((field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) && field.name && !DRAFT_SKIP.has(field.type) && field.type !== "radio" && field.type !== "checkbox") draft[field.name] = field.value;
+    }
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {}
+  };
+
   return (
     <form
       {...props}
+      ref={(node) => {
+        inner.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) ref.current = node;
+      }}
       action={action}
+      onInput={saveDraft}
       onSubmit={(e) => {
         e.preventDefault();
         const data = new FormData(e.currentTarget);

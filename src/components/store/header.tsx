@@ -6,6 +6,7 @@ import type { StoreSettings } from "@prisma/client";
 import { getCart, type Cart } from "@/lib/cart";
 import { getSettings } from "@/lib/settings";
 import { CartButton, CartDrawer } from "./cart-drawer";
+import { LanguageSwitcher } from "./language-switcher";
 import { MobileNav } from "./mobile-nav";
 
 export type ShellData = {
@@ -80,6 +81,7 @@ export function Header({ settings, user, cart, categories }: ShellData) {
                 className="h-10 w-44 rounded-lg border border-transparent bg-muted pr-3 pl-9 text-sm outline-none transition-[width,border-color,background-color] placeholder:text-muted-foreground focus:w-64 focus:border-input focus:bg-card"
               />
             </form>
+            <LanguageSwitcher compact className="mr-1 hidden sm:block" />
             <Link href={user ? "/account" : "/login"} className={iconLink} aria-label={user ? "Mon compte" : "Se connecter"}>
               <User className="size-5" strokeWidth={1.6} aria-hidden />
             </Link>

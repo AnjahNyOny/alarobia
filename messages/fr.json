@@ -1,1 +1,46 @@
-{ "common": { "language": "Langue" } }
+{
+  "common": {
+    "language": "Langue"
+  },
+  "errors": {
+    "formInvalid": "Certains champs sont à corriger.",
+    "required": "Ce champ est requis.",
+    "emailInvalid": "Adresse e-mail invalide.",
+    "passwordMin": "8 caractères minimum.",
+    "phoneInvalid": "Numéro de téléphone invalide.",
+    "countryUnsupported": "Nous ne livrons pas encore dans ce pays.",
+    "nameRequired": "Indiquez votre nom.",
+    "emailTaken": "Un compte existe déjà avec cette adresse.",
+    "invalidCredentials": "E-mail ou mot de passe incorrect.",
+    "quantityInvalid": "Quantité invalide.",
+    "productUnavailable": "Ce produit n'est plus disponible.",
+    "outOfStock": "Ce produit est en rupture de stock.",
+    "maxQuantity": "Quantité maximale atteinte pour ce produit.",
+    "promoEmpty": "Saisissez un code.",
+    "promoUnknown": "Ce code n'existe pas ou n'est plus actif.",
+    "promoExpired": "Ce code a expiré.",
+    "promoExhausted": "Ce code a atteint son nombre maximal d'utilisations.",
+    "promoMinimum": "Ce code s'applique à partir de {amount} d'achat.",
+    "cartEmpty": "Votre panier est vide.",
+    "stockInsufficient": "Stock insuffisant pour « {name} ». Ajustez votre panier.",
+    "justSold": "« {name} » vient d'être vendu. Ajustez votre panier.",
+    "currentPasswordRequired": "Saisissez votre mot de passe actuel.",
+    "currentPasswordWrong": "Mot de passe actuel incorrect.",
+    "loginForWishlist": "Connectez-vous pour enregistrer vos favoris.",
+    "productNotFound": "Produit introuvable.",
+    "loginForReview": "Connectez-vous pour donner votre avis.",
+    "ratingRequired": "Choisissez une note.",
+    "reviewMin": "Votre avis doit contenir au moins 10 caractères."
+  },
+  "notices": {
+    "addedToCart": "{name} ajouté au panier.",
+    "promoApplied": "Code {code} appliqué.",
+    "profileUpdated": "Profil mis à jour.",
+    "addressSaved": "Adresse enregistrée.",
+    "passwordChanged": "Mot de passe modifié.",
+    "wishlistAdded": "Ajouté aux favoris.",
+    "wishlistRemoved": "Retiré des favoris.",
+    "reviewPublished": "Merci, votre avis est publié.",
+    "newsletterDone": "Inscription confirmée. À très vite."
+  }
+}

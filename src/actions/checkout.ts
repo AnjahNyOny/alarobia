@@ -10,26 +10,29 @@ import { CART_COOKIE, PROMO_COOKIE, getCart } from "@/lib/cart";
 import { shippingCost } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { invalid, type FormState } from "@/lib/form";
-import { addressSchema, emailSchema } from "@/lib/schemas";
-
-const checkoutSchema = addressSchema.extend({
-  email: emailSchema,
-  shippingMethod: z.enum(["STANDARD", "EXPRESS"]),
-  paymentMethod: z.enum(["CARD", "COD"]),
-  note: z.string().trim().max(500).optional(),
-});
+import { getTranslations } from "next-intl/server";
+import { makeSchemas } from "@/lib/schemas";
 
 class StockError extends Error {}
 
 export async function placeOrder(_: FormState, formData: FormData): Promise<FormState> {
-  const parsed = checkoutSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return invalid(parsed.error);
+  const t = await getTranslations("errors");
+  const schemas = makeSchemas(t);
+  const parsed = schemas.address
+    .extend({
+      email: schemas.email,
+      shippingMethod: z.enum(["STANDARD", "EXPRESS"]),
+      paymentMethod: z.enum(["CARD", "COD"]),
+      note: z.string().trim().max(500).optional(),
+    })
+    .safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return invalid(parsed.error, t("formInvalid"));
   const data = parsed.data;
 
   const [user, cart, settings] = await Promise.all([getUser(), getCart(), getSettings()]);
-  if (cart.lines.length === 0) return { error: "Votre panier est vide." };
+  if (cart.lines.length === 0) return { error: t("cartEmpty") };
   const short = cart.lines.find((l) => l.insufficientStock);
-  if (short) return { error: `Stock insuffisant pour « ${short.product.name} ». Ajustez votre panier.` };
+  if (short) return { error: t("stockInsufficient", { name: short.product.name }) };
 
   const shippingCents = shippingCost(data.shippingMethod, cart.subtotalCents - cart.discountCents, settings);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
@@ -84,7 +87,7 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
       return order.id;
     });
   } catch (e) {
-    if (e instanceof StockError) return { error: `« ${e.message} » vient d'être vendu. Ajustez votre panier.` };
+    if (e instanceof StockError) return { error: t("justSold", { name: e.message }) };
     throw e;
   }
 

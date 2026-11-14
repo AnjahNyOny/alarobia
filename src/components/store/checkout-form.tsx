@@ -81,7 +81,7 @@ export function CheckoutForm({
   const shippingCents = shipping === "EXPRESS" ? expressCents : standardCents;
 
   return (
-    <Form action={action} className="mt-8 grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
+    <Form action={action} draftKey="brouillon-commande" className="mt-8 grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
       <div className="grid gap-8">
         <Step n={1} title="Coordonnées">
           <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" defaultValue={defaults.email} error={e.email} required hint={signedIn ? undefined : "Nous y envoyons la confirmation et le suivi de commande."} />

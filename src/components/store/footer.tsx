@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import type { ShellData } from "./header";
+import { LanguageSwitcher } from "./language-switcher";
 import { NewsletterForm } from "./newsletter-form";
 
 export function Footer({ settings, categories }: Pick<ShellData, "settings" | "categories">) {
@@ -57,7 +58,7 @@ export function Footer({ settings, categories }: Pick<ShellData, "settings" | "c
           <p>
             © {new Date().getFullYear()} {settings.storeName}. Tous droits réservés.
           </p>
-          <p>Prix affichés toutes taxes comprises.</p>
+          <LanguageSwitcher />
         </div>
       </div>
     </footer>

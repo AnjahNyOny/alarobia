@@ -1,1 +1,46 @@
-{ "common": { "language": "Language" } }
+{
+  "common": {
+    "language": "Language"
+  },
+  "errors": {
+    "formInvalid": "Some fields need fixing.",
+    "required": "This field is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordMin": "Use at least 8 characters.",
+    "phoneInvalid": "Enter a valid phone number.",
+    "countryUnsupported": "We don't deliver to this country yet.",
+    "nameRequired": "Enter your name.",
+    "emailTaken": "An account already uses this email address.",
+    "invalidCredentials": "Wrong email or password.",
+    "quantityInvalid": "Invalid quantity.",
+    "productUnavailable": "This product is no longer available.",
+    "outOfStock": "This product is out of stock.",
+    "maxQuantity": "You've reached the maximum quantity for this product.",
+    "promoEmpty": "Enter a code.",
+    "promoUnknown": "This code doesn't exist or is no longer active.",
+    "promoExpired": "This code has expired.",
+    "promoExhausted": "This code has reached its usage limit.",
+    "promoMinimum": "This code applies to orders of {amount} or more.",
+    "cartEmpty": "Your cart is empty.",
+    "stockInsufficient": "Not enough stock for \"{name}\". Update your cart.",
+    "justSold": "\"{name}\" has just sold out. Update your cart.",
+    "currentPasswordRequired": "Enter your current password.",
+    "currentPasswordWrong": "Current password is wrong.",
+    "loginForWishlist": "Sign in to save favourites.",
+    "productNotFound": "Product not found.",
+    "loginForReview": "Sign in to write a review.",
+    "ratingRequired": "Choose a rating.",
+    "reviewMin": "Your review must be at least 10 characters long."
+  },
+  "notices": {
+    "addedToCart": "{name} added to cart.",
+    "promoApplied": "Code {code} applied.",
+    "profileUpdated": "Profile updated.",
+    "addressSaved": "Address saved.",
+    "passwordChanged": "Password changed.",
+    "wishlistAdded": "Added to favourites.",
+    "wishlistRemoved": "Removed from favourites.",
+    "reviewPublished": "Thank you, your review is published.",
+    "newsletterDone": "You're subscribed. See you soon."
+  }
+}

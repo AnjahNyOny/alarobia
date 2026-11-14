@@ -24,3 +24,37 @@ test("une adresse inconnue affiche la page 404 de la boutique", async ({ page })
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByRole("banner")).toBeVisible();
 });
+
+test("changer de langue pendant la commande conserve le panier, le code promo et la saisie", async ({ page }) => {
+  await page.goto("/fr/products/gourde-isotherme-foret");
+  await page.getByRole("button", { name: "Ajouter au panier" }).click();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await page.goto("/fr/cart");
+  await page.getByLabel("Code promo").fill("BIENVENUE10");
+  await page.getByRole("button", { name: "Appliquer" }).click();
+  await expect(page.getByText("BIENVENUE10").first()).toBeVisible();
+
+  await page.goto("/fr/checkout");
+  await page.getByLabel("Nom complet").fill("Rakoto Jean");
+  await page.getByLabel("Ville").fill("Antsirabe");
+  await page.getByLabel("Note pour la livraison").fill("Sonner deux fois");
+
+  await page.getByRole("contentinfo").getByRole("link", { name: "Malagasy" }).click();
+  await expect(page).toHaveURL(/\/mg\/checkout$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "mg");
+  await expect(page.getByLabel("Nom complet")).toHaveValue("Rakoto Jean");
+  await expect(page.getByLabel("Ville")).toHaveValue("Antsirabe");
+  await expect(page.getByLabel("Note pour la livraison")).toHaveValue("Sonner deux fois");
+  await expect(page.getByText("Gourde isotherme Forêt")).toBeVisible();
+  await expect(page.getByText(/BIENVENUE10/)).toBeVisible();
+});
+
+test("les messages d'erreur suivent la langue de l'adresse", async ({ page }) => {
+  for (const [locale, message] of [["en", "Wrong email or password."], ["mg", "Diso ny mailaka na ny teny miafina."], ["fr", "E-mail ou mot de passe incorrect."]]) {
+    await page.goto(`/${locale}/login`);
+    await page.getByLabel("Adresse e-mail").fill("personne@example.com");
+    await page.getByLabel("Mot de passe").fill("mauvais-mot-de-passe");
+    await page.getByRole("button", { name: "Se connecter" }).click();
+    await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
+  }
+});

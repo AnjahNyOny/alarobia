@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { Menu, Search } from "lucide-react";
+import { LanguageSwitcher } from "./language-switcher";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function MobileNav({ links, storeName, signedIn }: { links: { href: string; label: string }[]; storeName: string; signedIn: boolean }) {
@@ -30,6 +31,7 @@ export function MobileNav({ links, storeName, signedIn }: { links: { href: strin
           <input name="q" type="search" placeholder="Rechercher un produit" aria-label="Rechercher un produit" className="h-11 w-full rounded-lg border border-input bg-card pr-3 pl-10 text-base outline-none focus-visible:border-ring" />
         </form>
         <div className="mt-auto grid gap-1 border-t px-5 py-4 text-sm text-muted-foreground">
+          <LanguageSwitcher className="pb-2 text-foreground" />
           <Link href={signedIn ? "/account" : "/login"} onClick={() => setOpen(false)} className="py-1.5 text-foreground">
             {signedIn ? "Mon compte" : "Se connecter"}
           </Link>

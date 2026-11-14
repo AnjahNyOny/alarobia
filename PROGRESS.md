@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 14/11/2026** : plan validé, phase 0 terminée.
 
-**Prochaine action** : phase 1, tâche 1.3 (formats selon la langue).
+**Prochaine action** : phase 2, tâche 2.1 (jetons de design et typographie).
 
 ## Décisions en attente
 
@@ -44,10 +44,10 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 
 ### Phase 1 — Trois langues
 - [x] 1.1 Routage par langue et proxy combiné : `/fr`, `/en`, `/mg`, adresses communes en anglais ; 3 tests navigateur dédiés. Écart au plan : pas de redirection des anciennes adresses françaises, le site n'ayant jamais été en ligne.
-- [ ] 1.2 Fichiers de messages, test de parité des clés, glossaire
-- [ ] 1.3 Formats selon la langue (prix, dates, jours)
-- [ ] 1.4 Contenu du catalogue traduit, avec repli sur le français
-- [ ] 1.5 Sélecteur de langue et messages d'erreur traduits
+- [x] 1.2 Fichiers de messages, test de parité des clés, glossaire (`docs/glossaire.md`). Les textes des pages sont ajoutés au fil de leur réécriture (phases 2, 3 et 5), pour ne pas traduire un texte qui va changer.
+- [x] 1.3 Formats selon la langue : « 25 000 Ar », dates et jours en fr, en, mg (malgache écrit à la main, indépendant du navigateur). Les appels existants passent encore `"fr"` ; ils reçoivent la langue du visiteur quand leur page est réécrite.
+- [x] 1.4 Contenu du catalogue traduit : tables de traduction et `localize()` avec repli champ par champ. Branchement dans les pages en phase 2, saisie dans le back-office en 5.1.
+- [x] 1.5 Sélecteur de langue (en-tête, menu mobile, pied de page) ; erreurs et confirmations des actions de la boutique dans la langue du visiteur
 - [ ] Relecture du malgache par le propriétaire (D2)
 
 ### Phase 2 — Identité Alarobia
@@ -96,7 +96,7 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - [ ] 1. Téléphone sans WebGL : aperçu 2D et commande possible
 - [ ] 2. Image envoyée inadaptée : refus expliqué
 - [ ] 3. Texte de personnalisation inattendu
-- [ ] 4. Changement de langue en cours de commande
+- [x] 4. Changement de langue en cours de commande : panier, code promo et saisie conservés (test `e2e/langues.spec.ts`)
 - [ ] 5. Traduction de produit manquante : repli sur le français
 - [ ] 6. Gros montants en ariary à 320 px
 - [ ] 7. Mobile Money déclaré mais non reçu
@@ -116,3 +116,4 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Les tests navigateur ont révélé que l'erreur d'hydratation de la première version n'était pas corrigée (le déplacement du script JSON-LD ne traitait qu'un symptôme). Enquête par élimination, treize essais mesurés : ce n'était ni les notifications, ni les panneaux latéraux, ni le pied de page en lui-même, mais tout composant serveur asynchrone produisant beaucoup de HTML. Défaut du React embarqué dans Next 15.5 ; disparu sous Next 16.
 - Poids ajouté : `vitest`, `@playwright/test` (tests), `next@16`, `react@19.3` (correctif).
 - Tâche 1.1 faite : pages déplacées sous `src/app/[locale]/`, `next-intl` installé, socle de messages avec repli sur le français et test de parité des clés.
+- Phase 1 faite côté infrastructure : 44 tests unitaires, 13 parcours navigateur. Ajustement du plan : les textes des pages ne sont pas traduits « à l'identique » puis réécrits ; chaque page est traduite au moment de sa réécriture.

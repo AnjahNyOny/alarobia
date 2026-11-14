@@ -16,8 +16,8 @@ export function toFieldErrors(error: ZodError): Record<string, string> {
   return out;
 }
 
-export function invalid(error: ZodError): FormState {
-  return { error: "Certains champs sont à corriger.", fieldErrors: toFieldErrors(error) };
+export function invalid(error: ZodError, message = "Certains champs sont à corriger."): FormState {
+  return { error: message, fieldErrors: toFieldErrors(error) };
 }
 
 /** N'accepte que les chemins internes, pour éviter les redirections ouvertes. */
