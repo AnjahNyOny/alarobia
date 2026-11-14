@@ -54,7 +54,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const [settings, user] = await Promise.all([getSettings(), getUser()]);
+  const [settings, user, zones] = await Promise.all([getSettings(), getUser(), db.shippingZone.findMany({ where: { active: true }, select: { priceCents: true, minDays: true, maxDays: true } })]);
   const [related, wished, purchased] = await Promise.all([
     db.product.findMany({ where: { status: "ACTIVE", categoryId: product.categoryId, id: { not: product.id } }, include: cardInclude, take: 4, orderBy: { featured: "desc" } }),
     wishedIds(user?.id),
@@ -169,7 +169,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
             <Disclosure title="Livraison et retours">
               <p>
-                Livraison standard en 3 à 5 jours ouvrés ({formatPrice(settings.shippingStandardCents, currency)}) ou express en 24 à 48 h ({formatPrice(settings.shippingExpressCents, currency)}). Vous disposez de 30 jours après réception pour nous retourner un article non utilisé.{" "}
+                {zones.length > 0 && (
+                  <>
+                    Livraison à partir de {formatPrice(Math.min(...zones.map((z) => z.priceCents)), currency)} selon votre zone, en {Math.min(...zones.map((z) => z.minDays))} à {Math.max(...zones.map((z) => z.maxDays))} jours ouvrés.{" "}
+                  </>
+                )}
+                Vous disposez de 30 jours après réception pour nous retourner un article non utilisé.{" "}
                 <Link href="/help" className="text-foreground underline underline-offset-4">En savoir plus</Link>
               </p>
             </Disclosure>

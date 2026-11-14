@@ -16,6 +16,7 @@ test("toutes les pages du back-office s'affichent", async ({ page }) => {
     ["/admin/products/new", "Nouveau produit"],
     ["/admin/categories", "Catégories"],
     ["/admin/customers", "Clients"],
+    ["/admin/shipping", "Livraison"],
     ["/admin/promotions", "Codes promo"],
     ["/admin/reviews", "Avis clients"],
     ["/admin/settings", "Réglages"],
@@ -50,5 +51,46 @@ test("création d'un produit avec photo, visible en boutique", async ({ page }) 
   await page.goto("/products/plaid-test-en-laine");
   await expect(page.getByRole("heading", { level: 1, name: "Plaid Test en laine" })).toBeVisible();
   await expect(page.getByText("59 900 Ar").first()).toBeVisible();
+  check();
+});
+
+test("zones de livraison : création, validation, visible à la commande, la dernière zone ouverte est protégée", async ({ page }) => {
+  const check = watchErrors(page);
+  await page.goto("/admin/shipping");
+  await page.getByLabel("Nom", { exact: true }).fill("Nosy Be");
+  await page.getByLabel(/Tarif/).fill("20 000");
+  await page.getByLabel("Délai minimal").fill("7");
+  await page.getByLabel("Délai maximal").fill("4");
+  await page.getByRole("button", { name: "Créer la zone" }).click();
+  await expect(page.getByText("Le délai maximal ne peut pas être plus court que le délai minimal.")).toBeVisible();
+  await expect(page.getByLabel("Nom", { exact: true })).toHaveValue("Nosy Be");
+  await page.getByLabel("Délai minimal").fill("4");
+  await page.getByLabel("Délai maximal").fill("7");
+  await page.getByRole("button", { name: "Créer la zone" }).click();
+  await expect(page.getByText("Zone créée.")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Nosy Be/ })).toContainText("20 000 Ar");
+
+  // Côté boutique : la zone est proposée, sans traduction elle garde son nom français.
+  await page.goto("/products/tasse-en-gres-vato");
+  await page.getByRole("button", { name: "Ajouter au panier" }).click();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await page.goto("/mg/checkout");
+  await page.getByRole("radio", { name: /Nosy Be/ }).check();
+  await expect(page.getByText("32 000 Ar")).toBeVisible();
+  await page.goto("/fr/help");
+  await expect(page.getByRole("row", { name: /Nosy Be/ })).toContainText("4 à 7 jours ouvrés");
+
+  // Suppression : la zone disparaît ; on ne peut pas fermer la boutique par mégarde en supprimant la dernière zone ouverte.
+  await page.goto("/admin/shipping");
+  for (const name of ["Nosy Be", "Autres localités", "Grandes villes de province", "Environs d'Antananarivo"]) {
+    await page.getByRole("button", { name: `Supprimer ${name}` }).click();
+    await page.getByRole("button", { name: "Supprimer", exact: true }).click();
+    await expect(page.getByText("Zone supprimée.").last()).toBeVisible();
+    await expect(page.getByRole("row", { name: new RegExp(name) })).toHaveCount(0);
+  }
+  await page.getByRole("button", { name: "Supprimer Antananarivo ville" }).click();
+  await page.getByRole("button", { name: "Supprimer", exact: true }).click();
+  await expect(page.getByText(/C'est la seule zone ouverte/)).toBeVisible();
+  await expect(page.getByRole("row", { name: /Antananarivo ville/ })).toHaveCount(1);
   check();
 });

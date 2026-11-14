@@ -5,20 +5,19 @@ vi.mock("../db", () => ({ db: {} }));
 import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "../pricing";
 import { discountPercent, ratingOf } from "../catalog";
 
-const settings = { shippingStandardCents: 490, shippingExpressCents: 990, freeShippingThresholdCents: 8000 };
+const zone = { priceCents: 500000 };
+const threshold = 15000000;
 
 describe("shippingCost", () => {
-  it("facture la livraison standard sous le seuil", () => {
-    expect(shippingCost("STANDARD", 7999, settings)).toBe(490);
+  it("facture le tarif de la zone sous le seuil de gratuité", () => {
+    expect(shippingCost(zone, 14999900, threshold)).toBe(500000);
   });
-  it("offre la livraison standard à partir du seuil", () => {
-    expect(shippingCost("STANDARD", 8000, settings)).toBe(0);
-  });
-  it("facture toujours l'express", () => {
-    expect(shippingCost("EXPRESS", 50000, settings)).toBe(990);
+  it("offre la livraison à partir du seuil, quelle que soit la zone", () => {
+    expect(shippingCost(zone, 15000000, threshold)).toBe(0);
+    expect(shippingCost({ priceCents: 1500000 }, 20000000, threshold)).toBe(0);
   });
   it("n'offre jamais la livraison quand le seuil vaut 0", () => {
-    expect(shippingCost("STANDARD", 50000, { ...settings, freeShippingThresholdCents: 0 })).toBe(490);
+    expect(shippingCost(zone, 50000000, 0)).toBe(500000);
   });
 });
 

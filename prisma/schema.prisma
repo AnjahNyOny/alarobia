@@ -28,12 +28,14 @@ model Address {
   userId     String  @unique
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName   String
-  line1      String
-  line2      String?
-  postalCode String
+  line1      String // adresse ou lot
+  line2      String? // repère pour le livreur
+  district   String  @default("") // quartier
+  postalCode String  @default("") // facultatif à Madagascar
   city       String
-  country    String
-  phone      String
+  province   String  @default("")
+  country    String  @default("Madagascar")
+  phone      String // forme nationale : 034 12 345 67
 }
 
 model Category {
@@ -142,7 +144,10 @@ model Order {
   email          String
   status         String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
   paymentMethod  String // CARD | COD
-  shippingMethod String // STANDARD | EXPRESS
+  // Nom de la zone de livraison au moment de la commande (copie figée : la zone peut changer ou disparaître).
+  // La colonne garde son ancien nom pour éviter une migration destructive.
+  shippingZone      String    @map("shippingMethod")
+  estimatedDelivery DateTime? // date promise à la commande
   subtotalCents  Int
   discountCents  Int         @default(0)
   shippingCents  Int
@@ -151,9 +156,11 @@ model Order {
   fullName       String
   line1          String
   line2          String?
-  postalCode     String
+  district       String      @default("")
+  postalCode     String      @default("")
   city           String
-  country        String
+  province       String      @default("")
+  country        String      @default("Madagascar")
   phone          String
   trackingNumber String?
   note           String?
@@ -201,9 +208,25 @@ model StoreSettings {
   announcement               String @default("Livraison offerte dès 150 000 Ar d'achat")
   announcementEn             String @default("")
   announcementMg             String @default("")
+  // Obsolètes depuis les zones de livraison (phase 3.2) : plus lus ni écrits. Conservés parce que
+  // `prisma db push` refuse de supprimer une colonne remplie ; à retirer lors du passage à PostgreSQL (phase 7).
   shippingStandardCents      Int    @default(500000)
   shippingExpressCents       Int    @default(1000000)
   freeShippingThresholdCents Int    @default(15000000)
+}
+
+// Zones de livraison, gérées dans le back-office. Délais en jours ouvrés (pas de livraison le dimanche).
+// La première zone active (par position) sert d'exemple sur l'accueil.
+model ShippingZone {
+  id         String  @id @default(cuid())
+  name       String
+  nameEn     String  @default("")
+  nameMg     String  @default("")
+  priceCents Int
+  minDays    Int
+  maxDays    Int
+  position   Int     @default(0)
+  active     Boolean @default(true)
 }
 
 model NewsletterSubscriber {

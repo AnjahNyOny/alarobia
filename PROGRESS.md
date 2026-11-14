@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 faite).
+**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 et 3.2 faites).
 
-**Prochaine action** : phase 3, tâche 3.2 (adresses et zones de livraison). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
+**Prochaine action** : phase 3, tâche 3.3 (paiement Mobile Money et à la livraison). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
 
 ## Décisions en attente
 
@@ -25,6 +25,7 @@ Aucune.
 | 14/11/2026 | D4 : photos existantes pour la démonstration. |
 | 14/11/2026 | D5 : premiers produits personnalisables : tasse, gourde, carnet, sac en toile. |
 | 14/11/2026 | Phase 3 commencée avant la fin de la phase 2, à la demande du propriétaire. Les pages 2.5 et 2.6 gardent leur ancienne mise en page en attendant. |
+| 14/11/2026 | Plafond de 20 000 000 Ar par montant validé par le propriétaire. |
 | 14/11/2026 | Passage à Next 16 et React 19.3 : seule façon trouvée d'éliminer les erreurs d'hydratation intermittentes (mesuré). |
 
 ## Avancement
@@ -62,7 +63,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 
 ### Phase 3 — Commerce malgache
 - [x] 3.1 Ariary et nouveau catalogue de démonstration : devise MGA par défaut, 27 produits et 6 rayons en fr, en, mg (`prisma/catalog.mjs`), clients malgaches, plafond de 20 000 000 Ar par montant. Vérifié : 65 tests unitaires, 15 parcours navigateur, captures à 320 et 1440 px
-- [ ] 3.2 Adresses et zones de livraison
+- [x] 3.2 Adresses et zones de livraison : adresse malgache (lot, quartier, repère, ville, province, téléphone +261, code postal facultatif), zones gérées dans le back-office (`/admin/shipping`), date promise calculée par zone. Vérifié : 86 tests unitaires, 18 parcours navigateur, captures à 320 et 1440 px
 - [ ] 3.3 Paiement Mobile Money et à la livraison
 - [ ] 3.4 Renommage complet
 
@@ -128,3 +129,15 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Malgache : le catalogue de démonstration est rédigé par Claude et reste à relire ; les caractéristiques des produits ne sont pas traduites en malgache et s'affichent en français (repli prévu). Les termes confirmés dans le glossaire (komandy, ny tianko) sont appliqués à `messages/mg.json`.
 - Non fait en 3.1, prévu plus loin : adresses et téléphone du formulaire de commande (3.2), carte bancaire encore proposée (3.3), références « SV- » et adresses `@seve.example` (3.4).
 - État des vérifications : 65 tests unitaires, 15 parcours navigateur, lint, types et compilation propres.
+- Tâche 3.2 faite. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Le client choisit sa zone de livraison** à la commande (liste avec tarif, délai et date promise). Elle n'est pas déduite de l'adresse : « Antananarivo ville » et « environs » ne se distinguent pas par la province. Le vendeur vérifie la cohérence en préparant la commande.
+  - **Les modes « standard » et « express » disparaissent** au profit des zones. Le seuil de gratuité vaut pour toutes les zones.
+  - **Téléphone malgache obligatoire** (03x ou 020, avec ou sans +261), enregistré sous la forme « 034 12 345 67 ». Un numéro étranger est refusé : le livreur doit pouvoir appeler.
+  - **Plus de champ « pays »** : la boutique ne livre qu'à Madagascar. Le « complément d'adresse » devient un **repère** pour le livreur.
+  - La commande garde le nom de la zone (en français) et la date promise ; supprimer ou modifier une zone ne touche pas l'historique. La dernière zone ouverte ne peut être ni fermée ni supprimée.
+  - Les dates promises sont calculées à l'heure de Madagascar (`madagascarTime`), pas à celle du serveur.
+- Base : aucune colonne supprimée (Prisma refuse de supprimer une colonne remplie sans option destructive). `StoreSettings.shippingStandardCents` et `shippingExpressCents` ne servent plus ; `Order.shippingZone` occupe l'ancienne colonne `shippingMethod`. À nettoyer lors du passage à PostgreSQL (phase 7).
+- Débordement à 320 px corrigé sur la commande en malgache (un `fieldset` ne rétrécit pas sans `min-w-0`).
+- Reste français en dur dans la commande et le compte : titres d'étapes, paiement, récapitulatif (tâche 2.6). Les champs d'adresse et les zones sont traduits.
+- État des vérifications : 86 tests unitaires, 18 parcours navigateur, lint, types et compilation propres.
+

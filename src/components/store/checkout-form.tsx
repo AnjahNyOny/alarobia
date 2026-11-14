@@ -1,13 +1,18 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CreditCard, Info, Lock, Truck, Wallet, Zap } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { CreditCard, Info, Lock, Truck, Wallet } from "lucide-react";
 import { placeOrder } from "@/actions/checkout";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { formatPrice } from "@/lib/format";
+import { AddressFields, type AddressDefaults } from "./address-fields";
 import { cn } from "@/lib/utils";
 
-type Defaults = Partial<Record<"email" | "fullName" | "line1" | "line2" | "postalCode" | "city" | "country" | "phone", string>>;
+type Defaults = AddressDefaults & { email?: string };
+
+/** Zone proposée au client : textes et montant déjà préparés côté serveur, dans sa langue. */
+export type ZoneChoice = { id: string; name: string; detail: string; costCents: number };
 
 function Choice({
   name,
@@ -31,12 +36,12 @@ function Choice({
   return (
     <label className={cn("flex cursor-pointer items-start gap-3.5 rounded-lg border bg-card p-4 transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/30", checked ? "border-foreground" : "border-input hover:border-foreground/40")}>
       <input type="radio" name={name} value={value} checked={checked} onChange={() => onChange(value)} className="mt-1 size-4 accent-[var(--primary)]" />
-      <Icon className="mt-0.5 size-5 shrink-0" strokeWidth={1.6} />
-      <span className="flex-1">
+      <Icon className="mt-0.5 hidden size-5 shrink-0 sm:block" strokeWidth={1.6} />
+      <span className="min-w-0 flex-1">
         <span className="block text-sm font-medium">{title}</span>
         <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">{description}</span>
       </span>
-      {aside && <span className="text-sm font-medium tabular-nums">{aside}</span>}
+      {aside && <span className="text-sm font-medium whitespace-nowrap tabular-nums">{aside}</span>}
     </label>
   );
 }
@@ -55,30 +60,29 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 
 export function CheckoutForm({
   defaults,
-  countries,
+  zones,
   currency,
   baseCents,
-  standardCents,
-  expressCents,
   signedIn,
   children,
 }: {
   defaults: Defaults;
-  countries: string[];
+  /** Zones de livraison actives, dans l'ordre du back-office. Jamais vide : la page ne rend pas le formulaire sans zone. */
+  zones: ZoneChoice[];
   currency: string;
   /** Sous-total après réduction, hors livraison. */
   baseCents: number;
-  standardCents: number;
-  expressCents: number;
   signedIn: boolean;
   /** Récapitulatif des articles, rendu côté serveur. */
   children: React.ReactNode;
 }) {
   const [state, action] = useActionState(placeOrder, {});
-  const [shipping, setShipping] = useState("STANDARD");
+  const t = useTranslations("delivery");
+  const locale = useLocale();
+  const [zoneId, setZoneId] = useState(zones[0].id);
   const [payment, setPayment] = useState("CARD");
   const e = state.fieldErrors ?? {};
-  const shippingCents = shipping === "EXPRESS" ? expressCents : standardCents;
+  const shippingCents = (zones.find((z) => z.id === zoneId) ?? zones[0]).costCents;
 
   return (
     <Form action={action} draftKey="brouillon-commande" className="mt-8 grid gap-10 *:min-w-0 lg:grid-cols-[1fr_400px] lg:gap-16">
@@ -89,30 +93,26 @@ export function CheckoutForm({
 
         <Step n={2} title="Adresse de livraison">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field className="sm:col-span-2" label="Nom complet" name="fullName" autoComplete="name" defaultValue={defaults.fullName} error={e.fullName} required />
-            <Field className="sm:col-span-2" label="Adresse" name="line1" autoComplete="address-line1" defaultValue={defaults.line1} error={e.line1} required />
-            <Field className="sm:col-span-2" label="Complément d'adresse" name="line2" autoComplete="address-line2" defaultValue={defaults.line2} error={e.line2} optional />
-            <Field label="Code postal" name="postalCode" autoComplete="postal-code" defaultValue={defaults.postalCode} error={e.postalCode} required />
-            <Field label="Ville" name="city" autoComplete="address-level2" defaultValue={defaults.city} error={e.city} required />
-            <Field as="select" label="Pays" name="country" autoComplete="country-name" defaultValue={defaults.country ?? countries[0]} error={e.country}>
-              {countries.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </Field>
-            <Field label="Téléphone" name="phone" type="tel" autoComplete="tel" defaultValue={defaults.phone} error={e.phone} required hint="Pour le transporteur, le jour de la livraison." />
+            <AddressFields defaults={defaults} errors={e} />
           </div>
         </Step>
 
-        <Step n={3} title="Mode de livraison">
-          <fieldset className="grid gap-3">
-            <legend className="sr-only">Mode de livraison</legend>
-            <Choice name="shippingMethod" value="STANDARD" checked={shipping === "STANDARD"} onChange={setShipping} icon={Truck} title="Standard" description="3 à 5 jours ouvrés, avec suivi" aside={standardCents === 0 ? "Offerte" : formatPrice(standardCents, currency)} />
-            <Choice name="shippingMethod" value="EXPRESS" checked={shipping === "EXPRESS"} onChange={setShipping} icon={Zap} title="Express" description="24 à 48 h, remise contre signature" aside={formatPrice(expressCents, currency)} />
+        <Step n={3} title={t("legend")}>
+          <fieldset className="grid min-w-0 gap-3">
+            <legend className="sr-only">{t("legend")}</legend>
+            {zones.map((zone) => (
+              <Choice key={zone.id} name="shippingZoneId" value={zone.id} checked={zoneId === zone.id} onChange={setZoneId} icon={Truck} title={zone.name} description={zone.detail} aside={zone.costCents === 0 ? t("free") : formatPrice(zone.costCents, currency, locale)} />
+            ))}
           </fieldset>
+          {e.shippingZoneId && (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              {e.shippingZoneId}
+            </p>
+          )}
         </Step>
 
         <Step n={4} title="Paiement">
-          <fieldset className="grid gap-3">
+          <fieldset className="grid min-w-0 gap-3">
             <legend className="sr-only">Moyen de paiement</legend>
             <Choice name="paymentMethod" value="CARD" checked={payment === "CARD"} onChange={setPayment} icon={CreditCard} title="Carte bancaire" description="Visa, Mastercard, CB" />
             <Choice name="paymentMethod" value="COD" checked={payment === "COD"} onChange={setPayment} icon={Wallet} title="Paiement à la livraison" description="Réglez en espèces ou par carte au livreur" />
@@ -133,12 +133,12 @@ export function CheckoutForm({
         <dl className="mt-5 grid gap-2.5 border-t pt-5 text-sm tabular-nums">
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Livraison</dt>
-            <dd>{shippingCents === 0 ? "Offerte" : formatPrice(shippingCents, currency)}</dd>
+            <dd>{shippingCents === 0 ? t("free") : formatPrice(shippingCents, currency, locale)}</dd>
           </div>
           <div className="mt-1.5 flex items-baseline justify-between border-t pt-4 text-base">
             <dt className="font-medium">Total</dt>
             <dd className="text-xl font-medium" aria-live="polite">
-              {formatPrice(baseCents + shippingCents, currency)}
+              {formatPrice(baseCents + shippingCents, currency, locale)}
             </dd>
           </div>
           <p className="text-[0.8125rem] text-muted-foreground">Taxes incluses</p>

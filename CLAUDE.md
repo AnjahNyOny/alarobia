@@ -53,7 +53,7 @@ Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind v4, shad
 prisma/schema.prisma     modèle de données (statuts en chaînes : SQLite n'a pas d'enum)
 prisma/seed.mjs          données de démonstration, déterministes
 src/actions/             actions serveur : toute écriture en base passe par ici
-src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schemas Zod, format
+src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schemas Zod, format, address (provinces, téléphone), shipping (zones, dates promises)
 src/components/ui/       shadcn/ui
 src/components/store/    boutique
 src/components/admin/    back-office
@@ -100,8 +100,10 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Turbopack en dev** peut ignorer des fichiers créés pendant qu'il tourne (404 sur une page qui existe, erreurs d'hydratation fantômes). Redémarrer le serveur et supprimer `.next` avant de conclure à un bug.
 - **Erreurs d'hydratation (#418) : ne pas redescendre sous Next 16.** Sous Next 15.5, React démarrait parfois l'hydratation avant d'avoir reçu toutes les données d'un composant serveur asynchrone, et se décalait par rapport au HTML : erreur intermittente, uniquement avec le JavaScript en cache, jusqu'à 25 % des chargements sous charge. Next 16 corrige le défaut (0 erreur sur 2 400 chargements). Le banc d'essai est dans le dépôt : `node scripts/stress-hydratation.mjs http://localhost:3100 /aide 600` contre un serveur de production. Deux précautions prises pendant l'enquête sont conservées : la mise en page charge ses données une seule fois (`loadShell`) au lieu d'avoir plusieurs composants asynchrones côte à côte, et les boutons de menu ont un `id` fixe.
 - **Prisma refuse `db push --force-reset` lancé par un agent.** C'est voulu. Pour repartir de zéro, `npm run db:seed` vide et remplit les tables ; `npm run db:reset` est à lancer par le propriétaire.
-- **Débordement horizontal** : dans un test en émulation mobile, comparer `scrollWidth` à `clientWidth` (`innerWidth` s'élargit avec le contenu et masque le défaut). Deux causes déjà rencontrées : une colonne de grille sans `min-w-0`, et un `sr-only` dans un conteneur `overflow-x-auto` qui n'est pas `relative`.
+- **Débordement horizontal** : dans un test en émulation mobile, comparer `scrollWidth` à `clientWidth` (`innerWidth` s'élargit avec le contenu et masque le défaut). Deux causes déjà rencontrées : une colonne de grille ou un `fieldset` sans `min-w-0`, et un `sr-only` dans un conteneur `overflow-x-auto` qui n'est pas `relative`.
 - **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar) dans `src/lib/pricing.ts`.
+- **Dates de livraison** : partir de `madagascarTime()` (`src/lib/shipping.ts`), jamais de `new Date()` seul : le serveur peut tourner dans un autre fuseau.
+- **Schéma Prisma** : `db push` refuse de supprimer une colonne remplie. Ajouter des colonnes avec une valeur par défaut ; les colonnes devenues inutiles sont marquées « obsolètes » dans le schéma.
 - **Recherche de photos** : l'interface non officielle d'Unsplash est bloquée dans cet environnement. Utiliser les photos de `public/products/` ou celles fournies par le propriétaire.
 
 ## Limites actuelles (voir phase 7)

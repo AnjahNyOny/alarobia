@@ -36,14 +36,18 @@ test("changer de langue pendant la commande conserve le panier, le code promo et
 
   await page.goto("/fr/checkout");
   await page.getByLabel("Nom complet").fill("Rakoto Jean");
-  await page.getByLabel("Ville").fill("Antsirabe");
+  await page.getByLabel("Ville", { exact: true }).fill("Antsirabe");
+  await page.getByLabel("Province", { exact: true }).selectOption("Antananarivo");
   await page.getByLabel("Note pour la livraison").fill("Sonner deux fois");
 
   await page.getByRole("contentinfo").getByRole("link", { name: "Malagasy" }).click();
   await expect(page).toHaveURL(/\/mg\/checkout$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "mg");
-  await expect(page.getByLabel("Nom complet")).toHaveValue("Rakoto Jean");
-  await expect(page.getByLabel("Ville")).toHaveValue("Antsirabe");
+  // Les libellés de l'adresse passent en malgache, la saisie reste.
+  await expect(page.getByLabel("Anarana feno")).toHaveValue("Rakoto Jean");
+  await expect(page.getByLabel("Tanàna", { exact: true })).toHaveValue("Antsirabe");
+  await expect(page.getByLabel("Faritany")).toHaveValue("Antananarivo");
+  await expect(page.getByRole("radio", { name: /Antananarivo renivohitra/ })).toBeVisible();
   await expect(page.getByLabel("Note pour la livraison")).toHaveValue("Sonner deux fois");
   await expect(page.getByText("Gourde isotherme Forêt")).toBeVisible();
   await expect(page.getByText(/BIENVENUE10/)).toBeVisible();

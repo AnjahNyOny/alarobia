@@ -7,8 +7,7 @@
     "required": "Ce champ est requis.",
     "emailInvalid": "Adresse e-mail invalide.",
     "passwordMin": "8 caractères minimum.",
-    "phoneInvalid": "Numéro de téléphone invalide.",
-    "countryUnsupported": "Nous ne livrons pas encore dans ce pays.",
+    "phoneInvalid": "Indiquez un numéro malgache, par exemple 034 12 345 67.",
     "nameRequired": "Indiquez votre nom.",
     "emailTaken": "Un compte existe déjà avec cette adresse.",
     "invalidCredentials": "E-mail ou mot de passe incorrect.",
@@ -31,7 +30,10 @@
     "productNotFound": "Produit introuvable.",
     "loginForReview": "Connectez-vous pour donner votre avis.",
     "ratingRequired": "Choisissez une note.",
-    "reviewMin": "Votre avis doit contenir au moins 10 caractères."
+    "reviewMin": "Votre avis doit contenir au moins 10 caractères.",
+    "provinceRequired": "Choisissez une province.",
+    "postalCodeInvalid": "Le code postal compte trois chiffres, par exemple 101.",
+    "zoneRequired": "Choisissez une zone de livraison."
   },
   "notices": {
     "addedToCart": "{name} ajouté au panier.",
@@ -43,6 +45,30 @@
     "wishlistRemoved": "Retiré des favoris.",
     "reviewPublished": "Merci, votre avis est publié.",
     "newsletterDone": "Inscription confirmée. À très vite."
+  },
+  "address": {
+    "fullName": "Nom complet",
+    "phone": "Téléphone",
+    "phoneHint": "Le livreur vous appelle avant de passer.",
+    "line1": "Adresse ou lot",
+    "district": "Quartier",
+    "city": "Ville",
+    "province": "Province",
+    "provinceChoose": "Choisir une province",
+    "postalCode": "Code postal",
+    "landmark": "Repère",
+    "landmarkPlaceholder": "En face de l'épicerie, portail bleu…",
+    "optional": "facultatif",
+    "save": "Enregistrer l'adresse"
+  },
+  "delivery": {
+    "legend": "Zone de livraison",
+    "delayRange": "{min} à {max} jours ouvrés",
+    "delaySingle": "{days, plural, one {# jour ouvré} other {# jours ouvrés}}",
+    "by": "au plus tard {date}",
+    "free": "Offerte",
+    "none": "Aucune zone de livraison n'est ouverte pour le moment. Écrivez-nous à {email} pour commander.",
+    "expected": "Livraison prévue au plus tard {date}"
   },
   "nav": {
     "skip": "Aller au contenu",
@@ -71,7 +97,7 @@
       "today": "Aujourd'hui",
       "delivered": "Livré",
       "noDelivery": "Pas de livraison",
-      "note": "Livraison standard, hors dimanche."
+      "note": "Pour {zone}. Pas de livraison le dimanche."
     },
     "aisles": {
       "title": "Les rayons",

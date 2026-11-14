@@ -11,7 +11,8 @@ type FieldProps = {
   name: string;
   error?: string;
   hint?: string;
-  optional?: boolean;
+  /** `true` affiche « facultatif » ; une chaîne remplace ce mot (texte traduit). */
+  optional?: boolean | string;
   className?: string;
   as?: "input" | "textarea" | "select";
   children?: React.ReactNode;
@@ -29,7 +30,7 @@ export function Field({ label, name, error, hint, optional, className, as = "inp
     <div className={cn("grid content-start gap-1.5", className)}>
       <label htmlFor={id} className="text-sm font-medium">
         {label}
-        {optional && <span className="ml-1.5 font-normal text-muted-foreground">facultatif</span>}
+        {optional && <span className="ml-1.5 font-normal text-muted-foreground">{optional === true ? "facultatif" : optional}</span>}
       </label>
       {as === "textarea" ? (
         <textarea {...shared} {...props} className={cn(control, "min-h-24 py-2.5 leading-relaxed")} />

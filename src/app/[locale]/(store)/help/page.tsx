@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { ChevronDown } from "lucide-react";
 import { formatPrice } from "@/lib/format";
+import { getLocale, getTranslations } from "next-intl/server";
+import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
+import { zoneName } from "@/lib/shipping";
 
 export const metadata: Metadata = { title: "Livraison, retours et aide", description: "Délais et frais de livraison, conditions de retour et réponses aux questions fréquentes." };
 
 export default async function HelpPage() {
-  const s = await getSettings();
+  const [s, zones, locale, t] = await Promise.all([getSettings(), db.shippingZone.findMany({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] }), getLocale(), getTranslations("delivery")]);
   const faq = [
     ["Puis-je commander sans créer de compte ?", "Oui. Une adresse e-mail suffit pour recevoir la confirmation. Créer un compte permet en plus de suivre vos commandes et d'enregistrer votre adresse."],
     ["Comment utiliser un code promo ?", "Saisissez-le dans le panier, avant de passer la commande. La réduction s'affiche immédiatement dans le récapitulatif. Un seul code par commande."],
@@ -25,29 +28,26 @@ export default async function HelpPage() {
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>
-                  <th scope="col" className="px-4 py-3 font-medium">Mode</th>
+                  <th scope="col" className="px-4 py-3 font-medium">Zone</th>
                   <th scope="col" className="px-4 py-3 font-medium">Délai</th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">Tarif</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                <tr>
-                  <th scope="row" className="px-4 py-3 font-medium">Standard</th>
-                  <td className="px-4 py-3">3 à 5 jours ouvrés</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatPrice(s.shippingStandardCents, s.currency)}
-                    {s.freeShippingThresholdCents > 0 && <span className="block text-muted-foreground">offerte dès {formatPrice(s.freeShippingThresholdCents, s.currency)}</span>}
-                  </td>
-                </tr>
-                <tr>
-                  <th scope="row" className="px-4 py-3 font-medium">Express</th>
-                  <td className="px-4 py-3">24 à 48 h</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{formatPrice(s.shippingExpressCents, s.currency)}</td>
-                </tr>
+                {zones.map((zone) => (
+                  <tr key={zone.id}>
+                    <th scope="row" className="px-4 py-3 font-medium">{zoneName(zone, locale)}</th>
+                    <td className="px-4 py-3">{zone.minDays === zone.maxDays ? t("delaySingle", { days: zone.maxDays }) : t("delayRange", { min: zone.minDays, max: zone.maxDays })}</td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">{zone.priceCents === 0 ? t("free") : formatPrice(zone.priceCents, s.currency, locale)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-4 leading-relaxed text-muted-foreground">Les commandes passées avant 13 h partent le jour même. Un numéro de suivi vous est communiqué dès l'expédition ; vous le retrouvez aussi dans votre espace client.</p>
+          <p className="mt-4 leading-relaxed text-muted-foreground">
+            {s.freeShippingThresholdCents > 0 && <>La livraison est offerte dès {formatPrice(s.freeShippingThresholdCents, s.currency, locale)} d'achat, quelle que soit la zone. </>}
+            Nous ne livrons pas le dimanche. Le livreur vous appelle avant de passer : indiquez un numéro où vous êtes joignable et, si possible, un repère près de chez vous.
+          </p>
         </section>
 
         <section id="retours" className="mt-14 scroll-mt-24">

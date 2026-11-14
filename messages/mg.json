@@ -7,8 +7,7 @@
     "required": "Ilaina ity saha ity.",
     "emailInvalid": "Tsy mety ny adiresy mailaka.",
     "passwordMin": "Litera 8 farafahakeliny.",
-    "phoneInvalid": "Tsy mety ny laharana finday.",
-    "countryUnsupported": "Tsy mbola manatitra any amin'io firenena io izahay.",
+    "phoneInvalid": "Laharana malagasy no ampidiro, ohatra 034 12 345 67.",
     "nameRequired": "Soraty ny anaranao.",
     "emailTaken": "Efa misy kaonty mampiasa io adiresy io.",
     "invalidCredentials": "Diso ny mailaka na ny teny miafina.",
@@ -31,7 +30,10 @@
     "productNotFound": "Tsy hita ny entana.",
     "loginForReview": "Midira mba hanome ny hevitrao.",
     "ratingRequired": "Misafidiana naoty.",
-    "reviewMin": "Litera 10 farafahakeliny ny hevitrao."
+    "reviewMin": "Litera 10 farafahakeliny ny hevitrao.",
+    "provinceRequired": "Safidio ny faritany.",
+    "postalCodeInvalid": "Tarehimarika telo ny kaody paositra, ohatra 101.",
+    "zoneRequired": "Safidio ny faritra fanaterana."
   },
   "notices": {
     "addedToCart": "Tafiditra ao anaty harona ny {name}.",
@@ -43,6 +45,30 @@
     "wishlistRemoved": "Nesorina tao amin'ny tianko.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
     "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona."
+  },
+  "address": {
+    "fullName": "Anarana feno",
+    "phone": "Laharana finday",
+    "phoneHint": "Miantso anao ny mpanatitra alohan'ny hahatongavany.",
+    "line1": "Adiresy na lot",
+    "district": "Fokontany",
+    "city": "Tanàna",
+    "province": "Faritany",
+    "provinceChoose": "Safidio ny faritany",
+    "postalCode": "Kaody paositra",
+    "landmark": "Famantarana",
+    "landmarkPlaceholder": "Tandrifin'ny mpivarotra, vavahady manga…",
+    "optional": "tsy voatery",
+    "save": "Tehirizo ny adiresy"
+  },
+  "delivery": {
+    "legend": "Faritra fanaterana",
+    "delayRange": "{min} ka hatramin'ny {max} andro fiasana",
+    "delaySingle": "{days, plural, other {# andro fiasana}}",
+    "by": "farafahatarany {date}",
+    "free": "Maimaim-poana",
+    "none": "Tsy misy faritra fanaterana misokatra amin'izao. Manorata aminay amin'ny {email} raha hanao komandy.",
+    "expected": "Ho tonga farafahatarany {date}"
   },
   "nav": {
     "skip": "Hiditra amin'ny votoatiny",
@@ -71,7 +97,7 @@
       "today": "Anio",
       "delivered": "Tonga",
       "noDelivery": "Tsy misy fanaterana",
-      "note": "Fanaterana tsotra, tsy misy ny alahady."
+      "note": "Ho an'ny {zone}. Tsy misy fanaterana ny alahady."
     },
     "aisles": {
       "title": "Ireo sokajy",

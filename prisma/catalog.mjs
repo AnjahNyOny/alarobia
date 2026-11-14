@@ -12,10 +12,17 @@ export const settings = {
   announcement: "Livraison offerte dès 150 000 Ar d'achat",
   announcementEn: "Free delivery on orders over Ar 150,000",
   announcementMg: "Fanaterana maimaim-poana raha mividy 150 000 Ar na mihoatra",
-  shippingStandardCents: 5_000 * 100,
-  shippingExpressCents: 10_000 * 100,
   freeShippingThresholdCents: 150_000 * 100,
 };
+
+// Zones de livraison, de la plus proche à la plus lointaine. Délais en jours ouvrés (pas de livraison le dimanche).
+// La première sert d'exemple sur l'accueil (« Commandé aujourd'hui, livré… »).
+export const shippingZones = [
+  { name: "Antananarivo ville", nameEn: "Antananarivo city", nameMg: "Antananarivo renivohitra", priceCents: 3_000 * 100, minDays: 1, maxDays: 2 },
+  { name: "Environs d'Antananarivo", nameEn: "Around Antananarivo", nameMg: "Manodidina an'Antananarivo", priceCents: 5_000 * 100, minDays: 2, maxDays: 3 },
+  { name: "Grandes villes de province", nameEn: "Main provincial towns", nameMg: "Tanàn-dehibe any amin'ny faritany", priceCents: 10_000 * 100, minDays: 3, maxDays: 5 },
+  { name: "Autres localités", nameEn: "Other places", nameMg: "Toerana hafa", priceCents: 15_000 * 100, minDays: 5, maxDays: 8 },
+];
 
 export const categories = [
   {
@@ -475,16 +482,16 @@ export const products = [
   },
 ];
 
-// Le premier client est le compte de démonstration (client@…).
+// Le premier client est le compte de démonstration (client@…). `zone` : rang de sa zone de livraison dans `shippingZones`.
 export const customers = [
-  { email: "client@seve.example", name: "Hery Rakotomalala", line1: "Lot II M 45 Ankadivato", postalCode: "101", city: "Antananarivo", country: "Madagascar", phone: "034 12 345 67" },
-  { email: "voahirana.razafy@example.com", name: "Voahirana Razafindrakoto", line1: "Lot 12 B Ambohimena", postalCode: "110", city: "Antsirabe", country: "Madagascar", phone: "033 45 210 98" },
-  { email: "tiana.andria@example.com", name: "Tiana Andrianarisoa", line1: "Lot IVG 203 Antanimena", postalCode: "101", city: "Antananarivo", country: "Madagascar", phone: "032 07 654 32" },
-  { email: "fanja.rasoa@example.com", name: "Fanja Rasoanaivo", line1: "Lot 31 Ampasambazaha", postalCode: "301", city: "Fianarantsoa", country: "Madagascar", phone: "034 88 120 45" },
-  { email: "mamy.randria@example.com", name: "Mamy Randrianasolo", line1: "14 boulevard Joffre, Anjoma", postalCode: "501", city: "Toamasina", country: "Madagascar", phone: "038 21 776 03" },
-  { email: "lalao.ravelo@example.com", name: "Lalao Ravelojaona", line1: "Lot 8 Mahabibo", postalCode: "401", city: "Mahajanga", country: "Madagascar", phone: "033 19 402 57" },
-  { email: "njaka.rabe@example.com", name: "Njaka Rabemananjara", line1: "22 rue Colbert, Tanambao", postalCode: "201", city: "Antsiranana", country: "Madagascar", phone: "032 54 903 11" },
-  { email: "soa.rakoto@example.com", name: "Soa Rakotondrabe", line1: "Lot 27 Sanfily", postalCode: "601", city: "Toliara", country: "Madagascar", phone: "034 60 318 74" },
+  { email: "client@seve.example", name: "Hery Rakotomalala", line1: "Lot II M 45", district: "Ankadivato", postalCode: "101", city: "Antananarivo", province: "Antananarivo", zone: 0, country: "Madagascar", phone: "034 12 345 67" },
+  { email: "voahirana.razafy@example.com", name: "Voahirana Razafindrakoto", line1: "Lot 12 B", district: "Ambohimena", postalCode: "110", city: "Antsirabe", province: "Antananarivo", zone: 2, country: "Madagascar", phone: "033 45 210 98" },
+  { email: "tiana.andria@example.com", name: "Tiana Andrianarisoa", line1: "Lot IVG 203", district: "Antanimena", line2: "Près de la pharmacie", postalCode: "101", city: "Antananarivo", province: "Antananarivo", zone: 0, country: "Madagascar", phone: "032 07 654 32" },
+  { email: "fanja.rasoa@example.com", name: "Fanja Rasoanaivo", line1: "Lot 31", district: "Ampasambazaha", postalCode: "301", city: "Fianarantsoa", province: "Fianarantsoa", zone: 2, country: "Madagascar", phone: "034 88 120 45" },
+  { email: "mamy.randria@example.com", name: "Mamy Randrianasolo", line1: "14 boulevard Joffre", district: "Anjoma", postalCode: "501", city: "Toamasina", province: "Toamasina", zone: 2, country: "Madagascar", phone: "038 21 776 03" },
+  { email: "lalao.ravelo@example.com", name: "Lalao Ravelojaona", line1: "Lot 8", district: "Mahabibo", postalCode: "401", city: "Mahajanga", province: "Mahajanga", zone: 2, country: "Madagascar", phone: "033 19 402 57" },
+  { email: "njaka.rabe@example.com", name: "Njaka Rabemananjara", line1: "22 rue Colbert", district: "Tanambao", postalCode: "201", city: "Antsiranana", province: "Antsiranana", zone: 2, country: "Madagascar", phone: "032 54 903 11" },
+  { email: "soa.rakoto@example.com", name: "Soa Rakotondrabe", line1: "Lot 27", district: "Sanfily", postalCode: "601", city: "Toliara", province: "Toliara", zone: 3, country: "Madagascar", phone: "034 60 318 74" },
 ];
 
 export const promoCodes = [

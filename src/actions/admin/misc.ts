@@ -71,8 +71,6 @@ const settingsSchema = z.object({
   contactEmail: emailSchema,
   currency: z.enum(["EUR", "USD", "CHF", "CAD", "MGA"]),
   announcement: z.string().trim().max(120).default(""),
-  shippingStandard: amount("Montant invalide."),
-  shippingExpress: amount("Montant invalide."),
   freeShippingThreshold: amount("Montant invalide."),
 });
 
@@ -80,13 +78,8 @@ export async function saveSettings(_: FormState, formData: FormData): Promise<Fo
   await requireAdmin();
   const parsed = settingsSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error);
-  const { shippingStandard, shippingExpress, freeShippingThreshold, ...rest } = parsed.data;
-  const data = {
-    ...rest,
-    shippingStandardCents: shippingStandard,
-    shippingExpressCents: shippingExpress,
-    freeShippingThresholdCents: freeShippingThreshold,
-  };
+  const { freeShippingThreshold, ...rest } = parsed.data;
+  const data = { ...rest, freeShippingThresholdCents: freeShippingThreshold };
   await db.storeSettings.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
   revalidatePath("/", "layout");
   return { ok: true, message: "Réglages enregistrés." };

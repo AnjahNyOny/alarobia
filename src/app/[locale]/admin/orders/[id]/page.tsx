@@ -6,9 +6,10 @@ import { OrderForm } from "@/components/admin/order-form";
 import { Card, PageHeader } from "@/components/admin/ui";
 import { OrderStatus } from "@/components/order-status";
 import { TotalsRows } from "@/components/store/summary";
-import { PAYMENT_LABEL, SHIPPING_LABEL } from "@/lib/constants";
+import { addressLines } from "@/lib/address";
+import { PAYMENT_LABEL } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { formatDateTime, formatPrice } from "@/lib/format";
+import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Commande" };
@@ -69,17 +70,15 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               <div>
                 <p className="text-xs font-medium text-muted-foreground">Livraison</p>
                 <address className="mt-1 leading-relaxed not-italic">
-                  {order.fullName}<br />
-                  {order.line1}<br />
-                  {order.line2 && <>{order.line2}<br /></>}
-                  {order.postalCode} {order.city}<br />
-                  {order.country}<br />
-                  {order.phone}
+                  {addressLines(order).map((line) => (
+                    <span key={line} className="block">{line}</span>
+                  ))}
                 </address>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Mode</p>
-                <p className="mt-1">{SHIPPING_LABEL[order.shippingMethod]}</p>
+                <p className="text-xs font-medium text-muted-foreground">Zone et paiement</p>
+                <p className="mt-1">{order.shippingZone}</p>
+                {order.estimatedDelivery && <p className="text-muted-foreground">Promise au plus tard {formatDate(order.estimatedDelivery, "fr", "weekday")}</p>}
                 <p>{PAYMENT_LABEL[order.paymentMethod]}</p>
               </div>
             </div>

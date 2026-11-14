@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { categories, customers, products, settings } from "../../../prisma/catalog.mjs";
+import { categories, customers, products, settings, shippingZones } from "../../../prisma/catalog.mjs";
+import { normalizePhone, PROVINCES } from "../address";
 import { formatPrice, slugify } from "../format";
 
 const filled = (value: unknown) => typeof value === "string" && value.trim() !== "";
@@ -71,7 +72,25 @@ describe("clients de démonstration", () => {
     expect(customers.length).toBeGreaterThanOrEqual(6);
     for (const c of customers) {
       expect(c.country, c.name).toBe("Madagascar");
-      expect(c.phone, c.name).toMatch(/^03[2-48] \d{2} \d{3} \d{2}$/);
+      expect(normalizePhone(c.phone), c.name).toBe(c.phone);
+      expect(PROVINCES, c.name).toContain(c.province);
+      expect(filled(c.district), `quartier de ${c.name}`).toBe(true);
+    }
+  });
+});
+
+describe("zones de livraison de démonstration", () => {
+  it("vont de la capitale aux localités éloignées, du moins cher au plus cher", () => {
+    expect(shippingZones.length).toBeGreaterThanOrEqual(3);
+    const prices = shippingZones.map((z) => z.priceCents);
+    expect(prices).toEqual([...prices].sort((a, b) => a - b));
+  });
+  it("ont un nom dans les trois langues, un tarif en ariary entiers et un délai cohérent", () => {
+    for (const z of shippingZones) {
+      for (const key of ["name", "nameEn", "nameMg"] as const) expect(filled(z[key]), `${z.name} : ${key}`).toBe(true);
+      expect(z.priceCents % 100, z.name).toBe(0);
+      expect(z.minDays, z.name).toBeGreaterThanOrEqual(1);
+      expect(z.maxDays, z.name).toBeGreaterThanOrEqual(z.minDays);
     }
   });
 });
@@ -80,7 +99,6 @@ describe("réglages de démonstration", () => {
   it("sont en ariary, avec un bandeau d'annonce dans les trois langues", () => {
     expect(settings.currency).toBe("MGA");
     for (const key of ["announcement", "announcementEn", "announcementMg"] as const) expect(filled(settings[key]), key).toBe(true);
-    expect(settings.shippingStandardCents % 100).toBe(0);
-    expect(settings.freeShippingThresholdCents).toBeGreaterThan(settings.shippingStandardCents);
+    expect(settings.freeShippingThresholdCents).toBeGreaterThan(Math.max(...shippingZones.map((z) => z.priceCents)));
   });
 });

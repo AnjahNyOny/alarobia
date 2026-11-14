@@ -3,7 +3,9 @@
 import { useActionState } from "react";
 import { login, register } from "@/actions/auth";
 import { changePassword, updateAddress, updateProfile } from "@/actions/account";
+import { useTranslations } from "next-intl";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
+import { AddressFields, type AddressDefaults } from "./address-fields";
 
 export function LoginForm({ next }: { next?: string }) {
   const [state, action] = useActionState(login, {});
@@ -53,27 +55,16 @@ export function ProfileForm({ name, phone, email }: { name: string; phone: strin
   );
 }
 
-export function AddressForm({ countries, defaults }: { countries: string[]; defaults: Partial<Record<string, string | null>> }) {
+export function AddressForm({ defaults }: { defaults: AddressDefaults }) {
+  const t = useTranslations("address");
   const [state, action] = useActionState(updateAddress, {});
-  const e = state.fieldErrors ?? {};
-  const d = (k: string) => defaults[k] ?? "";
   return (
     <Form action={action} className="grid gap-4 sm:grid-cols-2">
-      <Field className="sm:col-span-2" label="Nom complet" name="fullName" autoComplete="name" defaultValue={d("fullName")} error={e.fullName} required />
-      <Field className="sm:col-span-2" label="Adresse" name="line1" autoComplete="address-line1" defaultValue={d("line1")} error={e.line1} required />
-      <Field className="sm:col-span-2" label="Complément d'adresse" name="line2" autoComplete="address-line2" defaultValue={d("line2")} optional />
-      <Field label="Code postal" name="postalCode" autoComplete="postal-code" defaultValue={d("postalCode")} error={e.postalCode} required />
-      <Field label="Ville" name="city" autoComplete="address-level2" defaultValue={d("city")} error={e.city} required />
-      <Field as="select" label="Pays" name="country" defaultValue={d("country") || countries[0]} error={e.country}>
-        {countries.map((c) => (
-          <option key={c}>{c}</option>
-        ))}
-      </Field>
-      <Field label="Téléphone" name="phone" type="tel" autoComplete="tel" defaultValue={d("phone")} error={e.phone} required />
+      <AddressFields defaults={defaults} errors={state.fieldErrors ?? {}} />
       <div className="grid gap-3 sm:col-span-2">
         <FormAlert state={state} />
         <div>
-          <SubmitButton>Enregistrer l'adresse</SubmitButton>
+          <SubmitButton>{t("save")}</SubmitButton>
         </div>
       </div>
     </Form>

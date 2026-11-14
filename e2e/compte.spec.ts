@@ -35,3 +35,28 @@ test("un client ne peut pas lire la commande d'un autre", async ({ page }) => {
   await page.goto("/account/orders/inexistante");
   await expect(page).toHaveURL(/login/);
 });
+
+test("adresse du compte : téléphone malgache exigé, adresse proposée ensuite à la commande", async ({ page }) => {
+  const check = watchErrors(page);
+  await login(page, "client@seve.example", "client1234");
+  await page.waitForURL("**/account");
+  await page.goto("/account/profile");
+  // L'adresse de démonstration est préremplie, quartier et province compris.
+  await expect(page.getByLabel("Quartier")).toHaveValue("Ankadivato");
+  await expect(page.getByLabel("Province", { exact: true })).toHaveValue("Antananarivo");
+  await page.getByLabel("Quartier").fill("Isoraka");
+  await page.getByLabel("Code postal").fill("75001");
+  await page.getByRole("button", { name: "Enregistrer l'adresse" }).click();
+  await expect(page.getByText("Le code postal compte trois chiffres, par exemple 101.")).toBeVisible();
+  await page.getByLabel("Code postal").fill("");
+  await page.getByRole("button", { name: "Enregistrer l'adresse" }).click();
+  await expect(page.getByText("Adresse enregistrée.")).toBeVisible();
+
+  await page.goto("/products/tasse-en-gres-vato");
+  await page.getByRole("button", { name: "Ajouter au panier" }).click();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await page.goto("/checkout");
+  await expect(page.getByLabel("Quartier")).toHaveValue("Isoraka");
+  await expect(page.getByLabel("Code postal")).toHaveValue("");
+  check();
+});

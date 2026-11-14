@@ -25,11 +25,10 @@ export const PAYMENT_LABEL: Record<string, string> = {
   COD: "Paiement à la livraison",
 };
 
-export const SHIPPING_LABEL: Record<string, string> = {
-  STANDARD: "Standard (3 à 5 jours ouvrés)",
-  EXPRESS: "Express (24 à 48 h)",
-};
-
-export const COUNTRIES = ["France", "Belgique", "Suisse", "Luxembourg", "Canada", "Madagascar"];
+/**
+ * Plafond d'un montant (prix d'un produit, tarif de livraison, total d'une commande) : 20 000 000 Ar.
+ * Les colonnes de montant sont des entiers 32 bits ; au-delà de 21 474 836 Ar, la base refuse l'écriture.
+ */
+export const MAX_ORDER_CENTS = 2_000_000_000;
 
 export const LOW_STOCK_THRESHOLD = 5;

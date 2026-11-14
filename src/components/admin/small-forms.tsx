@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { createPromo, saveSettings } from "@/actions/admin/misc";
 import { saveCategory } from "@/actions/admin/products";
+import { saveZone } from "@/actions/admin/shipping";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { buttonVariants } from "@/components/ui/button";
 import { centsToInput, currencyLabel } from "@/lib/format";
@@ -42,6 +43,41 @@ export function CategoryForm({ category }: { category?: { id: string; name: stri
   );
 }
 
+type Zone = { id: string; name: string; nameEn: string; nameMg: string; priceCents: number; minDays: number; maxDays: number; position: number; active: boolean };
+
+export function ZoneForm({ zone, currency, nextPosition }: { zone?: Zone; currency: string; nextPosition: number }) {
+  const [state, action] = useActionState(saveZone.bind(null, zone?.id ?? null), {});
+  const form = useRef<HTMLFormElement>(null);
+  const router = useRouter();
+  useToastOnSuccess(state, () => (zone ? router.push("/admin/shipping") : form.current?.reset()));
+  const e = state.fieldErrors ?? {};
+  return (
+    <Form ref={form} action={action} className="grid gap-4" key={zone?.id ?? "new"}>
+      <Field label="Nom" name="name" defaultValue={zone?.name} error={e.name} required placeholder="Antananarivo ville" />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="En anglais" name="nameEn" defaultValue={zone?.nameEn} error={e.nameEn} optional />
+        <Field label="En malgache" name="nameMg" defaultValue={zone?.nameMg} error={e.nameMg} optional />
+      </div>
+      <Field label={`Tarif (${currencyLabel(currency)})`} name="price" inputMode="decimal" defaultValue={centsToInput(zone?.priceCents)} error={e.price} required placeholder="5 000" hint="0 pour une livraison gratuite dans cette zone." />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Délai minimal" name="minDays" type="number" min={0} max={60} defaultValue={zone?.minDays ?? 1} error={e.minDays} required />
+        <Field label="Délai maximal" name="maxDays" type="number" min={0} max={60} defaultValue={zone?.maxDays ?? 3} error={e.maxDays} required />
+      </div>
+      <p className="-mt-2 text-[0.8125rem] text-muted-foreground">En jours ouvrés. Le dimanche n'est pas compté ; le délai maximal donne la date promise au client.</p>
+      <Field label="Position" name="position" type="number" min={0} defaultValue={zone?.position ?? nextPosition} hint="Ordre d'affichage à la commande : 0 en premier." />
+      <label className="flex items-center gap-2.5 text-sm">
+        <input type="checkbox" name="active" defaultChecked={zone?.active ?? true} className="size-4 accent-[var(--primary)]" />
+        Zone ouverte aux commandes
+      </label>
+      {state.error && <FormAlert state={state} />}
+      <div className="flex gap-2">
+        {zone && <Link href="/admin/shipping" className={buttonVariants({ variant: "outline", size: "md" })}>Annuler</Link>}
+        <SubmitButton className="flex-1">{zone ? "Enregistrer" : "Créer la zone"}</SubmitButton>
+      </div>
+    </Form>
+  );
+}
+
 export function PromoForm({ currency }: { currency: string }) {
   const [state, action] = useActionState(createPromo, {});
   const [type, setType] = useState("PERCENT");
@@ -69,7 +105,7 @@ export function PromoForm({ currency }: { currency: string }) {
   );
 }
 
-type Settings = { storeName: string; contactEmail: string; currency: string; announcement: string; shippingStandardCents: number; shippingExpressCents: number; freeShippingThresholdCents: number };
+type Settings = { storeName: string; contactEmail: string; currency: string; announcement: string; freeShippingThresholdCents: number };
 
 export function SettingsForm({ settings }: { settings: Settings }) {
   const [state, action] = useActionState(saveSettings, {});
@@ -107,12 +143,13 @@ export function SettingsForm({ settings }: { settings: Settings }) {
       <section className={section}>
         <div>
           <h2 className="text-sm font-semibold">Livraison</h2>
-          <p className="mt-1 text-[0.8125rem] text-muted-foreground">Tarifs appliqués au moment de la commande.</p>
+          <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+            Les tarifs et les délais se règlent zone par zone, dans{" "}
+            <Link href="/admin/shipping" className="text-foreground underline underline-offset-4">Livraison</Link>.
+          </p>
         </div>
-        <div className="grid max-w-xl gap-4 sm:grid-cols-2">
-          <Field label="Standard" name="shippingStandard" inputMode="decimal" defaultValue={centsToInput(settings.shippingStandardCents)} error={e.shippingStandard} required />
-          <Field label="Express" name="shippingExpress" inputMode="decimal" defaultValue={centsToInput(settings.shippingExpressCents)} error={e.shippingExpress} required />
-          <Field className="sm:col-span-2" label="Livraison standard offerte à partir de" name="freeShippingThreshold" inputMode="decimal" defaultValue={centsToInput(settings.freeShippingThresholdCents)} error={e.freeShippingThreshold} hint="Saisissez 0 pour ne jamais l'offrir." />
+        <div className="max-w-xl">
+          <Field label={`Livraison offerte à partir de (${currencyLabel(settings.currency)})`} name="freeShippingThreshold" inputMode="decimal" defaultValue={centsToInput(settings.freeShippingThresholdCents)} error={e.freeShippingThreshold} hint="Vaut pour toutes les zones. Saisissez 0 pour ne jamais l'offrir." />
         </div>
       </section>
       <div className="flex items-center justify-end gap-3 border-t pt-5">

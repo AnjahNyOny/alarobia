@@ -1,6 +1,5 @@
 import { AddressForm, PasswordForm, ProfileForm } from "@/components/store/auth-forms";
 import { requireUser } from "@/lib/auth";
-import { COUNTRIES } from "@/lib/constants";
 import { db } from "@/lib/db";
 
 function Panel({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
@@ -24,7 +23,7 @@ export default async function ProfilePage() {
         <ProfileForm name={user.name} phone={user.phone} email={user.email} />
       </Panel>
       <Panel title="Adresse de livraison" description="Elle sera proposée par défaut à la commande.">
-        <AddressForm countries={COUNTRIES} defaults={address ?? { fullName: user.name }} />
+        <AddressForm defaults={address ?? { fullName: user.name, phone: user.phone }} />
       </Panel>
       <Panel title="Mot de passe" description="Choisissez un mot de passe que vous n'utilisez nulle part ailleurs.">
         <PasswordForm />

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Card, EmptyState, PageHeader, td, th } from "@/components/admin/ui";
 import { OrderStatus } from "@/components/order-status";
 import { REVENUE_STATUSES } from "@/lib/constants";
+import { addressLines } from "@/lib/address";
 import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
@@ -74,11 +75,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               <p className="text-xs font-medium text-muted-foreground">Adresse enregistrée</p>
               {user.address ? (
                 <address className="mt-1 leading-relaxed not-italic">
-                  {user.address.fullName}<br />
-                  {user.address.line1}<br />
-                  {user.address.line2 && <>{user.address.line2}<br /></>}
-                  {user.address.postalCode} {user.address.city}<br />
-                  {user.address.country}
+                  {addressLines(user.address).map((line) => (
+                    <span key={line} className="block">{line}</span>
+                  ))}
                 </address>
               ) : (
                 <p className="mt-1 text-muted-foreground">Aucune adresse enregistrée.</p>

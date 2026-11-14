@@ -1,21 +1,12 @@
+import { MAX_ORDER_CENTS } from "./constants";
 import { db } from "./db";
 
-type ShippingSettings = {
-  shippingStandardCents: number;
-  shippingExpressCents: number;
-  freeShippingThresholdCents: number;
-};
-
-export function shippingCost(method: string, subtotalAfterDiscount: number, s: ShippingSettings) {
-  if (method === "EXPRESS") return s.shippingExpressCents;
-  return s.freeShippingThresholdCents > 0 && subtotalAfterDiscount >= s.freeShippingThresholdCents ? 0 : s.shippingStandardCents;
+/** Frais de livraison : le tarif de la zone, offert à partir du seuil de gratuité (0 = jamais offert). */
+export function shippingCost(zone: { priceCents: number }, subtotalAfterDiscount: number, freeThresholdCents: number) {
+  return freeThresholdCents > 0 && subtotalAfterDiscount >= freeThresholdCents ? 0 : zone.priceCents;
 }
 
-/**
- * Plafond d'un montant (prix d'un produit, total d'une commande) : 20 000 000 Ar.
- * Les colonnes de montant sont des entiers 32 bits ; au-delà de 21 474 836 Ar, la base refuse l'écriture.
- */
-export const MAX_ORDER_CENTS = 2_000_000_000;
+export { MAX_ORDER_CENTS };
 
 export function orderWithinLimit(totalCents: number) {
   return totalCents <= MAX_ORDER_CENTS;

@@ -1,12 +1,22 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { categories, customers as customerSeeds, products, promoCodes, settings } from "./catalog.mjs";
+import { categories, customers as customerSeeds, products, promoCodes, settings, shippingZones } from "./catalog.mjs";
 
 const db = new PrismaClient();
 const img = (name) => `/products/${name}.jpg`;
 
 const slugify = (s) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+// Même règle que src/lib/shipping.ts : jours ouvrés, pas de livraison le dimanche.
+function addBusinessDays(from, days) {
+  const date = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  for (let left = days; left > 0; ) {
+    date.setDate(date.getDate() + 1);
+    if (date.getDay() !== 0) left--;
+  }
+  return date;
+}
 
 // Générateur déterministe : le jeu de démonstration est identique à chaque exécution.
 let state = 42;
@@ -27,15 +37,17 @@ async function main() {
   await db.address.deleteMany();
   await db.user.deleteMany();
   await db.newsletterSubscriber.deleteMany();
+  await db.shippingZone.deleteMany();
   await db.storeSettings.deleteMany();
   await db.storeSettings.create({ data: { id: 1, ...settings } });
+  await db.shippingZone.createMany({ data: shippingZones.map((z, position) => ({ ...z, position })) });
 
   const adminHash = await bcrypt.hash("admin1234", 10);
   const clientHash = await bcrypt.hash("client1234", 10);
   await db.user.create({ data: { email: "admin@seve.example", name: "Administration", role: "ADMIN", passwordHash: adminHash } });
 
   const customers = [];
-  for (const { email, name, phone, ...address } of customerSeeds) {
+  for (const { email, name, phone, zone, ...address } of customerSeeds) {
     customers.push(
       await db.user.create({
         data: {
@@ -46,6 +58,7 @@ async function main() {
         include: { address: true },
       })
     );
+    customers.at(-1).zone = shippingZones[zone];
   }
 
   const translations = (record, fields) => ({
@@ -116,8 +129,8 @@ async function main() {
       const subtotalCents = items.reduce((s, it) => s + it.priceCents * it.quantity, 0);
       const usePromo = rand() < 0.15;
       const discountCents = usePromo ? Math.round(subtotalCents * 0.1) : 0;
-      const express = rand() < 0.2;
-      const shippingCents = express ? settings.shippingExpressCents : subtotalCents - discountCents >= settings.freeShippingThresholdCents ? 0 : settings.shippingStandardCents;
+      const zone = user.zone;
+      const shippingCents = subtotalCents - discountCents >= settings.freeShippingThresholdCents ? 0 : zone.priceCents;
       const r = rand();
       const status =
         day === 0 ? pick(["PENDING", "PAID"]) : day < 3 ? pick(["PAID", "PAID", "SHIPPED"]) : day < 7 ? pick(["SHIPPED", "DELIVERED"]) : r < 0.06 ? "CANCELLED" : r < 0.1 ? "REFUNDED" : "DELIVERED";
@@ -127,10 +140,10 @@ async function main() {
         data: {
           number: `SV-${++seq}`, userId: user.id, email: user.email, status,
           paymentMethod: rand() < 0.85 ? "CARD" : "COD",
-          shippingMethod: express ? "EXPRESS" : "STANDARD",
+          shippingZone: zone.name, estimatedDelivery: addBusinessDays(createdAt, zone.maxDays),
           subtotalCents, discountCents, shippingCents, totalCents: subtotalCents - discountCents + shippingCents,
           promoCode: usePromo ? "BIENVENUE10" : null,
-          fullName: a.fullName, line1: a.line1, postalCode: a.postalCode, city: a.city, country: a.country, phone: a.phone,
+          fullName: a.fullName, line1: a.line1, line2: a.line2, district: a.district, postalCode: a.postalCode, city: a.city, province: a.province, country: a.country, phone: a.phone,
           trackingNumber: ["SHIPPED", "DELIVERED"].includes(status) ? `MG${Math.floor(1e8 + rand() * 9e8)}` : null,
           createdAt, updatedAt: createdAt,
           items: { create: items },

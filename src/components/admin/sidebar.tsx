@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
-import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings, ShoppingCart, TicketPercent, Users } from "lucide-react";
+import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings, ShoppingCart, TicketPercent, Truck, Users } from "lucide-react";
 import { logout } from "@/actions/auth";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ const groups = [
   {
     label: "Boutique",
     items: [
+      { href: "/admin/shipping", label: "Livraison", icon: Truck },
       { href: "/admin/promotions", label: "Codes promo", icon: TicketPercent },
       { href: "/admin/settings", label: "Réglages", icon: Settings },
     ],

@@ -7,8 +7,7 @@
     "required": "This field is required.",
     "emailInvalid": "Enter a valid email address.",
     "passwordMin": "Use at least 8 characters.",
-    "phoneInvalid": "Enter a valid phone number.",
-    "countryUnsupported": "We don't deliver to this country yet.",
+    "phoneInvalid": "Enter a Malagasy number, for example 034 12 345 67.",
     "nameRequired": "Enter your name.",
     "emailTaken": "An account already uses this email address.",
     "invalidCredentials": "Wrong email or password.",
@@ -31,7 +30,10 @@
     "productNotFound": "Product not found.",
     "loginForReview": "Sign in to write a review.",
     "ratingRequired": "Choose a rating.",
-    "reviewMin": "Your review must be at least 10 characters long."
+    "reviewMin": "Your review must be at least 10 characters long.",
+    "provinceRequired": "Choose a province.",
+    "postalCodeInvalid": "The postcode has three digits, for example 101.",
+    "zoneRequired": "Choose a delivery zone."
   },
   "notices": {
     "addedToCart": "{name} added to cart.",
@@ -43,6 +45,30 @@
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
     "newsletterDone": "You're subscribed. See you soon."
+  },
+  "address": {
+    "fullName": "Full name",
+    "phone": "Phone",
+    "phoneHint": "The courier calls you before coming.",
+    "line1": "Address or lot",
+    "district": "Neighbourhood",
+    "city": "Town",
+    "province": "Province",
+    "provinceChoose": "Choose a province",
+    "postalCode": "Postcode",
+    "landmark": "Landmark",
+    "landmarkPlaceholder": "Opposite the grocery, blue gate…",
+    "optional": "optional",
+    "save": "Save address"
+  },
+  "delivery": {
+    "legend": "Delivery zone",
+    "delayRange": "{min} to {max} working days",
+    "delaySingle": "{days, plural, one {# working day} other {# working days}}",
+    "by": "by {date} at the latest",
+    "free": "Free",
+    "none": "No delivery zone is open at the moment. Write to us at {email} to order.",
+    "expected": "Expected by {date} at the latest"
   },
   "nav": {
     "skip": "Skip to content",
@@ -71,7 +97,7 @@
       "today": "Today",
       "delivered": "Delivered",
       "noDelivery": "No delivery",
-      "note": "Standard delivery, except Sundays."
+      "note": "For {zone}. No delivery on Sundays."
     },
     "aisles": {
       "title": "Aisles",

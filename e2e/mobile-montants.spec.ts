@@ -81,7 +81,7 @@ test("gros montants en ariary à 320 px : tableaux du back-office", async ({ pag
   const check = watchErrors(page);
   await login(page, ADMIN.email, ADMIN.password);
   await page.waitForURL("**/admin");
-  for (const url of ["/admin", "/admin/products?q=Canapé", "/admin/orders", "/admin/customers", "/admin/promotions"]) {
+  for (const url of ["/admin", "/admin/products?q=Canapé", "/admin/orders", "/admin/customers", "/admin/promotions", "/admin/shipping"]) {
     await page.goto(url);
     await expectAmountsFit(page, url);
   }

@@ -5,20 +5,42 @@ import { redirectTo } from "@/i18n/server";
 import { CheckoutForm } from "@/components/store/checkout-form";
 import { getUser } from "@/lib/auth";
 import { getCart } from "@/lib/cart";
-import { COUNTRIES } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { formatPrice } from "@/lib/format";
+import { formatDate, formatPrice } from "@/lib/format";
 import { shippingCost } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
+import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
+import { getLocale, getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = { title: "Commande", robots: { index: false } };
 
 export default async function CheckoutPage() {
   const [cart, settings, user] = await Promise.all([getCart(), getSettings(), getUser()]);
   if (cart.lines.length === 0 || cart.lines.some((l) => l.insufficientStock)) return redirectTo("/cart");
-  const address = user ? await db.address.findUnique({ where: { userId: user.id } }) : null;
+  const [address, zones, locale, t] = await Promise.all([
+    user ? db.address.findUnique({ where: { userId: user.id } }) : null,
+    db.shippingZone.findMany({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] }),
+    getLocale(),
+    getTranslations("delivery"),
+  ]);
   const { currency } = settings;
   const base = cart.subtotalCents - cart.discountCents;
+  const today = madagascarTime();
+  // Le délai et la date promise sont écrits ici, côté serveur : le navigateur du client peut être dans un autre fuseau.
+  const choices = zones.map((zone) => ({
+    id: zone.id,
+    name: zoneName(zone, locale),
+    detail: `${zone.minDays === zone.maxDays ? t("delaySingle", { days: zone.maxDays }) : t("delayRange", { min: zone.minDays, max: zone.maxDays })}, ${t("by", { date: formatDate(estimateDelivery(today, zone), locale, "weekday") })}`,
+    costCents: shippingCost(zone, base, settings.freeShippingThresholdCents),
+  }));
+
+  if (choices.length === 0)
+    return (
+      <div className="container-page pt-8 md:pt-12">
+        <h1 className="display text-4xl md:text-5xl">Finaliser la commande</h1>
+        <p className="mt-4 max-w-prose text-muted-foreground">{t("none", { email: settings.contactEmail })}</p>
+      </div>
+    );
 
   return (
     <div className="container-page pt-8 md:pt-12">
@@ -34,20 +56,19 @@ export default async function CheckoutPage() {
       )}
       <CheckoutForm
         signedIn={!!user}
-        countries={COUNTRIES}
+        zones={choices}
         currency={currency}
         baseCents={base}
-        standardCents={shippingCost("STANDARD", base, settings)}
-        expressCents={shippingCost("EXPRESS", base, settings)}
         defaults={{
           email: user?.email,
           fullName: address?.fullName ?? user?.name,
+          phone: address?.phone ?? user?.phone,
           line1: address?.line1,
-          line2: address?.line2 ?? undefined,
-          postalCode: address?.postalCode,
+          line2: address?.line2,
+          district: address?.district,
           city: address?.city,
-          country: address?.country,
-          phone: address?.phone ?? user?.phone ?? undefined,
+          province: address?.province,
+          postalCode: address?.postalCode,
         }}
       >
         <ul className="mt-5 grid gap-4">

@@ -9,7 +9,7 @@ import { cardInclude, wishedIds } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
 import { getSettings } from "@/lib/settings";
-import { DELIVERY_DAYS, estimateDelivery } from "@/lib/shipping";
+import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
 
 export default async function HomePage() {
   const [settings, user, locale, t] = await Promise.all([getSettings(), getUser(), getLocale(), getTranslations("home")]);
@@ -19,7 +19,9 @@ export default async function HomePage() {
     db.product.findMany({ where: { status: "ACTIVE" }, include: cardInclude, orderBy: { createdAt: "desc" }, take: 4 }),
     wishedIds(user?.id),
   ]);
-  const today = new Date();
+  // La frise prend pour exemple la première zone de livraison active ; sans zone, elle ne promet rien et disparaît.
+  const zone = await db.shippingZone.findFirst({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] });
+  const today = madagascarTime();
   const mosaic = featured.filter((p) => p.images[0]).slice(0, 4);
   const steps = [
     [t("steps.s1"), t("steps.s1text")],
@@ -52,9 +54,11 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <div className="container-page mt-14 md:mt-20">
-        <WeekStrip today={today} delivery={estimateDelivery(today, DELIVERY_DAYS.STANDARD)} />
-      </div>
+      {zone && (
+        <div className="container-page mt-14 md:mt-20">
+          <WeekStrip today={today} delivery={estimateDelivery(today, zone)} zone={zoneName(zone, locale)} />
+        </div>
+      )}
 
       <section className="container-page mt-16 md:mt-24" aria-labelledby="rayons-titre">
         <h2 id="rayons-titre" className="display text-3xl md:text-4xl">

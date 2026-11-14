@@ -9,6 +9,7 @@ import { getUser } from "@/lib/auth";
 import { CART_COOKIE, PROMO_COOKIE, getCart } from "@/lib/cart";
 import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
+import { estimateDelivery, madagascarTime } from "@/lib/shipping";
 import { getSettings } from "@/lib/settings";
 import { invalid, type FormState } from "@/lib/form";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -22,24 +23,27 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
   const parsed = schemas.address
     .extend({
       email: schemas.email,
-      shippingMethod: z.enum(["STANDARD", "EXPRESS"]),
+      shippingZoneId: z.string(t("zoneRequired")).min(1, t("zoneRequired")),
       paymentMethod: z.enum(["CARD", "COD"]),
       note: z.string().trim().max(500).optional(),
     })
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, t("formInvalid"));
-  const data = parsed.data;
+  const { email, shippingZoneId, paymentMethod, note, ...fields } = parsed.data;
+  const address = { ...fields, line2: fields.line2 || null, country: "Madagascar" };
 
   const [user, cart, settings] = await Promise.all([getUser(), getCart(), getSettings()]);
   if (cart.lines.length === 0) return { error: t("cartEmpty") };
   const short = cart.lines.find((l) => l.insufficientStock);
   if (short) return { error: t("stockInsufficient", { name: short.product.name }) };
 
-  const shippingCents = shippingCost(data.shippingMethod, cart.subtotalCents - cart.discountCents, settings);
+  // Le tarif vient de la zone en base, jamais du formulaire. Une zone fermée entre-temps n'est plus acceptée.
+  const zone = await db.shippingZone.findFirst({ where: { id: shippingZoneId, active: true } });
+  if (!zone) return { error: t("formInvalid"), fieldErrors: { shippingZoneId: t("zoneRequired") } };
+  const shippingCents = shippingCost(zone, cart.subtotalCents - cart.discountCents, settings.freeShippingThresholdCents);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
   if (!orderWithinLimit(totalCents)) return { error: t("orderTooLarge", { amount: formatPrice(MAX_ORDER_CENTS, settings.currency, await getLocale()) }) };
   const number = `SV-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
-  const { email, shippingMethod, paymentMethod, note, ...address } = data;
 
   let orderId: string;
   try {
@@ -66,7 +70,8 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
           // Paiement simulé : une carte est considérée comme encaissée. À remplacer par un vrai prestataire (voir README).
           status: paymentMethod === "CARD" ? "PAID" : "PENDING",
           paymentMethod,
-          shippingMethod,
+          shippingZone: zone.name,
+          estimatedDelivery: estimateDelivery(madagascarTime(), zone),
           subtotalCents: cart.subtotalCents,
           discountCents: cart.discountCents,
           shippingCents,
@@ -74,7 +79,6 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
           promoCode: cart.promo?.code,
           note: note || null,
           ...address,
-          line2: address.line2 || null,
           items: {
             create: cart.lines.map((l) => ({
               productId: l.product.id,

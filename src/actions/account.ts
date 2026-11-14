@@ -24,7 +24,7 @@ export async function updateAddress(_: FormState, formData: FormData): Promise<F
   const [t, n] = await Promise.all([getTranslations("errors"), getTranslations("notices")]);
   const parsed = makeSchemas(t).address.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, t("formInvalid"));
-  const data = { ...parsed.data, line2: parsed.data.line2 || null };
+  const data = { ...parsed.data, line2: parsed.data.line2 || null, country: "Madagascar" };
   await db.address.upsert({ where: { userId: user.id }, update: data, create: { ...data, userId: user.id } });
   revalidatePath("/account", "layout");
   return { ok: true, message: n("addressSaved") };

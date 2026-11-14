@@ -7,7 +7,7 @@ import { TotalsRows } from "@/components/store/summary";
 import { buttonVariants } from "@/components/ui/button";
 import { getCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/format";
-import { promoLabel, shippingCost } from "@/lib/pricing";
+import { promoLabel } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,6 @@ export default async function CartPage() {
       </div>
     );
 
-  const shipping = shippingCost("STANDARD", cart.subtotalCents - cart.discountCents, settings);
   const blocked = cart.lines.some((l) => l.insufficientStock);
 
   return (
@@ -68,7 +67,7 @@ export default async function CartPage() {
             <PromoForm applied={cart.promo ? { code: cart.promo.code, label: promoLabel(cart.promo, (c) => formatPrice(c, currency)) } : null} />
           </div>
           <div className="mt-6">
-            <TotalsRows subtotalCents={cart.subtotalCents} discountCents={cart.discountCents} promoCode={cart.promo?.code} shippingCents={shipping} totalCents={cart.subtotalCents - cart.discountCents + shipping} currency={currency} />
+            <TotalsRows subtotalCents={cart.subtotalCents} discountCents={cart.discountCents} promoCode={cart.promo?.code} shippingCents={null} totalCents={cart.subtotalCents - cart.discountCents} currency={currency} />
           </div>
           {blocked ? (
             <p className="mt-6 rounded-lg bg-destructive/5 px-3 py-2.5 text-sm text-destructive">Ajustez les quantités signalées pour continuer.</p>

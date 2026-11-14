@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * Frise des sept prochains jours, nommés en malgache : elle montre quel jour arrive une commande
  * passée maintenant. Le mercredi (Alarobia) porte l'étiquette de la marque.
  */
-export function WeekStrip({ today, delivery }: { today: Date; delivery: Date }) {
+export function WeekStrip({ today, delivery, zone }: { today: Date; delivery: Date; zone: string }) {
   const t = useTranslations("home.week");
   const locale = useLocale();
   const days = weekFrom(today);
@@ -19,7 +19,7 @@ export function WeekStrip({ today, delivery }: { today: Date; delivery: Date }) 
           {t("heading")}
         </h2>
         <p className="text-muted-foreground">
-          <strong className="font-semibold text-foreground">{t("text", { date: formatDate(delivery, locale, "weekday") })}</strong> {t("note")}
+          <strong className="font-semibold text-foreground">{t("text", { date: formatDate(delivery, locale, "weekday") })}</strong> {t("note", { zone })}
         </p>
       </div>
       {/* Sur petit écran, la frise défile dans son cadre : les noms des jours restent entiers. */}

@@ -22,6 +22,15 @@ Le malgache de `messages/mg.json` est rédigé par Claude. **Il doit être relu 
 | paiement | payment | fandoavam-bola | |
 | commande | order | komandy | confirmé |
 | champ (de formulaire) | field | saha | confirmé |
+| quartier | neighbourhood | fokontany | à confirmer |
+| province | province | faritany | à confirmer |
+| ville | town | tanàna | à confirmer |
+| repère (pour le livreur) | landmark | famantarana | à confirmer |
+| zone de livraison | delivery zone | faritra fanaterana | à confirmer |
+| jours ouvrés | working days | andro fiasana | à confirmer |
+| au plus tard | at the latest | farafahatarany | à confirmer |
+| facultatif | optional | tsy voatery | à confirmer |
+| livreur | courier | mpanatitra | à confirmer |
 
 Jours de la semaine (écrits dans `src/lib/format.ts`) : Alatsinainy, Talata, Alarobia, Alakamisy, Zoma, Sabotsy, Alahady.
 Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra, Oktobra, Novambra, Desambra.
@@ -36,4 +45,7 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `nav`, `footer` | en-tête, menu, pied de page | non |
 | `home` | page d'accueil, frise de livraison | non |
 | `card` | carte produit | non |
+| `address` | champs de l'adresse (commande et espace client) | non |
+| `delivery` | zones de livraison, délais, date promise | non |
+| zones de démonstration (`prisma/catalog.mjs`) | noms des quatre zones de livraison | non |
 | catalogue de démonstration (`prisma/catalog.mjs`) | noms, accroches et descriptions des 27 produits et des 6 rayons, bandeau d'annonce | non |
