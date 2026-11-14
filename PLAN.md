@@ -7,7 +7,7 @@
 
 **Approche.** On garde le socle qui fonctionne (catalogue, panier, commande, comptes, back-office : 19 étapes de test passent en production). On le fait évoluer par phases, chacune livrable et testable seule. L'ordre évite de toucher deux fois aux mêmes fichiers : d'abord l'outillage et la traduction, puis le design (les pages sont réécrites une seule fois, directement traduites), puis le commerce malgache, puis la 3D.
 
-**Technologies.** Existant : Next.js 15, TypeScript, Tailwind v4, shadcn/ui, Prisma + SQLite, Zod. Ajouts : `next-intl` (traduction), `three` + `@react-three/fiber` + `@react-three/drei` (3D), Vitest (tests unitaires), `@playwright/test` et `@axe-core/playwright` (tests navigateur et accessibilité).
+**Technologies.** Existant : Next.js 16, TypeScript, Tailwind v4, shadcn/ui, Prisma + SQLite, Zod. Ajouts : `next-intl` (traduction), `three` + `@react-three/fiber` + `@react-three/drei` (3D), Vitest (tests unitaires), `@playwright/test` et `@axe-core/playwright` (tests navigateur et accessibilité).
 
 ## Contraintes valables pour toutes les tâches
 

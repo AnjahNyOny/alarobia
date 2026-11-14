@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useEffectEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -12,12 +12,12 @@ import { centsToInput } from "@/lib/format";
 import type { FormState } from "@/lib/form";
 
 function useToastOnSuccess(state: FormState, after?: () => void) {
-  const cb = useRef(after);
-  cb.current = after;
+  // useEffectEvent : l'effet lit toujours le dernier rappel sans se redéclencher quand il change.
+  const onSuccess = useEffectEvent(() => after?.());
   useEffect(() => {
     if (state.ok && state.message) {
       toast.success(state.message);
-      cb.current?.();
+      onSuccess();
     }
   }, [state]);
 }

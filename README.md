@@ -2,7 +2,7 @@
 
 Plateforme e-commerce complète : boutique publique, espace client et back-office d'administration.
 
-**Stack** : Next.js 15 (App Router, Server Actions) · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) · Prisma + SQLite · Zod · Recharts.
+**Stack** : Next.js 16 (App Router, Server Actions) · TypeScript · Tailwind CSS v4 · shadcn/ui (Base UI) · Prisma + SQLite · Zod · Recharts.
 
 ## Démarrer
 
@@ -13,7 +13,7 @@ npm run db:reset     # crée la base et charge les données de démonstration
 npm run dev          # http://localhost:3000
 ```
 
-Node 20.9 ou plus récent (Node 22 LTS conseillé).
+Node 22 ou plus récent.
 
 ### Comptes de démonstration
 

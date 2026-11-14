@@ -37,6 +37,8 @@ npm run dev -- -p 3001   # le port 3000 est souvent pris par un autre projet du 
 npm run build && npm run start
 npm run lint
 npx tsc --noEmit
+npm test                 # tests unitaires (Vitest)
+npm run test:e2e         # tests navigateur (Playwright) : compile en production sur le port 3100, base prisma/test.db
 npm run db:reset         # recrée la base et recharge les données de démonstration (efface tout)
 npm run db:seed
 ```
@@ -45,7 +47,7 @@ Comptes de démonstration : `admin@seve.example` / `admin1234`, `client@seve.exa
 
 ## Architecture
 
-Next.js 15 (App Router, Server Actions), TypeScript, Tailwind v4, shadcn/ui sur Base UI, Prisma + SQLite, Zod.
+Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind v4, shadcn/ui sur Base UI, Prisma + SQLite, Zod.
 
 ```
 prisma/schema.prisma     modèle de données (statuts en chaînes : SQLite n'a pas d'enum)
@@ -64,7 +66,7 @@ uploads/                 fichiers envoyés, servis par src/app/uploads/[name]/ro
 ## Règles de code
 
 - **Argent** : entiers en unités mineures (centimes), jamais de flottants. Les totaux sont toujours recalculés côté serveur ; le cookie du panier ne contient que des identifiants et des quantités.
-- **Autorisations** : chaque action serveur revérifie la session (`requireUser`, `requireAdmin`). Le middleware n'est qu'un premier filtre. Toute lecture d'une commande filtre sur son propriétaire.
+- **Autorisations** : chaque action serveur revérifie la session (`requireUser`, `requireAdmin`). Le proxy (`src/proxy.ts`, l'ancien middleware) n'est qu'un premier filtre. Toute lecture d'une commande filtre sur son propriétaire.
 - **Stock** : décrément conditionnel dans une transaction (`stock >= quantité`).
 - **Validation** : Zod sur toute entrée, messages d'erreur rattachés au champ.
 - **Formulaires** : utiliser `<Form>` de `src/components/form.tsx`, pas `<form action>`. React 19 vide les champs après une action ; `<Form>` conserve la saisie en cas d'erreur.
@@ -91,9 +93,10 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 ## Pièges connus
 
 - **Ne jamais utiliser `pkill -f "next dev"`** : cela tuerait aussi les autres serveurs Next du propriétaire. Cibler le port : `lsof -ti tcp:3001 -sTCP:LISTEN`.
-- **Node** : la machine a Node 21 par défaut (fin de vie). `.nvmrc` demande Node 22. `package.json` épingle `magic-string@0.30.17` pour que Tailwind tourne aussi sur Node 21 ; retirer cet `overrides` une fois sur Node 22.
+- **Node** : la machine a Node 21 par défaut (fin de vie), le projet demande Node 22 (`.nvmrc`). Avant toute commande : `nvm use`, ou préfixer le `PATH` avec `~/.nvm/versions/node/v22.16.0/bin`.
 - **Turbopack en dev** peut ignorer des fichiers créés pendant qu'il tourne (404 sur une page qui existe, erreurs d'hydratation fantômes). Redémarrer le serveur et supprimer `.next` avant de conclure à un bug.
-- **Hydratation et mises en page asynchrones** : quand le JavaScript est en cache, React peut démarrer l'hydratation avant l'arrivée des données d'une mise en page asynchrone. Deux règles en découlent. (1) Ne pas placer plusieurs composants serveur asynchrones côte à côte dans une mise en page : elle charge ses données une fois (`loadShell`) et les passe à des composants synchrones. (2) Un composant client qui s'appuie sur `useId` dans une mise en page asynchrone reçoit un `id` fixe (boutons de menu). Pour reproduire : ajouter un délai aléatoire dans `loadShell` et recharger vingt fois la page dans le même onglet.
+- **Erreurs d'hydratation (#418) : ne pas redescendre sous Next 16.** Sous Next 15.5, React démarrait parfois l'hydratation avant d'avoir reçu toutes les données d'un composant serveur asynchrone, et se décalait par rapport au HTML : erreur intermittente, uniquement avec le JavaScript en cache, jusqu'à 25 % des chargements sous charge. Next 16 corrige le défaut (0 erreur sur 2 400 chargements). Le banc d'essai est dans le dépôt : `node scripts/stress-hydratation.mjs http://localhost:3100 /aide 600` contre un serveur de production. Deux précautions prises pendant l'enquête sont conservées : la mise en page charge ses données une seule fois (`loadShell`) au lieu d'avoir plusieurs composants asynchrones côte à côte, et les boutons de menu ont un `id` fixe.
+- **Prisma refuse `db push --force-reset` lancé par un agent.** C'est voulu. Pour repartir de zéro, `npm run db:seed` vide et remplit les tables ; `npm run db:reset` est à lancer par le propriétaire.
 - **Recherche de photos** : l'interface non officielle d'Unsplash est bloquée dans cet environnement. Utiliser les photos de `public/products/` ou celles fournies par le propriétaire.
 
 ## Limites actuelles (voir phase 7)

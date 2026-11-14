@@ -2,19 +2,13 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 13/11/2026** : plan rédigé, en attente de validation. Aucune tâche de la refonte n'est commencée.
+**État au 14/11/2026** : plan validé, phase 0 terminée.
 
-**Prochaine action** : réponse du propriétaire aux décisions D1 à D5, puis phase 0.
+**Prochaine action** : phase 1, tâche 1.1 (routage par langue).
 
 ## Décisions en attente
 
-| N° | Question | Proposition par défaut |
-| --- | --- | --- |
-| D1 | Puis-je committer à la fin de chaque tâche ? Le dépôt ne contient que le commit initial ; tout le reste est non commité. | Oui, un commit par tâche, sans pousser vers un dépôt distant. |
-| D2 | Qui relit le malgache ? Je peux le rédiger, mais il faut une relecture par un locuteur natif. | Vous relisez `messages/mg.json` et le glossaire à la fin de la phase 1. |
-| D3 | Texte de la page « À propos » : l'histoire d'Alarobia. | Je rédige une proposition courte, vous corrigez. |
-| D4 | Photos des produits. | Celles déjà présentes pour la démonstration ; les vôtres dès que vous en avez. |
-| D5 | Premiers produits personnalisables en 3D. | Tasse, gourde, carnet, sac en toile. |
+Aucune.
 
 ## Décisions prises
 
@@ -25,6 +19,12 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 13/11/2026 | Personnalisation des produits en direct (nom, image, couleur), avec de la 3D. |
 | 13/11/2026 | Utiliser les skills GitHub pour le design et le développement (liste dans `CLAUDE.md`). |
 | 13/11/2026 | Travailler selon un plan suivi dans ce fichier. |
+| 14/11/2026 | D1 : un commit par tâche, sans pousser vers un dépôt distant. |
+| 14/11/2026 | D2 : le propriétaire relit le malgache à la fin de la phase 1. |
+| 14/11/2026 | D3 : Claude propose le texte « À propos », le propriétaire corrige. |
+| 14/11/2026 | D4 : photos existantes pour la démonstration. |
+| 14/11/2026 | D5 : premiers produits personnalisables : tasse, gourde, carnet, sac en toile. |
+| 14/11/2026 | Passage à Next 16 et React 19.3 : seule façon trouvée d'éliminer les erreurs d'hydratation intermittentes (mesuré). |
 
 ## Avancement
 
@@ -37,9 +37,10 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les sites e-commerce ». D'où la refonte.
 
 ### Phase 0 — Outillage et point de départ
-- [ ] 0.1 Tests unitaires (Vitest) sur la logique existante
-- [ ] 0.2 Tests navigateur (Playwright) dans le dépôt
-- [ ] 0.3 Node 22, retrait de l'épinglage `magic-string`, commit de référence
+- [x] 0.1 Tests unitaires (Vitest) sur la logique existante : 18 tests ; vérifiés en cassant volontairement deux fonctions (2 échecs attendus obtenus)
+- [x] 0.2 Tests navigateur (Playwright) dans le dépôt : 8 parcours, 3 passages complets consécutifs au vert
+- [x] 0.3 Node 22, retrait de l'épinglage `magic-string`, commit de référence
+- [x] 0.4 (ajoutée) Erreur d'hydratation intermittente : cause trouvée, Next 16 adopté ; 0 erreur sur 2 400 chargements au banc d'essai
 
 ### Phase 1 — Trois langues
 - [ ] 1.1 Routage par langue et middleware combiné
@@ -108,3 +109,9 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Nouvelles demandes : nom Alarobia, produits malgaches du quotidien, personnalisation 3D, trois langues, plan suivi.
 - Recherche de photos via l'interface non officielle d'Unsplash bloquée par l'environnement : on réutilise les photos existantes.
 - Plan rédigé avec le skill `writing-plans`. Aucun code de la refonte écrit.
+
+### 14/11/2026
+- Plan validé par le propriétaire, décisions D1 à D5 actées.
+- Phase 0 faite. La base de test est créée sans réinitialisation forcée : Prisma interdit `--force-reset` à un agent, et le seed suffit à la vider.
+- Les tests navigateur ont révélé que l'erreur d'hydratation de la première version n'était pas corrigée (le déplacement du script JSON-LD ne traitait qu'un symptôme). Enquête par élimination, treize essais mesurés : ce n'était ni les notifications, ni les panneaux latéraux, ni le pied de page en lui-même, mais tout composant serveur asynchrone produisant beaucoup de HTML. Défaut du React embarqué dans Next 15.5 ; disparu sous Next 16.
+- Poids ajouté : `vitest`, `@playwright/test` (tests), `next@16`, `react@19.3` (correctif).
