@@ -197,13 +197,13 @@ model StoreSettings {
   id                         Int    @id @default(1)
   storeName                  String @default("Alarobia")
   contactEmail               String @default("bonjour@alarobia.example")
-  currency                   String @default("EUR")
-  announcement               String @default("Livraison offerte dès 80 € d'achat")
+  currency                   String @default("MGA")
+  announcement               String @default("Livraison offerte dès 150 000 Ar d'achat")
   announcementEn             String @default("")
   announcementMg             String @default("")
-  shippingStandardCents      Int    @default(490)
-  shippingExpressCents       Int    @default(990)
-  freeShippingThresholdCents Int    @default(8000)
+  shippingStandardCents      Int    @default(500000)
+  shippingExpressCents       Int    @default(1000000)
+  freeShippingThresholdCents Int    @default(15000000)
 }
 
 model NewsletterSubscriber {

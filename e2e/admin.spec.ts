@@ -31,12 +31,12 @@ test("création d'un produit avec photo, visible en boutique", async ({ page }) 
   await page.goto("/admin/products/new");
   await page.getByLabel("Nom du produit").fill("Plaid Test en laine");
   await page.getByLabel("Description").fill("Un plaid de démonstration créé par le test automatique.");
-  await page.getByLabel(/Prix de vente/).fill("59,90");
+  await page.getByLabel(/Prix de vente/).fill("59 900");
   await page.getByLabel("Référence (SKU)").fill("SV-TEST-001");
   await page.getByLabel("Quantité en stock").fill("7");
   await page.getByLabel("Catégorie").selectOption({ label: "Maison" });
   // Erreur de validation côté serveur : le message s'affiche et la saisie est conservée.
-  await page.getByLabel(/Prix barré/).fill("10");
+  await page.getByLabel(/Prix barré/).fill("10 000");
   await page.getByRole("button", { name: "Créer le produit" }).click();
   await expect(page.getByText("Le prix barré doit être supérieur au prix de vente.")).toBeVisible();
   await expect(page.getByLabel("Nom du produit")).toHaveValue("Plaid Test en laine");
@@ -49,6 +49,6 @@ test("création d'un produit avec photo, visible en boutique", async ({ page }) 
 
   await page.goto("/products/plaid-test-en-laine");
   await expect(page.getByRole("heading", { level: 1, name: "Plaid Test en laine" })).toBeVisible();
-  await expect(page.getByText("59,90 €").first()).toBeVisible();
+  await expect(page.getByText("59 900 Ar").first()).toBeVisible();
   check();
 });

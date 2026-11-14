@@ -32,7 +32,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
           <div className="border-t"><EmptyState title="Aucun client" text={q ? "Aucun client ne correspond à cette recherche." : "Les clients apparaîtront ici dès leur inscription."} /></div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full min-w-[640px]">
                 <thead className="border-y bg-muted/40">
                   <tr>

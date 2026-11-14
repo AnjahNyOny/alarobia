@@ -8,7 +8,7 @@ import { createPromo, saveSettings } from "@/actions/admin/misc";
 import { saveCategory } from "@/actions/admin/products";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { buttonVariants } from "@/components/ui/button";
-import { centsToInput } from "@/lib/format";
+import { centsToInput, currencyLabel } from "@/lib/format";
 import type { FormState } from "@/lib/form";
 
 function useToastOnSuccess(state: FormState, after?: () => void) {
@@ -56,9 +56,9 @@ export function PromoForm({ currency }: { currency: string }) {
           <option value="PERCENT">Pourcentage</option>
           <option value="FIXED">Montant fixe</option>
         </Field>
-        <Field label={type === "PERCENT" ? "Réduction (%)" : `Réduction (${currency})`} name="value" inputMode="decimal" error={e.value} required />
+        <Field label={type === "PERCENT" ? "Réduction (%)" : `Réduction (${currencyLabel(currency)})`} name="value" inputMode="decimal" error={e.value} required />
       </div>
-      <Field label={`Achat minimum (${currency})`} name="minSubtotal" inputMode="decimal" error={e.minSubtotal} optional />
+      <Field label={`Achat minimum (${currencyLabel(currency)})`} name="minSubtotal" inputMode="decimal" error={e.minSubtotal} optional />
       <div className="grid grid-cols-2 gap-3">
         <Field label="Utilisations max." name="maxUses" type="number" min={1} error={e.maxUses} optional />
         <Field label="Expire le" name="expiresAt" type="date" error={e.expiresAt} optional />
@@ -96,11 +96,11 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         </div>
         <div className="max-w-xl">
           <Field as="select" label="Devise" name="currency" defaultValue={settings.currency} error={e.currency}>
+            <option value="MGA">Ariary malgache (Ar)</option>
             <option value="EUR">Euro (EUR)</option>
             <option value="USD">Dollar américain (USD)</option>
             <option value="CHF">Franc suisse (CHF)</option>
             <option value="CAD">Dollar canadien (CAD)</option>
-            <option value="MGA">Ariary malgache (MGA)</option>
           </Field>
         </div>
       </section>

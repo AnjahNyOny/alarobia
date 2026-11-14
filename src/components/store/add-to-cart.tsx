@@ -25,7 +25,8 @@ export function AddToCart({ productId, stock, children }: { productId: string; s
     );
 
   return (
-    <div className="flex gap-3">
+    // À 320 px, le sélecteur de quantité, le bouton et le favori ne tiennent pas sur une ligne : le bouton passe dessous.
+    <div className="flex flex-wrap gap-3">
       <Stepper value={quantity} max={max} onChange={setQuantity} disabled={pending} label="Quantité" />
       <Button
         size="xl"

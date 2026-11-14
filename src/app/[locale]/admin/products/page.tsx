@@ -65,7 +65,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead className="border-y bg-muted/40">
                   <tr>

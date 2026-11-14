@@ -7,10 +7,11 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { CART_COOKIE, PROMO_COOKIE, getCart } from "@/lib/cart";
-import { shippingCost } from "@/lib/pricing";
+import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "@/lib/pricing";
+import { formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { invalid, type FormState } from "@/lib/form";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { makeSchemas } from "@/lib/schemas";
 
 class StockError extends Error {}
@@ -36,6 +37,7 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
 
   const shippingCents = shippingCost(data.shippingMethod, cart.subtotalCents - cart.discountCents, settings);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
+  if (!orderWithinLimit(totalCents)) return { error: t("orderTooLarge", { amount: formatPrice(MAX_ORDER_CENTS, settings.currency, await getLocale()) }) };
   const number = `SV-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
   const { email, shippingMethod, paymentMethod, note, ...address } = data;
 

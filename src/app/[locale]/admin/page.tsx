@@ -116,7 +116,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <Kpi label="Nouveaux clients" value={String(newCustomers)} current={newCustomers} previous={prevCustomers} days={days} />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
+      <div className="mt-4 grid gap-4 *:min-w-0 xl:grid-cols-[1.7fr_1fr]">
         <Card title="Chiffre d'affaires par jour" description="Commandes payées, expédiées ou livrées">
           <RevenueChart data={series} currency={currency} />
         </Card>
@@ -144,9 +144,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         </Card>
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
+      <div className="mt-4 grid gap-4 *:min-w-0 xl:grid-cols-[1.7fr_1fr]">
         <Card title="Dernières commandes" flush action={<Link href="/admin/orders" className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">Tout voir</Link>}>
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full">
               <thead className="border-y bg-muted/40">
                 <tr>

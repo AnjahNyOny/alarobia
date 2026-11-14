@@ -24,6 +24,7 @@
     "cartEmpty": "Your cart is empty.",
     "stockInsufficient": "Not enough stock for \"{name}\". Update your cart.",
     "justSold": "\"{name}\" has just sold out. Update your cart.",
+    "orderTooLarge": "The total is over {amount}, the maximum for an online order. Reduce the quantities or contact us.",
     "currentPasswordRequired": "Enter your current password.",
     "currentPasswordWrong": "Current password is wrong.",
     "loginForWishlist": "Sign in to save favourites.",

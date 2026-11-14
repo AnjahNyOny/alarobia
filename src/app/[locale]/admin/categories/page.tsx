@@ -18,12 +18,12 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader title="Catégories" description="Elles structurent le menu et les filtres de la boutique." />
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-4 *:min-w-0 lg:grid-cols-[1fr_340px]">
         <Card flush>
           {categories.length === 0 ? (
             <EmptyState title="Aucune catégorie" text="Créez une première catégorie pour y ranger vos produits." />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b bg-muted/40">
                   <tr>

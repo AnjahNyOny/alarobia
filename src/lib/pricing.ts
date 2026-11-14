@@ -11,6 +11,16 @@ export function shippingCost(method: string, subtotalAfterDiscount: number, s: S
   return s.freeShippingThresholdCents > 0 && subtotalAfterDiscount >= s.freeShippingThresholdCents ? 0 : s.shippingStandardCents;
 }
 
+/**
+ * Plafond d'un montant (prix d'un produit, total d'une commande) : 20 000 000 Ar.
+ * Les colonnes de montant sont des entiers 32 bits ; au-delà de 21 474 836 Ar, la base refuse l'écriture.
+ */
+export const MAX_ORDER_CENTS = 2_000_000_000;
+
+export function orderWithinLimit(totalCents: number) {
+  return totalCents <= MAX_ORDER_CENTS;
+}
+
 export type PromoResult =
   | { ok: true; code: string; discountCents: number; type: "PERCENT" | "FIXED"; value: number }
   | { ok: false; reason: "empty" | "unknown" | "expired" | "exhausted" }

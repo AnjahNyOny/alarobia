@@ -17,12 +17,12 @@ export default async function PromosPage() {
   return (
     <>
       <PageHeader title="Codes promo" description="Réductions que vos clients saisissent dans leur panier." />
-      <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
+      <div className="grid gap-4 *:min-w-0 lg:grid-cols-[1fr_340px]">
         <Card flush>
           {promos.length === 0 ? (
             <EmptyState title="Aucun code promo" text="Créez un code pour une opération commerciale ou un geste envers un client." />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full min-w-[560px]">
                 <thead className="border-b bg-muted/40">
                   <tr>

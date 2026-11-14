@@ -24,7 +24,7 @@ export function PageHeader({ title, description, back, children }: { title: stri
 
 export function Card({ title, description, action, children, className, flush }: { title?: string; description?: string; action?: React.ReactNode; children: React.ReactNode; className?: string; flush?: boolean }) {
   return (
-    <section className={cn("rounded-lg border bg-card", className)}>
+    <section className={cn("min-w-0 rounded-lg border bg-card", className)}>
       {title && (
         <div className="flex items-start justify-between gap-3 px-5 pt-4 pb-3">
           <div>

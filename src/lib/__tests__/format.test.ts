@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { centsToInput, parseAmountToCents, slugify } from "../format";
+import { centsToInput, currencyLabel, parseAmountToCents, slugify } from "../format";
 
 describe("parseAmountToCents", () => {
   it("accepte la virgule française et le point", () => {
@@ -24,6 +24,10 @@ describe("centsToInput", () => {
     expect(centsToInput(1250)).toBe("12,50");
     expect(centsToInput(null)).toBe("");
   });
+  it("n'ajoute pas de décimales à un montant rond : un prix en ariary se relit « 25000 »", () => {
+    expect(centsToInput(2500000)).toBe("25000");
+    expect(centsToInput(125000000)).toBe("1250000");
+  });
 });
 
 describe("slugify", () => {
@@ -33,5 +37,12 @@ describe("slugify", () => {
   });
   it("renvoie une chaîne vide si rien n'est exploitable", () => {
     expect(slugify("———")).toBe("");
+  });
+});
+
+describe("currencyLabel", () => {
+  it("écrit l'ariary « Ar », comme sur les prix, et laisse le code des autres devises", () => {
+    expect(currencyLabel("MGA")).toBe("Ar");
+    expect(currencyLabel("EUR")).toBe("EUR");
   });
 });

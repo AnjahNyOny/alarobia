@@ -21,7 +21,7 @@ export default async function HelpPage() {
 
         <section id="livraison" className="mt-12 scroll-mt-24">
           <h2 className="display text-3xl">Livraison</h2>
-          <div className="mt-5 overflow-x-auto rounded-lg border">
+          <div className="relative mt-5 overflow-x-auto rounded-lg border">
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>

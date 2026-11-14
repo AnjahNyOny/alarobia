@@ -50,7 +50,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="relative overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead className="border-y bg-muted/40">
                   <tr>

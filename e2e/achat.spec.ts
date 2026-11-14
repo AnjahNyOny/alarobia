@@ -37,8 +37,8 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   await page.getByRole("button", { name: /Payer et commander/ }).click();
   await page.waitForURL(/\/order\/c/);
   await expect(page.getByRole("heading", { name: /votre commande est enregistrée/ })).toBeVisible();
-  // 2 × 249 € − 10 % + 9,90 € d'express
-  await expect(page.getByText("458,10 €")).toBeVisible();
+  // 2 × 350 000 Ar − 10 % + 10 000 Ar d'express
+  await expect(page.getByText("640 000 Ar")).toBeVisible();
   check();
 });
 

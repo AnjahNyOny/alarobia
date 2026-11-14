@@ -39,7 +39,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             {user.orders.length === 0 ? (
               <div className="border-t"><EmptyState title="Aucune commande" text="Ce client n'a pas encore commandé." /></div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full">
                   <thead className="border-y bg-muted/40">
                     <tr>

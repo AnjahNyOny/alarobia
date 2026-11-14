@@ -6,7 +6,7 @@ import { saveProduct } from "@/actions/admin/products";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { buttonVariants } from "@/components/ui/button";
 import { PRODUCT_STATUS_LABEL, PRODUCT_STATUSES } from "@/lib/constants";
-import { centsToInput } from "@/lib/format";
+import { centsToInput, currencyLabel } from "@/lib/format";
 import { ImageUploader } from "./image-uploader";
 import { Card } from "./ui";
 
@@ -35,8 +35,8 @@ export function ProductForm({ product, categories, currency }: { product?: Produ
         </Card>
         <Card title="Prix et stock">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={`Prix de vente (${currency})`} name="price" inputMode="decimal" defaultValue={centsToInput(product?.priceCents)} error={e.price} required placeholder="0,00" />
-            <Field label={`Prix barré (${currency})`} name="compareAt" inputMode="decimal" defaultValue={centsToInput(product?.compareAtCents)} error={e.compareAt} optional placeholder="0,00" hint="Ancien prix, affiché barré en cas de promotion." />
+            <Field label={`Prix de vente (${currencyLabel(currency)})`} name="price" inputMode="decimal" defaultValue={centsToInput(product?.priceCents)} error={e.price} required placeholder={currency === "MGA" ? "25 000" : "0,00"} />
+            <Field label={`Prix barré (${currencyLabel(currency)})`} name="compareAt" inputMode="decimal" defaultValue={centsToInput(product?.compareAtCents)} error={e.compareAt} optional placeholder={currency === "MGA" ? "30 000" : "0,00"} hint="Ancien prix, affiché barré en cas de promotion." />
             <Field label="Référence (SKU)" name="sku" defaultValue={product?.sku} error={e.sku} required />
             <Field label="Quantité en stock" name="stock" type="number" min={0} step={1} defaultValue={product?.stock ?? 0} error={e.stock} required />
           </div>

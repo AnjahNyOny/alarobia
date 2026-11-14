@@ -15,13 +15,13 @@ Le malgache de `messages/mg.json` est rédigé par Claude. **Il doit être relu 
 | mot de passe | password | teny miafina | |
 | compte | account | kaonty | |
 | se connecter | sign in | miditra | |
-| favoris | favourites | ny tianao | à confirmer |
+| favoris | favourites | ny tianko | confirmé |
 | avis | review | hevitra | |
-| note (étoiles) | rating | naoty | à confirmer |
+| note (étoiles) | rating | naoty | confirmé |
 | livraison | delivery | fanaterana | |
 | paiement | payment | fandoavam-bola | |
-| commande | order | baiko | à confirmer (« commande » est aussi courant) |
-| champ (de formulaire) | field | saha | à confirmer |
+| commande | order | komandy | confirmé |
+| champ (de formulaire) | field | saha | confirmé |
 
 Jours de la semaine (écrits dans `src/lib/format.ts`) : Alatsinainy, Talata, Alarobia, Alakamisy, Zoma, Sabotsy, Alahady.
 Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra, Oktobra, Novambra, Desambra.
@@ -36,3 +36,4 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `nav`, `footer` | en-tête, menu, pied de page | non |
 | `home` | page d'accueil, frise de livraison | non |
 | `card` | carte produit | non |
+| catalogue de démonstration (`prisma/catalog.mjs`) | noms, accroches et descriptions des 27 produits et des 6 rayons, bandeau d'annonce | non |

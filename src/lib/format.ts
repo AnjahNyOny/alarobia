@@ -7,7 +7,7 @@ const intlLocale = (locale: string) => (locale === "en" ? "en-GB" : "fr-FR");
  * Montant en unités mineures → texte. L'ariary s'écrit sans décimales avec « Ar »
  * (« 25 000 Ar ») : Intl afficherait « MGA », que personne n'utilise à Madagascar.
  */
-export function formatPrice(cents: number, currency = "EUR", locale: string = "fr") {
+export function formatPrice(cents: number, currency = "MGA", locale: string = "fr") {
   if (currency === "MGA") {
     const amount = new Intl.NumberFormat(intlLocale(locale), { maximumFractionDigits: 0 }).format(Math.round(cents / 100));
     return locale === "en" ? `Ar${NBSP}${amount}` : `${amount}${NBSP}Ar`;
@@ -55,6 +55,11 @@ export function formatDateTime(date: Date, locale: string = "fr") {
   return `${formatDate(date, locale, "medium")}, ${time}`;
 }
 
+/** Devise telle qu'on l'écrit dans un libellé de champ : « Prix de vente (Ar) ». */
+export function currencyLabel(currency: string) {
+  return currency === "MGA" ? "Ar" : currency;
+}
+
 export function slugify(input: string) {
   return input
     .normalize("NFD")
@@ -72,5 +77,6 @@ export function parseAmountToCents(input: string) {
 
 export function centsToInput(cents: number | null | undefined) {
   if (cents == null) return "";
-  return (cents / 100).toFixed(2).replace(".", ",");
+  // Montant rond : pas de « ,00 », qui n'a aucun sens pour un prix en ariary.
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2).replace(".", ",");
 }

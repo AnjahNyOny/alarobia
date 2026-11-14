@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : plan validé, phase 0 terminée.
+**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 faite).
 
-**Prochaine action** : phase 2, tâche 2.5 (catalogue et fiche produit).
+**Prochaine action** : phase 3, tâche 3.2 (adresses et zones de livraison). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
 
 ## Décisions en attente
 
@@ -24,6 +24,7 @@ Aucune.
 | 14/11/2026 | D3 : Claude propose le texte « À propos », le propriétaire corrige. |
 | 14/11/2026 | D4 : photos existantes pour la démonstration. |
 | 14/11/2026 | D5 : premiers produits personnalisables : tasse, gourde, carnet, sac en toile. |
+| 14/11/2026 | Phase 3 commencée avant la fin de la phase 2, à la demande du propriétaire. Les pages 2.5 et 2.6 gardent leur ancienne mise en page en attendant. |
 | 14/11/2026 | Passage à Next 16 et React 19.3 : seule façon trouvée d'éliminer les erreurs d'hydratation intermittentes (mesuré). |
 
 ## Avancement
@@ -60,7 +61,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [ ] 2.7 Critique sur captures (4 largeurs, 3 langues)
 
 ### Phase 3 — Commerce malgache
-- [ ] 3.1 Ariary et nouveau catalogue de démonstration
+- [x] 3.1 Ariary et nouveau catalogue de démonstration : devise MGA par défaut, 27 produits et 6 rayons en fr, en, mg (`prisma/catalog.mjs`), clients malgaches, plafond de 20 000 000 Ar par montant. Vérifié : 65 tests unitaires, 15 parcours navigateur, captures à 320 et 1440 px
 - [ ] 3.2 Adresses et zones de livraison
 - [ ] 3.3 Paiement Mobile Money et à la livraison
 - [ ] 3.4 Renommage complet
@@ -70,7 +71,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [ ] 4.2 Dessin de la surface imprimée
 - [ ] 4.3 Envoi d'image par le client
 - [ ] 4.4 Gabarits 3D
-- [ ] 4.5 Interface de personnalisation
+- [ ] 4.5 Interface de personnalisation, tres visuelle, couleur taille etc
 - [ ] 4.6 Chargement et solution de repli
 - [ ] 4.7 Démonstration sur l'accueil
 
@@ -98,7 +99,7 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - [ ] 3. Texte de personnalisation inattendu
 - [x] 4. Changement de langue en cours de commande : panier, code promo et saisie conservés (test `e2e/langues.spec.ts`)
 - [ ] 5. Traduction de produit manquante : repli sur le français
-- [ ] 6. Gros montants en ariary à 320 px
+- [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
 - [ ] 7. Mobile Money déclaré mais non reçu
 
 ## Journal
@@ -120,3 +121,10 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Phase 2 commencée (2.1 à 2.4). Critique sur captures : un libellé malgache débordait dans la frise sur mobile, corrigé. La boutique s'appelle Alarobia dans les réglages.
 - Pas encore redessinés ni traduits : catalogue, fiche produit, panier, commande, compte, pages d'aide (2.5 et 2.6). Ils héritent déjà des couleurs et de la police, mais gardent l'ancienne mise en page et leurs textes en français.
 - État des vérifications : 49 tests unitaires, 13 parcours navigateur, lint et types propres.
+- Phase 3 commencée à la demande du propriétaire, avant 2.5 à 2.7.
+- Tâche 3.1 faite. Le catalogue de démonstration vit dans `prisma/catalog.mjs` (données seules, testées) ; `seed.mjs` l'écrit en base. Un montant s'écrit toujours en unités mineures : 25 000 Ar = 2 500 000.
+- Limite découverte : les colonnes de montant sont des entiers 32 bits, la base refuse tout montant au-delà de 21 474 836 Ar (dix canapés à 2 850 000 Ar faisaient planter la commande). Plafond posé à 20 000 000 Ar : prix d'un produit refusé au-delà dans le back-office, commande refusée avec un message traduit. Si le propriétaire veut vendre plus cher, il faudra passer ces colonnes en BigInt (à décider).
+- Le contrôle « pas de défilement horizontal » des tests mobiles ne voyait rien : en émulation mobile, `window.innerWidth` s'élargit avec le contenu. Corrigé (`clientWidth`). Il a alors révélé des débordements à 320 px qui existaient déjà : pied de page en malgache, bouton d'ajout au panier, panier, commande, tableaux du back-office (libellés `sr-only` qui s'échappaient du conteneur défilant). Tous corrigés.
+- Malgache : le catalogue de démonstration est rédigé par Claude et reste à relire ; les caractéristiques des produits ne sont pas traduites en malgache et s'affichent en français (repli prévu). Les termes confirmés dans le glossaire (komandy, ny tianko) sont appliqués à `messages/mg.json`.
+- Non fait en 3.1, prévu plus loin : adresses et téléphone du formulaire de commande (3.2), carte bancaire encore proposée (3.3), références « SV- » et adresses `@seve.example` (3.4).
+- État des vérifications : 65 tests unitaires, 15 parcours navigateur, lint, types et compilation propres.

@@ -34,7 +34,7 @@ export default async function CartPage() {
   return (
     <div className="container-page pt-8 md:pt-12">
       <h1 className="display text-4xl md:text-5xl">Panier</h1>
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_380px] lg:gap-16">
+      <div className="mt-8 grid gap-10 *:min-w-0 lg:grid-cols-[1fr_380px] lg:gap-16">
         <ul className="divide-y border-y">
           {cart.lines.map((line) => (
             <li key={line.product.id} className="flex gap-4 py-5 sm:gap-6">

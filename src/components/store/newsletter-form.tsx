@@ -16,7 +16,7 @@ export function NewsletterForm() {
     );
   return (
     <Form action={action} className="grid gap-2">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           name="email"
           type="email"
@@ -25,7 +25,7 @@ export function NewsletterForm() {
           placeholder="rakoto@exemple.mg"
           aria-label={t("newsletterLabel")}
           aria-invalid={state.error ? true : undefined}
-          className="h-10 min-w-0 flex-1 rounded-md border border-primary-foreground/35 bg-transparent px-3 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/55 focus-visible:border-primary-foreground"
+          className="h-10 min-w-0 flex-1 basis-40 rounded-md border border-primary-foreground/35 bg-transparent px-3 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/55 focus-visible:border-primary-foreground"
         />
         <SubmitButton variant="secondary">{t("subscribe")}</SubmitButton>
       </div>

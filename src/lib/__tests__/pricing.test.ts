@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db", () => ({ db: {} }));
 
-import { shippingCost } from "../pricing";
+import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "../pricing";
 import { discountPercent, ratingOf } from "../catalog";
 
 const settings = { shippingStandardCents: 490, shippingExpressCents: 990, freeShippingThresholdCents: 8000 };
@@ -19,6 +19,17 @@ describe("shippingCost", () => {
   });
   it("n'offre jamais la livraison quand le seuil vaut 0", () => {
     expect(shippingCost("STANDARD", 50000, { ...settings, freeShippingThresholdCents: 0 })).toBe(490);
+  });
+});
+
+describe("orderWithinLimit", () => {
+  it("accepte une commande à gros montant en ariary", () => {
+    expect(orderWithinLimit(1_250_000 * 100)).toBe(true);
+    expect(orderWithinLimit(MAX_ORDER_CENTS)).toBe(true);
+  });
+  it("refuse un total que la base ne peut pas stocker (entier 32 bits) : dix canapés à 2 850 000 Ar", () => {
+    expect(orderWithinLimit(10 * 2_850_000 * 100)).toBe(false);
+    expect(MAX_ORDER_CENTS).toBeLessThanOrEqual(2 ** 31 - 1);
   });
 });
 

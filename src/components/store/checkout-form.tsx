@@ -81,8 +81,8 @@ export function CheckoutForm({
   const shippingCents = shipping === "EXPRESS" ? expressCents : standardCents;
 
   return (
-    <Form action={action} draftKey="brouillon-commande" className="mt-8 grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-16">
-      <div className="grid gap-8">
+    <Form action={action} draftKey="brouillon-commande" className="mt-8 grid gap-10 *:min-w-0 lg:grid-cols-[1fr_400px] lg:gap-16">
+      <div className="grid gap-8 *:min-w-0">
         <Step n={1} title="Coordonnées">
           <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" defaultValue={defaults.email} error={e.email} required hint={signedIn ? undefined : "Nous y envoyons la confirmation et le suivi de commande."} />
         </Step>
@@ -127,7 +127,7 @@ export function CheckoutForm({
         </Step>
       </div>
 
-      <aside className="h-fit rounded-lg border bg-card p-6 lg:sticky lg:top-24">
+      <aside className="h-fit rounded-lg border bg-card p-4 sm:p-6 lg:sticky lg:top-24">
         <h2 className="text-lg font-medium">Votre commande</h2>
         {children}
         <dl className="mt-5 grid gap-2.5 border-t pt-5 text-sm tabular-nums">

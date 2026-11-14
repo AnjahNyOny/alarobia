@@ -8,9 +8,10 @@ import { requireAdmin } from "@/lib/auth";
 import { PRODUCT_STATUSES } from "@/lib/constants";
 import { parseAmountToCents, slugify } from "@/lib/format";
 import { invalid, type FormState } from "@/lib/form";
+import { MAX_ORDER_CENTS } from "@/lib/pricing";
 
 const price = (msg: string) =>
-  z.string().transform((v) => parseAmountToCents(v)).refine((n) => Number.isInteger(n) && n > 0 && n < 100_000_000, msg);
+  z.string().transform((v) => parseAmountToCents(v)).refine((n) => Number.isInteger(n) && n > 0 && n <= MAX_ORDER_CENTS, msg);
 
 const productSchema = z.object({
   name: z.string().trim().min(2, "Le nom est requis.").max(120),

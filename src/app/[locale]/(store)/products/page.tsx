@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { getUser } from "@/lib/auth";
 import { cardInclude, wishedIds } from "@/lib/catalog";
 import { db } from "@/lib/db";
-import { parseAmountToCents } from "@/lib/format";
+import { currencyLabel, parseAmountToCents } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +70,7 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
       {q && <input type="hidden" name="q" value={q} />}
       {sp.sort && <input type="hidden" name="sort" value={sp.sort} />}
       <fieldset>
-        <legend className="text-sm font-medium">Prix ({settings.currency})</legend>
+        <legend className="text-sm font-medium">Prix ({currencyLabel(settings.currency)})</legend>
         <div className="mt-3 flex items-center gap-2">
           <input name="min" inputMode="decimal" defaultValue={sp.min} placeholder="Min" aria-label="Prix minimum" className="h-10 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring" />
           <span className="text-muted-foreground" aria-hidden>

@@ -22,7 +22,7 @@ Node 22 ou plus récent.
 | Administrateur | `admin@seve.example`  | `admin1234`  |
 | Client         | `client@seve.example` | `client1234` |
 
-Codes promo : `BIENVENUE10` (−10 %), `MAISON20` (−20 € dès 150 €).
+Codes promo : `BIENVENUE10` (−10 %), `TONGASOA` (−10 000 Ar dès 100 000 Ar).
 
 **Avant toute mise en ligne, changez ces mots de passe** (ou relancez un seed sans ces comptes).
 

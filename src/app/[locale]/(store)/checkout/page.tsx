@@ -58,7 +58,7 @@ export default async function CheckoutPage() {
                 <p className="truncate text-sm font-medium">{l.product.name}</p>
                 <p className="text-[0.8125rem] text-muted-foreground">Quantité : {l.quantity}</p>
               </div>
-              <p className="text-sm tabular-nums">{formatPrice(l.lineTotalCents, currency)}</p>
+              <p className="text-sm whitespace-nowrap tabular-nums">{formatPrice(l.lineTotalCents, currency)}</p>
             </li>
           ))}
         </ul>

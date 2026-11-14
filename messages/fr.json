@@ -24,6 +24,7 @@
     "cartEmpty": "Votre panier est vide.",
     "stockInsufficient": "Stock insuffisant pour « {name} ». Ajustez votre panier.",
     "justSold": "« {name} » vient d'être vendu. Ajustez votre panier.",
+    "orderTooLarge": "Le total dépasse {amount}, le maximum pour une commande en ligne. Réduisez les quantités ou contactez-nous.",
     "currentPasswordRequired": "Saisissez votre mot de passe actuel.",
     "currentPasswordWrong": "Mot de passe actuel incorrect.",
     "loginForWishlist": "Connectez-vous pour enregistrer vos favoris.",
