@@ -1,24 +1,24 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ShellData } from "./header";
 import { NewsletterForm } from "./newsletter-form";
 
 export function Footer({ settings, categories }: Pick<ShellData, "settings" | "categories">) {
   const columns = [
-    { title: "Boutique", links: [{ href: "/produits", label: "Tous les produits" }, ...categories.map((c) => ({ href: `/produits?categorie=${c.slug}`, label: c.name }))] },
+    { title: "Boutique", links: [{ href: "/products", label: "Tous les produits" }, ...categories.map((c) => ({ href: `/products?category=${c.slug}`, label: c.name }))] },
     {
       title: "Aide",
       links: [
-        { href: "/aide#livraison", label: "Livraison" },
-        { href: "/aide#retours", label: "Retours et remboursements" },
-        { href: "/aide#questions", label: "Questions fréquentes" },
-        { href: "/compte", label: "Suivre une commande" },
+        { href: "/help#livraison", label: "Livraison" },
+        { href: "/help#retours", label: "Retours et remboursements" },
+        { href: "/help#questions", label: "Questions fréquentes" },
+        { href: "/account", label: "Suivre une commande" },
       ],
     },
     {
       title: "La maison",
       links: [
-        { href: "/a-propos", label: "Notre parti pris" },
-        { href: "/mentions-legales", label: "Mentions légales et CGV" },
+        { href: "/about", label: "Notre parti pris" },
+        { href: "/legal", label: "Mentions légales et CGV" },
         { href: `mailto:${settings.contactEmail}`, label: "Nous écrire" },
       ],
     },

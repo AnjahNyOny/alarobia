@@ -1,6 +1,6 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -74,7 +74,7 @@ export async function saveProduct(id: string | null, _: FormState, formData: For
     await db.product.create({ data: { ...data, images: { create: imageRows } } });
   }
   revalidatePath("/", "layout");
-  redirect("/admin/produits?ok=" + (id ? "modifie" : "cree"));
+  return redirectTo("/admin/products?ok=" + (id ? "updated" : "created"));
 }
 
 export async function deleteProduct(id: string): Promise<FormState> {

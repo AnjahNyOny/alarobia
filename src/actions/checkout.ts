@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -92,5 +92,5 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
   store.delete(CART_COOKIE);
   store.delete(PROMO_COOKIE);
   revalidatePath("/", "layout");
-  redirect(`/commande/${orderId}`);
+  return redirectTo(`/order/${orderId}`);
 }

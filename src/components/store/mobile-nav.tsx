@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Menu, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -25,15 +25,15 @@ export function MobileNav({ links, storeName, signedIn }: { links: { href: strin
             </Link>
           ))}
         </nav>
-        <form action="/produits" className="relative border-t px-5 py-4" onSubmit={() => setOpen(false)}>
+        <form action="/products" className="relative border-t px-5 py-4" onSubmit={() => setOpen(false)}>
           <Search className="pointer-events-none absolute top-1/2 left-8 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input name="q" type="search" placeholder="Rechercher un produit" aria-label="Rechercher un produit" className="h-11 w-full rounded-lg border border-input bg-card pr-3 pl-10 text-base outline-none focus-visible:border-ring" />
         </form>
         <div className="mt-auto grid gap-1 border-t px-5 py-4 text-sm text-muted-foreground">
-          <Link href={signedIn ? "/compte" : "/connexion"} onClick={() => setOpen(false)} className="py-1.5 text-foreground">
+          <Link href={signedIn ? "/account" : "/login"} onClick={() => setOpen(false)} className="py-1.5 text-foreground">
             {signedIn ? "Mon compte" : "Se connecter"}
           </Link>
-          <Link href="/aide" onClick={() => setOpen(false)} className="py-1.5">
+          <Link href="/help" onClick={() => setOpen(false)} className="py-1.5">
             Livraison, retours et aide
           </Link>
         </div>

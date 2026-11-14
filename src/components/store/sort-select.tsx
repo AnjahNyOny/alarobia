@@ -1,12 +1,13 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 export const SORTS = [
-  { value: "pertinence", label: "Sélection" },
-  { value: "nouveautes", label: "Nouveautés" },
-  { value: "prix-asc", label: "Prix croissant" },
-  { value: "prix-desc", label: "Prix décroissant" },
+  { value: "featured", label: "Sélection" },
+  { value: "newest", label: "Nouveautés" },
+  { value: "price-asc", label: "Prix croissant" },
+  { value: "price-desc", label: "Prix décroissant" },
 ];
 
 export function SortSelect({ value }: { value: string }) {
@@ -20,7 +21,7 @@ export function SortSelect({ value }: { value: string }) {
         value={value}
         onChange={(e) => {
           const next = new URLSearchParams(params);
-          next.set("tri", e.target.value);
+          next.set("sort", e.target.value);
           next.delete("page");
           router.push(`${pathname}?${next}`);
         }}

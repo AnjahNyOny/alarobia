@@ -43,7 +43,7 @@ npm run db:reset         # recrée la base et recharge les données de démonstr
 npm run db:seed
 ```
 
-Comptes de démonstration : `admin@seve.example` / `admin1234`, `client@seve.example` / `client1234` (à renommer en phase 3).
+Comptes de démonstration : `admin@seve.example` / `admin1234`, `client@seve.example` / `client1234` (à renommer en phase 3). Adresses : `/fr/admin`, `/fr/login`.
 
 ## Architecture
 
@@ -57,8 +57,10 @@ src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schem
 src/components/ui/       shadcn/ui
 src/components/store/    boutique
 src/components/admin/    back-office
-src/app/(store)/         pages publiques et espace client
-src/app/admin/           back-office (rôle ADMIN)
+src/app/[locale]/(store)/  pages publiques et espace client
+src/app/[locale]/admin/    back-office (rôle ADMIN)
+src/i18n/                routage par langue, navigation, fusion des messages
+messages/                textes de l'interface : fr.json (socle), en.json, mg.json
 src/app/globals.css      jetons de design
 uploads/                 fichiers envoyés, servis par src/app/uploads/[name]/route.ts
 ```
@@ -70,6 +72,7 @@ uploads/                 fichiers envoyés, servis par src/app/uploads/[name]/ro
 - **Stock** : décrément conditionnel dans une transaction (`stock >= quantité`).
 - **Validation** : Zod sur toute entrée, messages d'erreur rattachés au champ.
 - **Formulaires** : utiliser `<Form>` de `src/components/form.tsx`, pas `<form action>`. React 19 vide les champs après une action ; `<Form>` conserve la saisie en cas d'erreur.
+- **Navigation** : importer `Link`, `useRouter`, `usePathname` depuis `@/i18n/navigation` (jamais `next/link`), et rediriger côté serveur avec `redirectTo` de `@/i18n/server`. Les chemins s'écrivent sans préfixe de langue.
 - **Boutons-liens** : `buttonVariants()` passe par `cn` pour que la variante remplace bien les classes de base. Ne pas appeler `cva` directement.
 - **Fichiers envoyés** : nom généré côté serveur, type et taille contrôlés, jamais de chemin fourni par le client.
 - **Textes** : aucun texte en dur dans les composants une fois la phase 1 faite ; tout passe par les fichiers de messages, dans les trois langues.

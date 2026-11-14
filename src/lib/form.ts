@@ -21,6 +21,6 @@ export function invalid(error: ZodError): FormState {
 }
 
 /** N'accepte que les chemins internes, pour éviter les redirections ouvertes. */
-export function safeNext(next: unknown, fallback = "/compte") {
+export function safeNext(next: unknown, fallback = "/account") {
   return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : fallback;
 }

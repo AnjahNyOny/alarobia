@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings, ShoppingCart, TicketPercent, Users } from "lucide-react";
 import { logout } from "@/actions/auth";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -13,23 +13,23 @@ const groups = [
     label: "Activité",
     items: [
       { href: "/admin", label: "Tableau de bord", icon: LayoutDashboard },
-      { href: "/admin/commandes", label: "Commandes", icon: ShoppingCart, badge: true },
-      { href: "/admin/clients", label: "Clients", icon: Users },
+      { href: "/admin/orders", label: "Commandes", icon: ShoppingCart, badge: true },
+      { href: "/admin/customers", label: "Clients", icon: Users },
     ],
   },
   {
     label: "Catalogue",
     items: [
-      { href: "/admin/produits", label: "Produits", icon: Package },
+      { href: "/admin/products", label: "Produits", icon: Package },
       { href: "/admin/categories", label: "Catégories", icon: FolderTree },
-      { href: "/admin/avis", label: "Avis", icon: MessageSquare },
+      { href: "/admin/reviews", label: "Avis", icon: MessageSquare },
     ],
   },
   {
     label: "Boutique",
     items: [
       { href: "/admin/promotions", label: "Codes promo", icon: TicketPercent },
-      { href: "/admin/reglages", label: "Réglages", icon: Settings },
+      { href: "/admin/settings", label: "Réglages", icon: Settings },
     ],
   },
 ];

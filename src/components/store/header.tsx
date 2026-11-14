@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Heart, Search, User } from "lucide-react";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
@@ -33,9 +33,9 @@ export async function loadShell(): Promise<ShellData> {
 
 export function Header({ settings, user, cart, categories }: ShellData) {
   const links = [
-    { href: "/produits", label: "Tout voir" },
-    ...categories.map((c) => ({ href: `/produits?categorie=${c.slug}`, label: c.name })),
-    { href: "/produits?promo=1", label: "Promotions" },
+    { href: "/products", label: "Tout voir" },
+    ...categories.map((c) => ({ href: `/products?category=${c.slug}`, label: c.name })),
+    { href: "/products?sale=1", label: "Promotions" },
   ];
   const iconLink = "grid size-10 place-items-center rounded-lg transition-colors hover:bg-muted";
 
@@ -70,7 +70,7 @@ export function Header({ settings, user, cart, categories }: ShellData) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-0.5">
-            <form action="/produits" role="search" className="relative mr-2 hidden md:block">
+            <form action="/products" role="search" className="relative mr-2 hidden md:block">
               <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
               <input
                 name="q"
@@ -80,10 +80,10 @@ export function Header({ settings, user, cart, categories }: ShellData) {
                 className="h-10 w-44 rounded-lg border border-transparent bg-muted pr-3 pl-9 text-sm outline-none transition-[width,border-color,background-color] placeholder:text-muted-foreground focus:w-64 focus:border-input focus:bg-card"
               />
             </form>
-            <Link href={user ? "/compte" : "/connexion"} className={iconLink} aria-label={user ? "Mon compte" : "Se connecter"}>
+            <Link href={user ? "/account" : "/login"} className={iconLink} aria-label={user ? "Mon compte" : "Se connecter"}>
               <User className="size-5" strokeWidth={1.6} aria-hidden />
             </Link>
-            <Link href="/compte/favoris" className={`${iconLink} hidden sm:grid`} aria-label="Mes favoris">
+            <Link href="/account/wishlist" className={`${iconLink} hidden sm:grid`} aria-label="Mes favoris">
               <Heart className="size-5" strokeWidth={1.6} aria-hidden />
             </Link>
             <CartButton count={cart.count} />

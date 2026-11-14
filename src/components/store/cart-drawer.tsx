@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ShoppingBag } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { buttonVariants } from "@/components/ui/button";
@@ -58,7 +58,7 @@ export function CartDrawer({
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
             <p className="display text-2xl">Votre panier est vide</p>
             <p className="text-muted-foreground">Parcourez la boutique : vos articles apparaîtront ici.</p>
-            <Link href="/produits" onClick={() => setOpen(false)} className={buttonVariants({ size: "md" })}>
+            <Link href="/products" onClick={() => setOpen(false)} className={buttonVariants({ size: "md" })}>
               Voir les produits
             </Link>
           </div>
@@ -83,12 +83,12 @@ export function CartDrawer({
             <ul className="flex-1 divide-y overflow-y-auto px-5">
               {lines.map((line) => (
                 <li key={line.id} className="flex gap-4 py-4">
-                  <Link href={`/produits/${line.slug}`} onClick={() => setOpen(false)} className="relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <Link href={`/products/${line.slug}`} onClick={() => setOpen(false)} className="relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-md bg-muted">
                     {line.image && <Image src={line.image} alt="" fill sizes="80px" className="object-cover" />}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="flex justify-between gap-3">
-                      <Link href={`/produits/${line.slug}`} onClick={() => setOpen(false)} className="text-sm leading-snug font-medium hover:underline">
+                      <Link href={`/products/${line.slug}`} onClick={() => setOpen(false)} className="text-sm leading-snug font-medium hover:underline">
                         {line.name}
                       </Link>
                       <span className="text-sm whitespace-nowrap tabular-nums">{formatPrice(line.priceCents * line.quantity, currency)}</span>
@@ -105,10 +105,10 @@ export function CartDrawer({
               </div>
               <p className="mt-1 text-[0.8125rem] text-muted-foreground">Taxes incluses. Frais de livraison calculés à l'étape suivante.</p>
               <div className="mt-4 grid gap-2">
-                <Link href="/commande" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "xl" }), "w-full")}>
+                <Link href="/checkout" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "xl" }), "w-full")}>
                   Passer la commande
                 </Link>
-                <Link href="/panier" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "md", variant: "ghost" }), "w-full")}>
+                <Link href="/cart" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "md", variant: "ghost" }), "w-full")}>
                   Voir le panier
                 </Link>
               </div>

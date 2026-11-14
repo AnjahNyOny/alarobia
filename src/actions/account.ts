@@ -15,7 +15,7 @@ export async function updateProfile(_: FormState, formData: FormData): Promise<F
     .safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error);
   await db.user.update({ where: { id: user.id }, data: { name: parsed.data.name, phone: parsed.data.phone || null } });
-  revalidatePath("/compte", "layout");
+  revalidatePath("/account", "layout");
   return { ok: true, message: "Profil mis à jour." };
 }
 
@@ -25,7 +25,7 @@ export async function updateAddress(_: FormState, formData: FormData): Promise<F
   if (!parsed.success) return invalid(parsed.error);
   const data = { ...parsed.data, line2: parsed.data.line2 || null };
   await db.address.upsert({ where: { userId: user.id }, update: data, create: { ...data, userId: user.id } });
-  revalidatePath("/compte", "layout");
+  revalidatePath("/account", "layout");
   return { ok: true, message: "Adresse enregistrée." };
 }
 

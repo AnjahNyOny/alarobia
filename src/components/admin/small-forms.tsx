@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState, useEffect, useEffectEvent, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { createPromo, saveSettings } from "@/actions/admin/misc";
 import { saveCategory } from "@/actions/admin/products";

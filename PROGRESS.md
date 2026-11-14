@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 14/11/2026** : plan validé, phase 0 terminée.
 
-**Prochaine action** : phase 1, tâche 1.1 (routage par langue).
+**Prochaine action** : phase 1, tâche 1.3 (formats selon la langue).
 
 ## Décisions en attente
 
@@ -43,7 +43,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 0.4 (ajoutée) Erreur d'hydratation intermittente : cause trouvée, Next 16 adopté ; 0 erreur sur 2 400 chargements au banc d'essai
 
 ### Phase 1 — Trois langues
-- [ ] 1.1 Routage par langue et middleware combiné
+- [x] 1.1 Routage par langue et proxy combiné : `/fr`, `/en`, `/mg`, adresses communes en anglais ; 3 tests navigateur dédiés. Écart au plan : pas de redirection des anciennes adresses françaises, le site n'ayant jamais été en ligne.
 - [ ] 1.2 Fichiers de messages, test de parité des clés, glossaire
 - [ ] 1.3 Formats selon la langue (prix, dates, jours)
 - [ ] 1.4 Contenu du catalogue traduit, avec repli sur le français
@@ -115,3 +115,4 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Phase 0 faite. La base de test est créée sans réinitialisation forcée : Prisma interdit `--force-reset` à un agent, et le seed suffit à la vider.
 - Les tests navigateur ont révélé que l'erreur d'hydratation de la première version n'était pas corrigée (le déplacement du script JSON-LD ne traitait qu'un symptôme). Enquête par élimination, treize essais mesurés : ce n'était ni les notifications, ni les panneaux latéraux, ni le pied de page en lui-même, mais tout composant serveur asynchrone produisant beaucoup de HTML. Défaut du React embarqué dans Next 15.5 ; disparu sous Next 16.
 - Poids ajouté : `vitest`, `@playwright/test` (tests), `next@16`, `react@19.3` (correctif).
+- Tâche 1.1 faite : pages déplacées sous `src/app/[locale]/`, `next-intl` installé, socle de messages avec repli sur le français et test de parité des clés.

@@ -3,7 +3,7 @@ import { watchErrors } from "./helpers";
 
 test("mobile : pas de défilement horizontal, menu utilisable", async ({ page }) => {
   const check = watchErrors(page);
-  for (const url of ["/", "/produits", "/produits/perfecto-sully-en-cuir", "/panier", "/aide"]) {
+  for (const url of ["/", "/products", "/products/perfecto-sully-en-cuir", "/cart", "/help"]) {
     await page.goto(url);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `défilement horizontal sur ${url}`).toBeLessThanOrEqual(0);

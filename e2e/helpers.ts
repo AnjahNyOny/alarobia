@@ -10,7 +10,7 @@ export function watchErrors(page: Page) {
 }
 
 export async function login(page: Page, email: string, password: string) {
-  await page.goto("/connexion");
+  await page.goto("/login");
   await page.getByLabel("Adresse e-mail").fill(email);
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();

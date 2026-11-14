@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
+import { locales } from "@/i18n/routing";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +10,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     db.product.findMany({ where: { status: "ACTIVE" }, select: { slug: true, updatedAt: true } }),
     db.category.findMany({ select: { slug: true } }),
   ]);
-  return [
-    { url: base, changeFrequency: "daily", priority: 1 },
-    { url: `${base}/produits`, changeFrequency: "daily", priority: 0.9 },
-    ...categories.map((c) => ({ url: `${base}/produits?categorie=${c.slug}`, changeFrequency: "weekly" as const, priority: 0.7 })),
-    ...products.map((p) => ({ url: `${base}/produits/${p.slug}`, lastModified: p.updatedAt, changeFrequency: "weekly" as const, priority: 0.8 })),
-    { url: `${base}/a-propos`, priority: 0.3 },
-    { url: `${base}/aide`, priority: 0.3 },
+  const paths: { path: string; lastModified?: Date; priority: number }[] = [
+    { path: "", priority: 1 },
+    { path: "/products", priority: 0.9 },
+    ...categories.map((c) => ({ path: `/products?category=${c.slug}`, priority: 0.7 })),
+    ...products.map((p) => ({ path: `/products/${p.slug}`, lastModified: p.updatedAt, priority: 0.8 })),
+    { path: "/about", priority: 0.3 },
+    { path: "/help", priority: 0.3 },
   ];
+  // Une entrée par langue, chacune déclarant ses équivalents (hreflang).
+  return paths.flatMap(({ path, lastModified, priority }) =>
+    locales.map((locale) => ({
+      url: `${base}/${locale}${path}`,
+      lastModified,
+      priority,
+      alternates: { languages: Object.fromEntries(locales.map((l) => [l, `${base}/${l}${path}`])) },
+    }))
+  );
 }

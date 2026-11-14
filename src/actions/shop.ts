@@ -40,7 +40,7 @@ export async function submitReview(_: FormState, formData: FormData): Promise<Fo
     update: { rating, comment },
     create: { productId, userId: user.id, rating, comment },
   });
-  revalidatePath(`/produits/${product.slug}`);
+  revalidatePath(`/products/${product.slug}`);
   return { ok: true, message: "Merci, votre avis est publié." };
 }
 

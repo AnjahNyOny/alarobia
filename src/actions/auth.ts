@@ -1,7 +1,7 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession, destroySession } from "@/lib/auth";
@@ -24,7 +24,7 @@ export async function register(_: FormState, formData: FormData): Promise<FormSt
 
   const user = await db.user.create({ data: { name, email, passwordHash: await bcrypt.hash(password, 12) } });
   await createSession(user.id, user.role);
-  redirect(safeNext(formData.get("next")));
+  return redirectTo(safeNext(formData.get("next")));
 }
 
 export async function login(_: FormState, formData: FormData): Promise<FormState> {
@@ -37,10 +37,10 @@ export async function login(_: FormState, formData: FormData): Promise<FormState
   if (!user || !valid) return { error: "E-mail ou mot de passe incorrect." };
 
   await createSession(user.id, user.role);
-  redirect(safeNext(formData.get("next"), user.role === "ADMIN" ? "/admin" : "/compte"));
+  return redirectTo(safeNext(formData.get("next"), user.role === "ADMIN" ? "/admin" : "/account"));
 }
 
 export async function logout() {
   await destroySession();
-  redirect("/");
+  return redirectTo("/");
 }

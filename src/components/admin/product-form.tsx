@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { saveProduct } from "@/actions/admin/products";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { buttonVariants } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export function ProductForm({ product, categories, currency }: { product?: Produ
         <div className="sticky bottom-4 grid gap-3 rounded-lg border bg-card p-4 shadow-sm">
           <FormAlert state={state} />
           <div className="flex gap-2">
-            <Link href="/admin/produits" className={buttonVariants({ variant: "outline", size: "md" })}>Annuler</Link>
+            <Link href="/admin/products" className={buttonVariants({ variant: "outline", size: "md" })}>Annuler</Link>
             <SubmitButton className="flex-1">{product ? "Enregistrer" : "Créer le produit"}</SubmitButton>
           </div>
         </div>

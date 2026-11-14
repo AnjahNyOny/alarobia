@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { discountPercent, isNew, ratingOf, type CardProduct } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
 import { Stars } from "./stars";
@@ -53,7 +53,7 @@ export function ProductCard({
         <p className="text-[0.8125rem] text-muted-foreground">{product.category.name}</p>
         <h3 className="text-[0.9375rem] leading-snug font-medium">
           {/* Le lien couvre toute la carte ; le bouton favori reste au-dessus. */}
-          <Link href={`/produits/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring">
+          <Link href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring">
             {product.name}
           </Link>
         </h3>

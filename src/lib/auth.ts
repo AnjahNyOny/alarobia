@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirectTo } from "@/i18n/server";
 import { SignJWT, jwtVerify } from "jose";
 import { db } from "./db";
 
@@ -50,15 +50,15 @@ export const getUser = cache(async () => {
   }
 });
 
-export async function requireUser(next = "/compte") {
+export async function requireUser(next = "/account") {
   const user = await getUser();
-  if (!user) redirect(`/connexion?next=${encodeURIComponent(next)}`);
+  if (!user) return redirectTo(`/login?next=${encodeURIComponent(next)}`);
   return user;
 }
 
 export async function requireAdmin() {
   const user = await getUser();
-  if (!user) redirect("/connexion?next=/admin");
-  if (user.role !== "ADMIN") redirect("/");
+  if (!user) return redirectTo("/login?next=/admin");
+  if (user.role !== "ADMIN") return redirectTo("/");
   return user;
 }
