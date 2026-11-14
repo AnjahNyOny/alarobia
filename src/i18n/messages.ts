@@ -19,7 +19,7 @@ export function flattenMessages(messages: Messages, prefix = ""): Record<string,
   const out: Record<string, string[]> = {};
   for (const [key, value] of Object.entries(messages)) {
     const path = prefix ? `${prefix}.${key}` : key;
-    if (typeof value === "string") out[path] = [...new Set([...value.matchAll(/\{\s*(\w+)/g)].map((m) => m[1]))].sort();
+    if (typeof value === "string") out[path] = [...new Set([...value.matchAll(/\{\s*(\w+)\s*[,}]/g)].map((m) => m[1]))].sort();
     else Object.assign(out, flattenMessages(value, path));
   }
   return out;

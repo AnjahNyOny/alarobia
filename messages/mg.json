@@ -42,5 +42,81 @@
     "wishlistRemoved": "Nesorina tao amin'ny tianao.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
     "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona."
+  },
+  "nav": {
+    "skip": "Hiditra amin'ny votoatiny",
+    "search": "Hikaroka entana",
+    "all": "Ny rehetra",
+    "sale": "Fihenam-bidy",
+    "account": "Ny kaontiko",
+    "signIn": "Hiditra",
+    "wishlist": "Ny tiako",
+    "openMenu": "Sokafy ny menio",
+    "menu": "Menio",
+    "cartOpen": "Sokafy ny harona",
+    "cartCount": "{count, plural, =0 {Foana ny harona} other {Entana # ao anaty harona}}",
+    "help": "Fanaterana, famerenana ary fanampiana",
+    "categories": "Sokajy",
+    "admin": "Fitantanana",
+    "home": "{name}, fandraisana"
+  },
+  "home": {
+    "title": "Entana ilaina isan'andro, aterina any aminao.",
+    "lead": "Fitaovana an-dakozia, harona, sakafo, fikarakarana tena ary fitaovana madinika: izay ampiasaina isan'andro, voafantina tsara ary aterina manerana an'i Madagasikara.",
+    "cta": "Hijery ny entana rehetra",
+    "week": {
+      "heading": "Rahoviana no tonga ny entako?",
+      "text": "Raha manafatra anio ianao dia tonga {date}.",
+      "today": "Anio",
+      "delivered": "Tonga",
+      "noDelivery": "Tsy misy fanaterana",
+      "note": "Fanaterana tsotra, tsy misy ny alahady."
+    },
+    "aisles": {
+      "title": "Ireo sokajy",
+      "count": "{count, plural, other {Entana #}}"
+    },
+    "latest": {
+      "title": "Vaovao",
+      "all": "Hijery ny rehetra"
+    },
+    "selection": {
+      "title": "Be mpitady indrindra"
+    },
+    "steps": {
+      "title": "Dingana telo hividianana",
+      "s1": "Misafidiana",
+      "s1text": "Ampidiro ao anaty harona ny entanao, tsy mila mamorona kaonty.",
+      "s2": "Mandoava",
+      "s2text": "Amin'ny Internet na rehefa tonga ny entana, araka izay tianao.",
+      "s3": "Raiso",
+      "s3text": "Any an-trano na any am-piasana, azo arahina ny entana."
+    }
+  },
+  "card": {
+    "new": "Vaovao",
+    "soldOut": "Lany",
+    "oldPrice": "Vidiny taloha:",
+    "addWish": "Ampidiro ao amin'ny tiako ny {name}",
+    "removeWish": "Esory ao amin'ny tiako ny {name}",
+    "rating": "Naoty: {value} amin'ny 5",
+    "reviews": "{count} hevitra"
+  },
+  "footer": {
+    "newsletterText": "Taratasy iray isam-bolana: entana vaovao sy izay niverina tahiry. Azo ajanona amin'ny tsindry iray.",
+    "newsletterLabel": "Ny mailakao ho an'ny taratasim-baovao",
+    "subscribe": "Hisoratra anarana",
+    "shop": "Fivarotana",
+    "allProducts": "Entana rehetra",
+    "help": "Fanampiana",
+    "delivery": "Fanaterana",
+    "returns": "Famerenana entana sy vola",
+    "faq": "Fanontaniana matetika",
+    "track": "Hanaraka baiko",
+    "company": "Alarobia",
+    "about": "Momba anay",
+    "legal": "Fepetra ara-dalàna",
+    "contact": "Hanoratra aminay",
+    "rights": "© {year} {name}. Zo rehetra voatokana."
   }
 }

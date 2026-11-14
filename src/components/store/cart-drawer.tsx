@@ -12,16 +12,16 @@ import { CartLineControls } from "./quantity";
 
 export type DrawerLine = { id: string; name: string; slug: string; image: string | null; priceCents: number; quantity: number; stock: number };
 
-export function CartButton({ count }: { count: number }) {
+export function CartButton({ count, label }: { count: number; label: string }) {
   const { setOpen } = useCartUI();
   return (
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="relative grid size-10 place-items-center rounded-lg transition-colors hover:bg-muted"
-      aria-label={count ? `Ouvrir le panier, ${count} article${count > 1 ? "s" : ""}` : "Ouvrir le panier"}
+      className="relative grid size-10 place-items-center rounded-md transition-colors hover:bg-muted"
+      aria-label={label}
     >
-      <ShoppingBag className="size-5" strokeWidth={1.6} aria-hidden />
+      <ShoppingBag className="size-5" strokeWidth={1.75} aria-hidden />
       {count > 0 && (
         <span className="absolute top-1 right-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-brand px-1 text-[0.6875rem] font-semibold text-brand-foreground tabular-nums">
           {count}

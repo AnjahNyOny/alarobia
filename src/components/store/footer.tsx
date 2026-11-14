@@ -1,63 +1,72 @@
+import { useTranslations } from "next-intl";
+import { LogoMark } from "@/components/logo";
 import { Link } from "@/i18n/navigation";
 import type { ShellData } from "./header";
 import { LanguageSwitcher } from "./language-switcher";
 import { NewsletterForm } from "./newsletter-form";
 
 export function Footer({ settings, categories }: Pick<ShellData, "settings" | "categories">) {
+  // useTranslations (synchrone) : ce composant ne doit pas devenir asynchrone, voir CLAUDE.md.
+  const t = useTranslations("footer");
   const columns = [
-    { title: "Boutique", links: [{ href: "/products", label: "Tous les produits" }, ...categories.map((c) => ({ href: `/products?category=${c.slug}`, label: c.name }))] },
+    { title: t("shop"), links: [{ href: "/products", label: t("allProducts") }, ...categories.map((c) => ({ href: `/products?category=${c.slug}`, label: c.name }))] },
     {
-      title: "Aide",
+      title: t("help"),
       links: [
-        { href: "/help#livraison", label: "Livraison" },
-        { href: "/help#retours", label: "Retours et remboursements" },
-        { href: "/help#questions", label: "Questions fréquentes" },
-        { href: "/account", label: "Suivre une commande" },
+        { href: "/help#livraison", label: t("delivery") },
+        { href: "/help#retours", label: t("returns") },
+        { href: "/help#questions", label: t("faq") },
+        { href: "/account", label: t("track") },
       ],
     },
     {
-      title: "La maison",
+      title: t("company"),
       links: [
-        { href: "/about", label: "Notre parti pris" },
-        { href: "/legal", label: "Mentions légales et CGV" },
-        { href: `mailto:${settings.contactEmail}`, label: "Nous écrire" },
+        { href: "/about", label: t("about") },
+        { href: "/legal", label: t("legal") },
       ],
     },
   ];
   return (
-    <footer className="mt-24 bg-primary text-primary-foreground">
-      <div className="container-page grid gap-12 py-14 lg:grid-cols-[1.3fr_2fr]">
+    <footer className="mt-20 bg-primary text-primary-foreground md:mt-28">
+      <div className="container-page grid gap-12 py-14 lg:grid-cols-[1.2fr_2fr]">
         <div className="max-w-sm">
-          <p className="display text-3xl">{settings.storeName}</p>
-          <p className="mt-4 text-sm leading-relaxed text-primary-foreground/70">
-            Une lettre par mois : les nouveautés, les retours en stock et quelques conseils d'entretien. Désinscription en un clic.
+          <p className="flex items-center gap-2.5">
+            <LogoMark className="h-8" />
+            <span className="display text-3xl lowercase">{settings.storeName}</span>
           </p>
-          <div className="mt-5">
+          <p className="mt-5 text-sm leading-relaxed text-primary-foreground/75">{t("newsletterText")}</p>
+          <div className="mt-4">
             <NewsletterForm />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
           {columns.map((col) => (
             <nav key={col.title} aria-label={col.title}>
-              <p className="text-sm font-medium">{col.title}</p>
-              <ul className="mt-4 grid gap-2.5 text-sm text-primary-foreground/70">
+              <p className="display-sm text-lg">{col.title}</p>
+              <ul className="mt-4 grid gap-2.5 text-sm text-primary-foreground/75">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="transition-colors hover:text-primary-foreground">
+                    <Link href={l.href} className="underline-offset-4 hover:text-primary-foreground hover:underline">
                       {l.label}
                     </Link>
                   </li>
                 ))}
+                {col.title === t("company") && (
+                  <li>
+                    <a href={`mailto:${settings.contactEmail}`} className="underline-offset-4 hover:text-primary-foreground hover:underline">
+                      {t("contact")}
+                    </a>
+                  </li>
+                )}
               </ul>
             </nav>
           ))}
         </div>
       </div>
-      <div className="border-t border-primary-foreground/15">
-        <div className="container-page flex flex-wrap justify-between gap-2 py-5 text-[0.8125rem] text-primary-foreground/60">
-          <p>
-            © {new Date().getFullYear()} {settings.storeName}. Tous droits réservés.
-          </p>
+      <div className="border-t border-primary-foreground/20">
+        <div className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5 text-[0.8125rem] text-primary-foreground/75">
+          <p>{t("rights", { year: new Date().getFullYear(), name: settings.storeName })}</p>
           <LanguageSwitcher />
         </div>
       </div>

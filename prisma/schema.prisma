@@ -195,8 +195,8 @@ model PromoCode {
 
 model StoreSettings {
   id                         Int    @id @default(1)
-  storeName                  String @default("Sève")
-  contactEmail               String @default("bonjour@seve.example")
+  storeName                  String @default("Alarobia")
+  contactEmail               String @default("bonjour@alarobia.example")
   currency                   String @default("EUR")
   announcement               String @default("Livraison offerte dès 80 € d'achat")
   announcementEn             String @default("")

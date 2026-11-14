@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 14/11/2026** : plan validé, phase 0 terminée.
 
-**Prochaine action** : phase 2, tâche 2.1 (jetons de design et typographie).
+**Prochaine action** : phase 2, tâche 2.5 (catalogue et fiche produit).
 
 ## Décisions en attente
 
@@ -51,10 +51,10 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [ ] Relecture du malgache par le propriétaire (D2)
 
 ### Phase 2 — Identité Alarobia
-- [ ] 2.1 Jetons de design et typographie
-- [ ] 2.2 Logo et icônes
-- [ ] 2.3 En-tête, pied de page, navigation
-- [ ] 2.4 Accueil
+- [x] 2.1 Jetons de design et typographie : blanc, indigo, latérite, raphia ; Archivo seule, titres resserrés
+- [x] 2.2 Logo (étiquette « Ar ») et icône du site. Reste à faire : image de partage (og.png) et icône Apple
+- [x] 2.3 En-tête, menu mobile, pied de page : traduits, recherche au centre
+- [x] 2.4 Accueil : frise de la semaine en malgache avec estimation de livraison (5 tests), rayons en liste, étapes. Vérifié sur captures en fr, en, mg, à 390 et 1440 px
 - [ ] 2.5 Catalogue, carte produit, fiche produit
 - [ ] 2.6 Panier, commande, compte, pages d'aide
 - [ ] 2.7 Critique sur captures (4 largeurs, 3 langues)
@@ -117,3 +117,6 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Poids ajouté : `vitest`, `@playwright/test` (tests), `next@16`, `react@19.3` (correctif).
 - Tâche 1.1 faite : pages déplacées sous `src/app/[locale]/`, `next-intl` installé, socle de messages avec repli sur le français et test de parité des clés.
 - Phase 1 faite côté infrastructure : 44 tests unitaires, 13 parcours navigateur. Ajustement du plan : les textes des pages ne sont pas traduits « à l'identique » puis réécrits ; chaque page est traduite au moment de sa réécriture.
+- Phase 2 commencée (2.1 à 2.4). Critique sur captures : un libellé malgache débordait dans la frise sur mobile, corrigé. La boutique s'appelle Alarobia dans les réglages.
+- Pas encore redessinés ni traduits : catalogue, fiche produit, panier, commande, compte, pages d'aide (2.5 et 2.6). Ils héritent déjà des couleurs et de la police, mais gardent l'ancienne mise en page et leurs textes en français.
+- État des vérifications : 49 tests unitaires, 13 parcours navigateur, lint et types propres.

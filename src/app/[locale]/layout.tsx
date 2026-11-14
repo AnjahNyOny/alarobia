@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Newsreader } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -8,9 +8,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { getSettings } from "@/lib/settings";
 import "../globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
-const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["normal", "italic"] });
+// Police variable : graisse et largeur (axe wdth), pour des titres étroits et un texte courant normal.
+const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], axes: ["wdth"], display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const { storeName } = await getSettings();
@@ -27,7 +26,7 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   return (
-    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable}`}>
+    <html lang={locale} className={archivo.variable}>
       <body className="antialiased">
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <Toaster />

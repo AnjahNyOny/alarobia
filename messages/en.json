@@ -42,5 +42,81 @@
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
     "newsletterDone": "You're subscribed. See you soon."
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "search": "Search for an item",
+    "all": "View all",
+    "sale": "Sale",
+    "account": "My account",
+    "signIn": "Sign in",
+    "wishlist": "My favourites",
+    "openMenu": "Open menu",
+    "menu": "Menu",
+    "cartOpen": "Open cart",
+    "cartCount": "{count, plural, =0 {Cart is empty} one {# item in cart} other {# items in cart}}",
+    "help": "Delivery, returns and help",
+    "categories": "Aisles",
+    "admin": "Admin",
+    "home": "{name}, home"
+  },
+  "home": {
+    "title": "Everyday things, delivered to your door.",
+    "lead": "Tableware, baskets, groceries, care products and small appliances: what you use every day, carefully chosen and delivered anywhere in Madagascar.",
+    "cta": "View all products",
+    "week": {
+      "heading": "When will my order arrive?",
+      "text": "Order today, delivered {date}.",
+      "today": "Today",
+      "delivered": "Delivered",
+      "noDelivery": "No delivery",
+      "note": "Standard delivery, except Sundays."
+    },
+    "aisles": {
+      "title": "Aisles",
+      "count": "{count, plural, one {# item} other {# items}}"
+    },
+    "latest": {
+      "title": "New in",
+      "all": "View all"
+    },
+    "selection": {
+      "title": "Most wanted"
+    },
+    "steps": {
+      "title": "Order in three steps",
+      "s1": "Choose",
+      "s1text": "Add items to your cart. No account needed.",
+      "s2": "Pay",
+      "s2text": "Online or on delivery, whichever you prefer.",
+      "s3": "Receive",
+      "s3text": "At home or at work, with parcel tracking."
+    }
+  },
+  "card": {
+    "new": "New",
+    "soldOut": "Sold out",
+    "oldPrice": "Previous price:",
+    "addWish": "Add {name} to favourites",
+    "removeWish": "Remove {name} from favourites",
+    "rating": "Rating: {value} out of 5",
+    "reviews": "{count, plural, one {# review} other {# reviews}}"
+  },
+  "footer": {
+    "newsletterText": "One letter a month: new arrivals and items back in stock. Unsubscribe in one click.",
+    "newsletterLabel": "Your email for the newsletter",
+    "subscribe": "Subscribe",
+    "shop": "Shop",
+    "allProducts": "All products",
+    "help": "Help",
+    "delivery": "Delivery",
+    "returns": "Returns and refunds",
+    "faq": "Frequently asked questions",
+    "track": "Track an order",
+    "company": "Alarobia",
+    "about": "About us",
+    "legal": "Legal notice and terms",
+    "contact": "Write to us",
+    "rights": "© {year} {name}. All rights reserved."
   }
 }

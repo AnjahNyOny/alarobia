@@ -1,12 +1,14 @@
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { discountPercent, isNew, ratingOf, type CardProduct } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
+import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
 import { Stars } from "./stars";
 import { WishlistButton } from "./wishlist-button";
 
 export function ProductCard({
-  product,
+  product: raw,
   currency,
   wished = false,
   priority = false,
@@ -18,58 +20,50 @@ export function ProductCard({
   priority?: boolean;
   sizes?: string;
 }) {
-  const [first, second] = product.images;
+  const t = useTranslations("card");
+  const locale = useLocale();
+  const product = localize(raw, locale, PRODUCT_FIELDS);
+  const category = localize(raw.category, locale, CATEGORY_FIELDS);
+  const image = product.images[0];
   const discount = discountPercent(product.priceCents, product.compareAtCents);
   const rating = ratingOf(product.reviews);
   const soldOut = product.stock === 0;
-  const badge = soldOut ? "Épuisé" : discount ? `−${discount} %` : isNew(product.createdAt) ? "Nouveau" : null;
 
   return (
     <article className="group relative">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted">
-        {first && (
-          <Image
-            src={first.url}
-            alt=""
-            fill
-            sizes={sizes}
-            priority={priority}
-            className={`object-cover transition duration-700 ease-out group-hover:scale-[1.03] ${soldOut ? "opacity-60" : ""} ${second ? "group-hover:opacity-0" : ""}`}
-          />
-        )}
-        {second && <Image src={second.url} alt="" fill sizes={sizes} className="object-cover opacity-0 transition duration-700 ease-out group-hover:opacity-100" />}
-        {badge && (
-          <span
-            className={`absolute top-2.5 left-2.5 rounded-md px-2 py-1 text-xs font-medium ${
-              soldOut ? "bg-background/90 text-foreground" : discount ? "bg-sale text-white" : "bg-background/90 text-foreground"
-            }`}
-          >
-            {badge}
-          </span>
-        )}
+      <div className="relative aspect-square overflow-hidden rounded-sm bg-stone">
+        {image && <Image src={image.url} alt="" fill sizes={sizes} priority={priority} className={`object-cover ${soldOut ? "opacity-55" : ""}`} />}
+        {/* Une seule étiquette par carte, dans l'ordre d'importance pour l'acheteur. */}
+        {soldOut ? (
+          <span className="tag absolute top-3 left-0 bg-background text-xs font-semibold">{t("soldOut")}</span>
+        ) : discount ? (
+          <span className="tag absolute top-3 left-0 bg-brand text-xs font-semibold text-brand-foreground">−{discount} %</span>
+        ) : isNew(product.createdAt) ? (
+          <span className="tag absolute top-3 left-0 bg-highlight text-xs font-semibold text-highlight-foreground">{t("new")}</span>
+        ) : null}
         <WishlistButton productId={product.id} active={wished} name={product.name} />
       </div>
-      <div className="mt-3 grid gap-1">
-        <p className="text-[0.8125rem] text-muted-foreground">{product.category.name}</p>
-        <h3 className="text-[0.9375rem] leading-snug font-medium">
+      <div className="mt-3">
+        <h3 className="leading-snug font-medium">
           {/* Le lien couvre toute la carte ; le bouton favori reste au-dessus. */}
-          <Link href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:outline-2 focus-visible:after:outline-ring">
+          <Link href={`/products/${product.slug}`} className="outline-none after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-4 focus-visible:after:outline-2 focus-visible:after:outline-ring">
             {product.name}
           </Link>
         </h3>
-        <p className="flex flex-wrap items-baseline gap-x-2 text-[0.9375rem] tabular-nums">
-          <span className={discount ? "font-medium text-sale" : ""}>{formatPrice(product.priceCents, currency)}</span>
+        <p className="mt-0.5 text-[0.8125rem] text-muted-foreground">{category.name}</p>
+        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 tabular-nums">
+          <span className={`display-sm text-xl ${discount ? "text-brand" : ""}`}>{formatPrice(product.priceCents, currency, locale)}</span>
           {discount > 0 && (
             <s className="text-sm text-muted-foreground">
-              <span className="sr-only">Ancien prix : </span>
-              {formatPrice(product.compareAtCents!, currency)}
+              <span className="sr-only">{t("oldPrice")} </span>
+              {formatPrice(product.compareAtCents!, currency, locale)}
             </s>
           )}
         </p>
         {rating.count > 0 && (
-          <p className="flex items-center gap-1.5 text-[0.8125rem] text-muted-foreground">
+          <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-muted-foreground">
             <Stars value={rating.average} />
-            <span>({rating.count})</span>
+            <span>{t("reviews", { count: rating.count })}</span>
           </p>
         )}
       </div>

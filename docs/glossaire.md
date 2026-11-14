@@ -33,3 +33,6 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `errors` | messages d'erreur des formulaires et du panier | non |
 | `notices` | confirmations (ajout au panier, profil enregistré…) | non |
 | `common` | libellés partagés | non |
+| `nav`, `footer` | en-tête, menu, pied de page | non |
+| `home` | page d'accueil, frise de livraison | non |
+| `card` | carte produit | non |

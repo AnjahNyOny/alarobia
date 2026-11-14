@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 export const cardInclude = {
   images: { orderBy: { position: "asc" }, take: 2 },
-  category: { select: { name: true, slug: true } },
+  category: { include: { translations: true } },
   reviews: { where: { status: "PUBLISHED" }, select: { rating: true } },
   translations: true,
 } satisfies Prisma.ProductInclude;
