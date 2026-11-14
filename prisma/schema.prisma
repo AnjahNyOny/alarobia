@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Les statuts sont des chaînes (SQLite) ; les valeurs autorisées vivent dans src/lib/constants.ts
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         String         @default("CUSTOMER") // CUSTOMER | ADMIN
+  createdAt    DateTime       @default(now())
+  address      Address?
+  orders       Order[]
+  reviews      Review[]
+  wishlist     WishlistItem[]
+}
+
+model Address {
+  id         String @id @default(cuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
+  line1      String
+  line2      String?
+  postalCode String
+  city       String
+  country    String
+  phone      String
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String    @default("")
+  image       String?
+  position    Int       @default(0)
+  products    Product[]
+}
+
+model Product {
+  id             String         @id @default(cuid())
+  name           String
+  slug           String         @unique
+  tagline        String         @default("")
+  description    String
+  details        String         @default("") // une caractéristique par ligne
+  priceCents     Int
+  compareAtCents Int?
+  sku            String         @unique
+  stock          Int            @default(0)
+  status         String         @default("ACTIVE") // ACTIVE | DRAFT | ARCHIVED
+  featured       Boolean        @default(false)
+  categoryId     String
+  category       Category       @relation(fields: [categoryId], references: [id])
+  images         ProductImage[]
+  reviews        Review[]
+  wishlistedBy   WishlistItem[]
+  orderItems     OrderItem[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int     @default(0)
+
+  @@index([productId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String
+  status    String   @default("PUBLISHED") // PUBLISHED | HIDDEN
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+}
+
+model WishlistItem {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, productId])
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  number         String      @unique
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email          String
+  status         String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
+  paymentMethod  String // CARD | COD
+  shippingMethod String // STANDARD | EXPRESS
+  subtotalCents  Int
+  discountCents  Int         @default(0)
+  shippingCents  Int
+  totalCents     Int
+  promoCode      String?
+  fullName       String
+  line1          String
+  line2          String?
+  postalCode     String
+  city           String
+  country        String
+  phone          String
+  trackingNumber String?
+  note           String?
+  items          OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name       String
+  imageUrl   String?
+  priceCents Int
+  quantity   Int
+
+  @@index([orderId])
+}
+
+model PromoCode {
+  id               String    @id @default(cuid())
+  code             String    @unique
+  type             String // PERCENT | FIXED
+  value            Int // pourcentage, ou montant en centimes
+  minSubtotalCents Int       @default(0)
+  maxUses          Int?
+  usedCount        Int       @default(0)
+  expiresAt        DateTime?
+  active           Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+}
+
+model StoreSettings {
+  id                         Int    @id @default(1)
+  storeName                  String @default("Sève")
+  contactEmail               String @default("bonjour@seve.example")
+  currency                   String @default("EUR")
+  announcement               String @default("Livraison offerte dès 80 € d'achat")
+  shippingStandardCents      Int    @default(490)
+  shippingExpressCents       Int    @default(990)
+  freeShippingThresholdCents Int    @default(8000)
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

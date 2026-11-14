@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# base locale et fichiers envoyés
+/prisma/*.db*
+/uploads/*
+!/uploads/.gitkeep
+!.env.example
