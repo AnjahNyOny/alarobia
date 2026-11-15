@@ -74,3 +74,30 @@ test("les messages d'erreur suivent la langue de l'adresse", async ({ page }) =>
     await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
   }
 });
+
+test("catalogue : rayons et recherche dans la langue du visiteur", async ({ page }) => {
+  await page.goto("/en/products?q=basket");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results for “basket”");
+  await expect(page.getByRole("link", { name: "Soa woven basket bag" })).toBeVisible();
+  await page.getByRole("navigation", { name: "Choose an aisle" }).getByRole("link", { name: "Kitchen" }).click();
+  await expect(page).toHaveURL(/\/en\/products\?category=cuisine$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kitchen");
+  await expect(page).toHaveTitle("Kitchen — Alarobia");
+  // Le filtre reste dans la langue en cours.
+  await page.getByLabel("In stock").check();
+  await page.getByRole("button", { name: "Apply" }).click();
+  await expect(page).toHaveURL(/\/en\/products\?category=cuisine&.*stock=1$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kitchen");
+});
+
+// Point de vigilance 5 : une traduction manquante retombe sur le français, sans trou à l'écran.
+test("fiche produit en malgache : texte traduit, caractéristiques en français faute de traduction, livraison par zone", async ({ page }) => {
+  await page.goto("/mg/products/tasse-en-gres-vato");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kaopy tanimanga Vato");
+  await expect(page.getByRole("button", { name: "Ampidiro ao anaty harona" })).toBeVisible();
+  const details = page.getByRole("region", { name: "Toetoetra" });
+  await expect(details.getByRole("listitem").first()).toHaveText("Grès émaillé, 30 cl");
+  const delivery = page.getByRole("region", { name: "Fanaterana" });
+  await expect(delivery.getByRole("listitem").first()).toContainText("Antananarivo renivohitra");
+  await expect(delivery.getByRole("listitem").first()).toContainText("3 000 Ar");
+});

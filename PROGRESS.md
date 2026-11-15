@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 faite (3.1 à 3.4).
+**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.5, phase 3 faite (3.1 à 3.4).
 
-**Prochaine action** : retour à la phase 2, tâche 2.5 (catalogue, carte produit, fiche produit), puis 2.6 et 2.7.
+**Prochaine action** : phase 2, tâche 2.6 (panier, commande, compte, pages d'aide), puis 2.7.
 
 ## Décisions en attente
 
@@ -57,7 +57,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 2.2 Logo (étiquette « Ar ») et icône du site. Reste à faire : image de partage (og.png) et icône Apple
 - [x] 2.3 En-tête, menu mobile, pied de page : traduits, recherche au centre
 - [x] 2.4 Accueil : frise de la semaine en malgache avec estimation de livraison (5 tests), rayons en liste, étapes. Vérifié sur captures en fr, en, mg, à 390 et 1440 px
-- [ ] 2.5 Catalogue, carte produit, fiche produit
+- [x] 2.5 Catalogue, carte produit, fiche produit : rayons en rangée d'enseignes, filtres en ligne, grille à quatre colonnes ; fiche avec prix en grand et jour de livraison par zone ; tout traduit en fr, en, mg. Vérifié : 105 tests unitaires, 26 parcours navigateur, captures à 320, 390, 768 et 1440 px
 - [ ] 2.6 Panier, commande, compte, pages d'aide
 - [ ] 2.7 Critique sur captures (4 largeurs, 3 langues)
 
@@ -99,7 +99,7 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - [ ] 2. Image envoyée inadaptée : refus expliqué
 - [ ] 3. Texte de personnalisation inattendu
 - [x] 4. Changement de langue en cours de commande : panier, code promo et saisie conservés (test `e2e/langues.spec.ts`)
-- [ ] 5. Traduction de produit manquante : repli sur le français
+- [x] 5. Traduction de produit manquante : repli sur le français (test `e2e/langues.spec.ts`, fiche en malgache)
 - [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
 - [x] 7. Mobile Money déclaré mais non reçu : la commande reste « en attente », l'annulation rend le stock, le client ne peut plus déclarer ensuite (test `e2e/paiement.spec.ts`)
 
@@ -157,3 +157,12 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - Les commandes déjà en base gardent leur numéro « SV- » ; les comptes `@alarobia.example` n'existent qu'après `npm run db:seed` (qui efface les données de la base de développement).
   - Le titre du site vient de `meta.title` dans les fichiers de messages, la description reprend l'accroche de l'accueil. Les titres des autres pages restent en français jusqu'à leur réécriture (2.5, 2.6).
 - État des vérifications : 105 tests unitaires, 24 parcours navigateur, lint, types et compilation propres.
+- Tâche 2.5 faite, avec le skill `frontend-design` (plan, relecture contre les clichés, captures).
+  - **Catalogue** : la colonne latérale disparaît. Les rayons forment une rangée d'enseignes, le rayon ouvert surligné en raphia comme « aujourd'hui » dans la frise ; sur téléphone la rangée défile et se cale sur le rayon ouvert. Filtres sur une ligne (repliés derrière un bouton sur téléphone), un seul formulaire dans la page.
+  - **Fiche produit** : photo carrée sur fond pierre, prix en très grand, et un tableau « commandé aujourd'hui, livré au plus tard » qui donne le jour et le tarif pour chaque zone ouverte (« Offerte » si le produit atteint seul le seuil). Description et caractéristiques en clair, sans accordéons. Moyens de paiement réellement ouverts rappelés sous le tableau.
+  - **Retiré** : fil d'Ariane à trois niveaux (reste le lien vers le rayon), « 4,5 · 12 avis », liste de garanties à icônes, « expédié sous 24 h » (promesse que rien ne garantit).
+  - La recherche porte aussi sur les traductions (« basket » trouve le panier tressé en anglais). Le filtre garde la langue en cours.
+  - La navigation des rayons du catalogue s'appelle « Choisir un rayon » pour ne pas porter le même nom que celle de l'en-tête.
+- Malgache : espaces de noms `catalog` et `product` rédigés par Claude, à relire (D2).
+- Relevé, non traité : plusieurs produits de démonstration (baskets, veste en cuir, clavier) viennent de la première version et ne sont pas des objets du quotidien malgache ; ils sont rangés dans « Vannerie et textile » ou « Électronique ». À revoir avec les photos du propriétaire.
+- État des vérifications : 105 tests unitaires, 26 parcours navigateur, lint, types et compilation propres.

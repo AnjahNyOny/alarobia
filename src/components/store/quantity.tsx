@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Minus, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { setCartQuantity } from "@/actions/cart";
 import { cn } from "@/lib/utils";
 
@@ -20,19 +21,20 @@ export function Stepper({
   size?: "sm" | "md";
   label: string;
 }) {
+  const t = useTranslations("common");
   const btn = cn(
     "grid place-items-center text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-35",
     size === "sm" ? "size-8" : "size-12"
   );
   return (
-    <div role="group" aria-label={label} className={cn("inline-flex items-center rounded-lg border border-input bg-card", disabled && "opacity-60")}>
-      <button type="button" className={cn(btn, "rounded-l-lg")} onClick={() => onChange(value - 1)} disabled={disabled || value <= 1} aria-label="Diminuer la quantité">
+    <div role="group" aria-label={label} className={cn("inline-flex items-center rounded-md border border-input bg-card", disabled && "opacity-60")}>
+      <button type="button" className={cn(btn, "rounded-l-md")} onClick={() => onChange(value - 1)} disabled={disabled || value <= 1} aria-label={t("decrease")}>
         <Minus className="size-3.5" aria-hidden />
       </button>
       <span aria-live="polite" className={cn("text-center text-sm font-medium tabular-nums", size === "sm" ? "w-7" : "w-9")}>
         {value}
       </span>
-      <button type="button" className={cn(btn, "rounded-r-lg")} onClick={() => onChange(value + 1)} disabled={disabled || value >= max} aria-label="Augmenter la quantité">
+      <button type="button" className={cn(btn, "rounded-r-md")} onClick={() => onChange(value + 1)} disabled={disabled || value >= max} aria-label={t("increase")}>
         <Plus className="size-3.5" aria-hidden />
       </button>
     </div>

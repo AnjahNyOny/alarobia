@@ -45,6 +45,10 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `nav`, `footer` | en-tête, menu, pied de page | non |
 | `home` | page d'accueil, frise de livraison | non |
 | `card` | carte produit | non |
+| `catalog` | catalogue : rayons, filtres, tri, pagination | non |
+| `product` | fiche produit : stock, livraison par zone, avis | non |
+| `payment` | choix du moyen de paiement, indications Mobile Money | non |
+| `meta` | titre du site | non |
 | `address` | champs de l'adresse (commande et espace client) | non |
 | `delivery` | zones de livraison, délais, date promise | non |
 | zones de démonstration (`prisma/catalog.mjs`) | noms des quatre zones de livraison | non |

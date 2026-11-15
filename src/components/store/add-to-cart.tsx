@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { addToCart } from "@/actions/cart";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useCartUI } from "./cart-context";
 import { Stepper } from "./quantity";
 
 export function AddToCart({ productId, stock, children }: { productId: string; stock: number; children?: React.ReactNode }) {
+  const t = useTranslations("product");
   const [quantity, setQuantity] = useState(1);
   const [pending, start] = useTransition();
   const { setOpen } = useCartUI();
@@ -18,7 +20,7 @@ export function AddToCart({ productId, stock, children }: { productId: string; s
     return (
       <div className="flex gap-3">
         <Button size="xl" disabled className="flex-1">
-          Épuisé
+          {t("soldOut")}
         </Button>
         {children}
       </div>
@@ -27,7 +29,7 @@ export function AddToCart({ productId, stock, children }: { productId: string; s
   return (
     // À 320 px, le sélecteur de quantité, le bouton et le favori ne tiennent pas sur une ligne : le bouton passe dessous.
     <div className="flex flex-wrap gap-3">
-      <Stepper value={quantity} max={max} onChange={setQuantity} disabled={pending} label="Quantité" />
+      <Stepper value={quantity} max={max} onChange={setQuantity} disabled={pending} label={t("quantity")} />
       <Button
         size="xl"
         className="flex-1"
@@ -41,7 +43,7 @@ export function AddToCart({ productId, stock, children }: { productId: string; s
         }
       >
         {pending && <Loader2 className="animate-spin" aria-hidden />}
-        Ajouter au panier
+        {t("add")}
       </Button>
       {children}
     </div>
