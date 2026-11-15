@@ -60,17 +60,23 @@ test("changer de langue pendant la commande conserve le panier, le code promo et
   await expect(page.getByLabel("Tanàna", { exact: true })).toHaveValue("Antsirabe");
   await expect(page.getByLabel("Faritany")).toHaveValue("Antananarivo");
   await expect(page.getByRole("radio", { name: /Antananarivo renivohitra/ })).toBeVisible();
-  await expect(page.getByLabel("Note pour la livraison")).toHaveValue("Sonner deux fois");
-  await expect(page.getByText("Gourde isotherme Forêt")).toBeVisible();
+  await expect(page.getByLabel("Hafatra ho an'ny mpanatitra")).toHaveValue("Sonner deux fois");
+  // Le récapitulatif passe lui aussi en malgache, nom du produit compris.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Hamita ny komandy");
+  await expect(page.getByText("Tavoahangy mitahiry hafanana Forêt")).toBeVisible();
   await expect(page.getByText(/BIENVENUE10/)).toBeVisible();
 });
 
 test("les messages d'erreur suivent la langue de l'adresse", async ({ page }) => {
-  for (const [locale, message] of [["en", "Wrong email or password."], ["mg", "Diso ny mailaka na ny teny miafina."], ["fr", "E-mail ou mot de passe incorrect."]]) {
+  for (const [locale, email, password, submit, message] of [
+    ["en", "Email address", "Password", "Sign in", "Wrong email or password."],
+    ["mg", "Adiresy mailaka", "Teny miafina", "Hiditra", "Diso ny mailaka na ny teny miafina."],
+    ["fr", "Adresse e-mail", "Mot de passe", "Se connecter", "E-mail ou mot de passe incorrect."],
+  ]) {
     await page.goto(`/${locale}/login`);
-    await page.getByLabel("Adresse e-mail").fill("personne@example.com");
-    await page.getByLabel("Mot de passe").fill("mauvais-mot-de-passe");
-    await page.getByRole("button", { name: "Se connecter" }).click();
+    await page.getByLabel(email).fill("personne@example.com");
+    await page.getByLabel(password).fill("mauvais-mot-de-passe");
+    await page.getByRole("button", { name: submit }).click();
     await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
   }
 });

@@ -8,48 +8,53 @@ import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { AddressFields, type AddressDefaults } from "./address-fields";
 
 export function LoginForm({ next }: { next?: string }) {
+  const t = useTranslations("auth");
   const [state, action] = useActionState(login, {});
   return (
     <Form action={action} className="grid gap-4">
       {next && <input type="hidden" name="next" value={next} />}
-      <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" required />
-      <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" required />
+      <Field label={t("email")} name="email" type="email" autoComplete="email" required />
+      <Field label={t("password")} name="password" type="password" autoComplete="current-password" required />
       <FormAlert state={state} />
       <SubmitButton size="xl" className="mt-1 w-full">
-        Se connecter
+        {t("signIn")}
       </SubmitButton>
     </Form>
   );
 }
 
 export function RegisterForm({ next }: { next?: string }) {
+  const t = useTranslations("auth");
   const [state, action] = useActionState(register, {});
   const e = state.fieldErrors ?? {};
   return (
     <Form action={action} className="grid gap-4">
       {next && <input type="hidden" name="next" value={next} />}
-      <Field label="Nom complet" name="name" autoComplete="name" error={e.name} required />
-      <Field label="Adresse e-mail" name="email" type="email" autoComplete="email" error={e.email} required />
-      <Field label="Mot de passe" name="password" type="password" autoComplete="new-password" error={e.password} hint="8 caractères minimum." required minLength={8} />
+      <Field label={t("fullName")} name="name" autoComplete="name" error={e.name} required />
+      <Field label={t("email")} name="email" type="email" autoComplete="email" error={e.email} required />
+      <Field label={t("password")} name="password" type="password" autoComplete="new-password" error={e.password} hint={t("passwordHint")} required minLength={8} />
       <FormAlert state={state} />
       <SubmitButton size="xl" className="mt-1 w-full">
-        Créer mon compte
+        {t("createAccount")}
       </SubmitButton>
     </Form>
   );
 }
 
 export function ProfileForm({ name, phone, email }: { name: string; phone: string | null; email: string }) {
+  const t = useTranslations("account");
+  const tu = useTranslations("auth");
+  const ta = useTranslations("address");
   const [state, action] = useActionState(updateProfile, {});
   const e = state.fieldErrors ?? {};
   return (
     <Form action={action} className="grid gap-4">
-      <Field label="Adresse e-mail" name="email-display" defaultValue={email} disabled hint="Contactez-nous pour changer d'adresse e-mail." />
-      <Field label="Nom complet" name="name" autoComplete="name" defaultValue={name} error={e.name} required />
-      <Field label="Téléphone" name="phone" type="tel" autoComplete="tel" defaultValue={phone ?? ""} error={e.phone} optional />
+      <Field label={tu("email")} name="email-display" defaultValue={email} disabled hint={t("emailHint")} />
+      <Field label={tu("fullName")} name="name" autoComplete="name" defaultValue={name} error={e.name} required />
+      <Field label={t("phone")} name="phone" type="tel" autoComplete="tel" defaultValue={phone ?? ""} error={e.phone} optional={ta("optional")} />
       <FormAlert state={state} />
       <div>
-        <SubmitButton>Enregistrer</SubmitButton>
+        <SubmitButton>{t("save")}</SubmitButton>
       </div>
     </Form>
   );
@@ -72,15 +77,17 @@ export function AddressForm({ defaults }: { defaults: AddressDefaults }) {
 }
 
 export function PasswordForm() {
+  const t = useTranslations("account");
+  const tu = useTranslations("auth");
   const [state, action] = useActionState(changePassword, {});
   const e = state.fieldErrors ?? {};
   return (
     <Form action={action} className="grid gap-4" key={state.ok ? "done" : "form"}>
-      <Field label="Mot de passe actuel" name="current" type="password" autoComplete="current-password" error={e.current} required />
-      <Field label="Nouveau mot de passe" name="password" type="password" autoComplete="new-password" error={e.password} hint="8 caractères minimum." required minLength={8} />
+      <Field label={t("currentPassword")} name="current" type="password" autoComplete="current-password" error={e.current} required />
+      <Field label={t("newPassword")} name="password" type="password" autoComplete="new-password" error={e.password} hint={tu("passwordHint")} required minLength={8} />
       <FormAlert state={state} />
       <div>
-        <SubmitButton>Modifier le mot de passe</SubmitButton>
+        <SubmitButton>{t("changePassword")}</SubmitButton>
       </div>
     </Form>
   );

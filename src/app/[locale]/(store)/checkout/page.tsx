@@ -13,17 +13,23 @@ import { getSettings } from "@/lib/settings";
 import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
 import { getLocale, getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = { title: "Commande", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("checkout");
+  return { title: t("metaTitle"), robots: { index: false } };
+}
 
 export default async function CheckoutPage() {
   const [cart, settings, user] = await Promise.all([getCart(), getSettings(), getUser()]);
   if (cart.lines.length === 0 || cart.lines.some((l) => l.insufficientStock)) return redirectTo("/cart");
-  const [address, zones, locale, t] = await Promise.all([
+  const [address, zones, locale, t, tc, tk] = await Promise.all([
     user ? db.address.findUnique({ where: { userId: user.id } }) : null,
     db.shippingZone.findMany({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] }),
     getLocale(),
     getTranslations("delivery"),
+    getTranslations("checkout"),
+    getTranslations("cart"),
   ]);
+  const price = (cents: number) => formatPrice(cents, settings.currency, locale);
   const { currency } = settings;
   const base = cart.subtotalCents - cart.discountCents;
   const today = madagascarTime();
@@ -38,21 +44,23 @@ export default async function CheckoutPage() {
   if (choices.length === 0)
     return (
       <div className="container-page pt-8 md:pt-12">
-        <h1 className="display text-4xl md:text-5xl">Finaliser la commande</h1>
+        <h1 className="display text-5xl md:text-6xl">{tc("title")}</h1>
         <p className="mt-4 max-w-prose text-muted-foreground">{t("none", { email: settings.contactEmail })}</p>
       </div>
     );
 
   return (
     <div className="container-page pt-8 md:pt-12">
-      <h1 className="display text-4xl md:text-5xl">Finaliser la commande</h1>
+      <h1 className="display text-5xl md:text-6xl">{tc("title")}</h1>
       {!user && (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Déjà client ?{" "}
-          <Link href="/login?next=/checkout" className="font-medium text-foreground underline underline-offset-4">
-            Connectez-vous
-          </Link>{" "}
-          pour retrouver votre adresse. Vous pouvez aussi commander sans compte.
+        <p className="mt-3 text-muted-foreground">
+          {tc.rich("guest", {
+            link: (chunks) => (
+              <Link href="/login?next=/checkout" className="font-medium text-foreground underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       )}
       <CheckoutForm
@@ -76,33 +84,36 @@ export default async function CheckoutPage() {
         <ul className="mt-5 grid gap-4">
           {cart.lines.map((l) => (
             <li key={l.product.id} className="flex items-center gap-3.5">
-              <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden rounded-md bg-muted">{l.image && <Image src={l.image} alt="" fill sizes="56px" className="object-cover" />}</div>
+              <div className="relative size-14 shrink-0 overflow-hidden rounded-sm bg-stone">{l.image && <Image src={l.image} alt="" fill sizes="56px" className="object-cover" />}</div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{l.product.name}</p>
-                <p className="text-[0.8125rem] text-muted-foreground">Quantité : {l.quantity}</p>
+                <p className="text-sm leading-snug font-medium">{l.displayName}</p>
+                <p className="text-[0.8125rem] text-muted-foreground">{tc("quantity", { count: l.quantity })}</p>
               </div>
-              <p className="text-sm whitespace-nowrap tabular-nums">{formatPrice(l.lineTotalCents, currency)}</p>
+              <p className="text-sm whitespace-nowrap tabular-nums">{price(l.lineTotalCents)}</p>
             </li>
           ))}
         </ul>
         <dl className="mt-5 grid gap-2.5 border-t pt-5 text-sm tabular-nums">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Sous-total</dt>
-            <dd>{formatPrice(cart.subtotalCents, currency)}</dd>
+            <dt className="text-muted-foreground">{tk("subtotal")}</dt>
+            <dd>{price(cart.subtotalCents)}</dd>
           </div>
           {cart.promo && (
             <div className="flex justify-between text-brand">
-              <dt>Réduction ({cart.promo.code})</dt>
-              <dd>−{formatPrice(cart.discountCents, currency)}</dd>
+              <dt>{tk("discountCode", { code: cart.promo.code })}</dt>
+              <dd>−{price(cart.discountCents)}</dd>
             </div>
           )}
         </dl>
         {!cart.promo && (
           <p className="mt-3 text-[0.8125rem] text-muted-foreground">
-            Un code promo ?{" "}
-            <Link href="/cart" className="underline underline-offset-4 hover:text-foreground">
-              Saisissez-le dans le panier
-            </Link>
+            {tc.rich("promoHint", {
+              link: (chunks) => (
+                <Link href="/cart" className="underline underline-offset-4 hover:text-foreground">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         )}
       </CheckoutForm>

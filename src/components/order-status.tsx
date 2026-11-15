@@ -1,4 +1,5 @@
-import { ORDER_STATUS_LABEL } from "@/lib/constants";
+import { useTranslations } from "next-intl";
+import { ORDER_STATUSES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const tone: Record<string, string> = {
@@ -12,7 +13,7 @@ const tone: Record<string, string> = {
 
 export function StatusBadge({ label, className }: { label: string; className: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-medium whitespace-nowrap", className)}>
       <span className="size-1.5 rounded-full bg-current" aria-hidden />
       {label}
     </span>
@@ -20,5 +21,7 @@ export function StatusBadge({ label, className }: { label: string; className: st
 }
 
 export function OrderStatus({ status }: { status: string }) {
-  return <StatusBadge label={ORDER_STATUS_LABEL[status] ?? status} className={tone[status] ?? tone.CANCELLED} />;
+  const t = useTranslations("status");
+  const known = (ORDER_STATUSES as readonly string[]).includes(status);
+  return <StatusBadge label={known ? t(status as (typeof ORDER_STATUSES)[number]) : status} className={tone[status] ?? tone.CANCELLED} />;
 }

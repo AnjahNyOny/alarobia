@@ -49,6 +49,9 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `product` | fiche produit : stock, livraison par zone, avis | non |
 | `payment` | choix du moyen de paiement, indications Mobile Money | non |
 | `meta` | titre du site | non |
+| `cart`, `checkout`, `order`, `status` | panier, commande, confirmation, statuts | non |
+| `auth`, `account` | connexion, inscription, espace client | non |
+| `help`, `about`, `legal`, `pages` | aide, qui sommes-nous, mentions légales, pages d'erreur | non |
 | `address` | champs de l'adresse (commande et espace client) | non |
 | `delivery` | zones de livraison, délais, date promise | non |
 | zones de démonstration (`prisma/catalog.mjs`) | noms des quatre zones de livraison | non |

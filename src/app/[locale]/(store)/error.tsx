@@ -1,14 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 export default function StoreError({ reset }: { error: Error; reset: () => void }) {
+  const t = useTranslations("pages");
   return (
-    <div className="container-page grid justify-items-center gap-4 py-28 text-center">
-      <h1 className="display text-4xl">Un problème est survenu</h1>
-      <p className="max-w-sm text-muted-foreground">La page n'a pas pu s'afficher. Réessayez ; si le problème persiste, revenez dans quelques minutes.</p>
-      <Button size="md" onClick={reset}>
-        Réessayer
+    <div className="container-page pt-12 pb-12 md:pt-20">
+      <h1 className="display text-5xl">{t("errorTitle")}</h1>
+      <p className="mt-4 max-w-md text-lg text-muted-foreground">{t("errorText")}</p>
+      <Button size="md" className="mt-7" onClick={reset}>
+        {t("retry")}
       </Button>
     </div>
   );

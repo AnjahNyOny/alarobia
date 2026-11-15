@@ -2,13 +2,15 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.5, phase 3 faite (3.1 à 3.4).
+**État au 14/11/2026** : phases 0 à 3 faites. Restent en attente du propriétaire : la relecture du malgache (D2) et la validation du texte « Qui sommes-nous » (D3).
 
-**Prochaine action** : phase 2, tâche 2.6 (panier, commande, compte, pages d'aide), puis 2.7.
+**Prochaine action** : phase 4, tâche 4.1 (modèle de données de la personnalisation).
 
 ## Décisions en attente
 
-Aucune.
+- **Texte « Qui sommes-nous »** (D3) : proposé par Claude dans `messages/*.json`, espace `about`. À corriger ou valider.
+- **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer.
+- **Préfixe « AL- »** des numéros de commande et des références : à confirmer.
 
 ## Décisions prises
 
@@ -58,8 +60,8 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 2.3 En-tête, menu mobile, pied de page : traduits, recherche au centre
 - [x] 2.4 Accueil : frise de la semaine en malgache avec estimation de livraison (5 tests), rayons en liste, étapes. Vérifié sur captures en fr, en, mg, à 390 et 1440 px
 - [x] 2.5 Catalogue, carte produit, fiche produit : rayons en rangée d'enseignes, filtres en ligne, grille à quatre colonnes ; fiche avec prix en grand et jour de livraison par zone ; tout traduit en fr, en, mg. Vérifié : 105 tests unitaires, 26 parcours navigateur, captures à 320, 390, 768 et 1440 px
-- [ ] 2.6 Panier, commande, compte, pages d'aide
-- [ ] 2.7 Critique sur captures (4 largeurs, 3 langues)
+- [x] 2.6 Panier, commande, compte, pages d'aide : tiroir et page du panier, commande, confirmation, connexion, inscription, espace client, aide, « Qui sommes-nous », mentions légales, pages 404 et d'erreur ; tout traduit en fr, en, mg. Vérifié : 105 tests unitaires, 26 parcours navigateur
+- [x] 2.7 Critique sur captures : toutes les pages de la boutique à 320, 390, 768 et 1440 px, en fr, en, mg ; aucun débordement horizontal, aucune erreur navigateur
 
 ### Phase 3 — Commerce malgache
 - [x] 3.1 Ariary et nouveau catalogue de démonstration : devise MGA par défaut, 27 produits et 6 rayons en fr, en, mg (`prisma/catalog.mjs`), clients malgaches, plafond de 20 000 000 Ar par montant. Vérifié : 65 tests unitaires, 15 parcours navigateur, captures à 320 et 1440 px
@@ -165,4 +167,17 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - La navigation des rayons du catalogue s'appelle « Choisir un rayon » pour ne pas porter le même nom que celle de l'en-tête.
 - Malgache : espaces de noms `catalog` et `product` rédigés par Claude, à relire (D2).
 - Relevé, non traité : plusieurs produits de démonstration (baskets, veste en cuir, clavier) viennent de la première version et ne sont pas des objets du quotidien malgache ; ils sont rangés dans « Vannerie et textile » ou « Électronique ». À revoir avec les photos du propriétaire.
+- État des vérifications : 105 tests unitaires, 26 parcours navigateur, lint, types et compilation propres.
+
+### 15/11/2026
+- Tâche 2.6 faite. Plus aucun texte en dur dans la boutique : dix nouveaux espaces de noms (`cart`, `checkout`, `order`, `status`, `auth`, `account`, `help`, `about`, `legal`, `pages`).
+  - **Panier** : la barre de progression vers la livraison offerte est remplacée par une phrase sur fond raphia ; le code promo appliqué s'affiche comme une étiquette ; récapitulatif encadré d'un trait indigo, comme le panneau de paiement.
+  - **Commande** : étapes numérotées en chiffres latérite (vraie séquence), choix de zone et de paiement sans icônes, le choix retenu est surligné.
+  - **Compte** : même rangée d'enseignes que les rayons ; le libellé en majuscules « Espace client » disparaît. Statuts de commande traduits.
+  - **Aide** : tableau des zones, retours en trois étapes numérotées, questions en liste lisible d'un coup (plus d'accordéons).
+  - **Qui sommes-nous** : réécrite autour du nom. « Alarobia veut dire mercredi », la semaine en malgache avec le mercredi marqué, trois engagements. La photo de salon de la première version n'est plus utilisée (`public/editorial/hero.jpg` reste dans le dépôt).
+  - Dans le panier et la commande, le nom du produit suit la langue du visiteur ; la commande enregistrée garde le nom français (c'est lui que voit le vendeur).
+- Tâche 2.7 faite. Relecture contre la liste des clichés de `CLAUDE.md` : recherche dans le code des libellés en majuscules, points médians, flèches, numérotations décoratives, zooms au survol et animations d'apparition, rien trouvé. Éléments décoratifs retirés au passage : barre de progression du panier, icônes des choix de livraison et de paiement, photo de la page « Qui sommes-nous », accordéons de l'aide et de la fiche produit, fil d'Ariane.
+- Les libellés du back-office restent en français (phase 5.4), y compris le mot « facultatif » par défaut des champs.
+- Le serveur de développement tournait depuis 19 h avec un ancien client Prisma (erreur 500 sur l'accueil) : redémarré. La base de développement a été rechargée (`npm run db:seed`) pour les comptes `@alarobia.example`.
 - État des vérifications : 105 tests unitaires, 26 parcours navigateur, lint, types et compilation propres.

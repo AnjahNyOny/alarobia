@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { ShoppingBag } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
@@ -43,55 +44,43 @@ export function CartDrawer({
   freeShippingThresholdCents: number;
 }) {
   const { open, setOpen } = useCartUI();
+  const t = useTranslations("cart");
+  const locale = useLocale();
+  const price = (cents: number) => formatPrice(cents, currency, locale);
   const remaining = freeShippingThresholdCents - subtotalCents;
-  const progress = Math.min(100, Math.round((subtotalCents / Math.max(freeShippingThresholdCents, 1)) * 100));
+  const close = () => setOpen(false);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent className="w-full gap-0 sm:max-w-md data-[side=right]:w-full">
         <SheetHeader className="border-b px-5 py-4">
-          <SheetTitle className="text-base">Votre panier</SheetTitle>
-          <SheetDescription className="sr-only">Contenu de votre panier</SheetDescription>
+          <SheetTitle className="display-sm text-2xl">{t("title")}</SheetTitle>
+          <SheetDescription className="sr-only">{t("drawerDesc")}</SheetDescription>
         </SheetHeader>
 
         {lines.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
-            <p className="display text-2xl">Votre panier est vide</p>
-            <p className="text-muted-foreground">Parcourez la boutique : vos articles apparaîtront ici.</p>
-            <Link href="/products" onClick={() => setOpen(false)} className={buttonVariants({ size: "md" })}>
-              Voir les produits
+          <div className="flex flex-1 flex-col items-start justify-center gap-4 px-6">
+            <p className="display text-3xl">{t("emptyTitle")}</p>
+            <p className="text-muted-foreground">{t("emptyText")}</p>
+            <Link href="/products" onClick={close} className={buttonVariants({ size: "md" })}>
+              {t("browse")}
             </Link>
           </div>
         ) : (
           <>
-            {freeShippingThresholdCents > 0 && (
-              <div className="border-b px-5 py-3.5">
-                <p className="text-[0.8125rem]">
-                  {remaining > 0 ? (
-                    <>
-                      Plus que <strong className="font-semibold">{formatPrice(remaining, currency)}</strong> pour la livraison offerte.
-                    </>
-                  ) : (
-                    <>La livraison standard vous est offerte.</>
-                  )}
-                </p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted" aria-hidden>
-                  <div className="h-full rounded-full bg-brand transition-[width] duration-500" style={{ width: `${progress}%` }} />
-                </div>
-              </div>
-            )}
+            {freeShippingThresholdCents > 0 && <p className="bg-highlight px-5 py-2.5 text-sm font-medium text-highlight-foreground">{remaining > 0 ? t("freeRemaining", { amount: price(remaining) }) : t("freeReached")}</p>}
             <ul className="flex-1 divide-y overflow-y-auto px-5">
               {lines.map((line) => (
                 <li key={line.id} className="flex gap-4 py-4">
-                  <Link href={`/products/${line.slug}`} onClick={() => setOpen(false)} className="relative aspect-[4/5] w-20 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <Link href={`/products/${line.slug}`} onClick={close} className="relative size-20 shrink-0 overflow-hidden rounded-sm bg-stone">
                     {line.image && <Image src={line.image} alt="" fill sizes="80px" className="object-cover" />}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="flex justify-between gap-3">
-                      <Link href={`/products/${line.slug}`} onClick={() => setOpen(false)} className="text-sm leading-snug font-medium hover:underline">
+                      <Link href={`/products/${line.slug}`} onClick={close} className="leading-snug font-medium hover:underline hover:underline-offset-4">
                         {line.name}
                       </Link>
-                      <span className="text-sm whitespace-nowrap tabular-nums">{formatPrice(line.priceCents * line.quantity, currency)}</span>
+                      <span className="font-medium whitespace-nowrap tabular-nums">{price(line.priceCents * line.quantity)}</span>
                     </div>
                     <CartLineControls productId={line.id} quantity={line.quantity} max={Math.min(line.stock, 10)} name={line.name} />
                   </div>
@@ -99,17 +88,17 @@ export function CartDrawer({
               ))}
             </ul>
             <div className="border-t px-5 pt-4 pb-5">
-              <div className="flex items-baseline justify-between">
-                <span className="text-sm">Sous-total</span>
-                <span className="text-lg font-medium tabular-nums">{formatPrice(subtotalCents, currency)}</span>
+              <div className="flex items-baseline justify-between gap-4">
+                <span>{t("subtotal")}</span>
+                <span className="display-sm text-2xl tabular-nums">{price(subtotalCents)}</span>
               </div>
-              <p className="mt-1 text-[0.8125rem] text-muted-foreground">Taxes incluses. Frais de livraison calculés à l'étape suivante.</p>
+              <p className="mt-1 text-[0.8125rem] text-muted-foreground">{t("taxesShipping")}</p>
               <div className="mt-4 grid gap-2">
-                <Link href="/checkout" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "xl" }), "w-full")}>
-                  Passer la commande
+                <Link href="/checkout" onClick={close} className={cn(buttonVariants({ size: "xl" }), "w-full")}>
+                  {t("checkout")}
                 </Link>
-                <Link href="/cart" onClick={() => setOpen(false)} className={cn(buttonVariants({ size: "md", variant: "ghost" }), "w-full")}>
-                  Voir le panier
+                <Link href="/cart" onClick={close} className={cn(buttonVariants({ size: "md", variant: "ghost" }), "w-full")}>
+                  {t("view")}
                 </Link>
               </div>
             </div>

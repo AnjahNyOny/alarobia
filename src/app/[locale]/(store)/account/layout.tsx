@@ -1,30 +1,31 @@
 import type { Metadata } from "next";
-import { LogOut } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { logout } from "@/actions/auth";
 import { AccountNav } from "@/components/store/account-nav";
 import { requireUser } from "@/lib/auth";
 
-export const metadata: Metadata = { title: "Mon compte", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("account");
+  return { title: t("metaTitle"), robots: { index: false } };
+}
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireUser();
+  const [user, t] = await Promise.all([requireUser(), getTranslations("account")]);
   return (
     <div className="container-page pt-8 md:pt-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Espace client</p>
-          <h1 className="display mt-3 text-4xl md:text-5xl">Bonjour, {user.name.split(" ")[0]}</h1>
-        </div>
+        <h1 className="display text-5xl md:text-6xl">{t("hello", { name: user.name.split(" ")[0] })}</h1>
         <form action={logout}>
-          <button type="submit" className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-            <LogOut className="size-4" aria-hidden /> Se déconnecter
+          <button type="submit" className="text-sm underline underline-offset-4">
+            {t("signOut")}
           </button>
         </form>
       </div>
-      <div className="mt-8 grid gap-8 lg:grid-cols-[200px_1fr] lg:gap-14">
+      {/* Même rangée d'enseignes que les rayons du catalogue. */}
+      <div className="mt-7">
         <AccountNav />
-        <div className="min-w-0">{children}</div>
       </div>
+      <div className="mt-8 min-w-0">{children}</div>
     </div>
   );
 }

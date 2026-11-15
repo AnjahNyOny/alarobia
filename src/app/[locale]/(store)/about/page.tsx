@@ -1,45 +1,62 @@
 import type { Metadata } from "next";
-import Image from "next/image";
-import { Link } from "@/i18n/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
+import { LogoMark } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
+import { weekdayName } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
+import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Notre parti pris", description: "Comment nous choisissons les objets de la boutique, et pourquoi il y en a si peu." };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("about");
+  return { title: t("metaTitle"), description: t("metaDescription") };
+}
 
-const principles = [
-  { title: "Testé avant d'être vendu", text: "Chaque produit passe plusieurs semaines entre nos mains. S'il ne tient pas ses promesses à l'usage, il n'entre pas au catalogue." },
-  { title: "Des fiches qui disent tout", text: "Matières, dimensions, origine de fabrication, entretien : nous écrivons ce que nous voudrions lire avant d'acheter." },
-  { title: "Fait pour être gardé", text: "Nous privilégions les pièces réparables et les matières qui se patinent. Un bon achat est un achat que l'on ne refait pas." },
-];
+// Une semaine quelconque commençant un lundi : seuls les noms des jours servent.
+const WEEK = Array.from({ length: 7 }, (_, i) => new Date(2026, 10, 16 + i));
 
 export default async function AboutPage() {
-  const { storeName } = await getSettings();
+  const [{ storeName }, locale, t] = await Promise.all([getSettings(), getLocale(), getTranslations("about")]);
+  const points = [
+    [t("p1"), t("p1text")],
+    [t("p2"), t("p2text")],
+    [t("p3"), t("p3text")],
+  ];
   return (
     <div className="container-page pt-10 md:pt-16">
-      <div className="max-w-3xl">
-        <p className="eyebrow">La maison</p>
-        <h1 className="display mt-5 text-5xl md:text-6xl">Moins d'objets, mais de meilleurs.</h1>
-        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-          {storeName} est une petite boutique en ligne. Nous ne cherchons pas à tout vendre : nous choisissons, catégorie par catégorie, les quelques références que nous recommanderions à nos proches.
-        </p>
-      </div>
-      <div className="relative mt-12 aspect-[16/9] max-h-[560px] w-full overflow-hidden rounded-lg bg-muted">
-        <Image src="/editorial/hero.jpg" alt="Salon lumineux avec un fauteuil jaune et un lampadaire en laiton" fill sizes="100vw" className="object-cover" priority />
-      </div>
-      <ol className="mt-14 grid gap-10 md:grid-cols-3">
-        {principles.map((p, i) => (
-          <li key={p.title} className="border-t pt-5">
-            <p className="text-sm text-muted-foreground tabular-nums">0{i + 1}</p>
-            <h2 className="display mt-3 text-2xl">{p.title}</h2>
-            <p className="mt-3 leading-relaxed text-muted-foreground">{p.text}</p>
+      <h1 className="display max-w-[16ch] text-[3.25rem] sm:text-7xl">{t("title")}</h1>
+
+      {/* La semaine en malgache : le mercredi, qui donne son nom à la boutique, porte l'étiquette de la marque. */}
+      <ol aria-label={t("week")} lang="mg" className="mt-10 grid border-y sm:grid-cols-7">
+        {WEEK.map((day) => {
+          const brandDay = day.getDay() === 3;
+          return (
+            <li key={day.getDay()} className={cn("flex items-center justify-between gap-2 border-b px-3 py-2.5 last:border-b-0 sm:block sm:border-b-0 sm:border-l sm:py-4 sm:first:border-l-0", brandDay ? "bg-primary text-primary-foreground" : day.getDay() === 0 && "text-muted-foreground")}>
+              <span className="display-sm text-xl lg:text-2xl">{weekdayName(day, "mg")}</span>
+              {locale !== "mg" && (
+                <span lang={locale} className={cn("text-sm capitalize sm:mt-1 sm:block", brandDay ? "text-primary-foreground/75" : "text-muted-foreground")}>
+                  {weekdayName(day, locale)}
+                </span>
+              )}
+              {brandDay && <LogoMark className="hidden h-5 sm:mt-3 sm:block" />}
+            </li>
+          );
+        })}
+      </ol>
+
+      <p className="mt-10 max-w-[60ch] text-xl leading-relaxed">{t("lead", { name: storeName })}</p>
+
+      <ul className="mt-12 grid gap-8 border-t pt-10 md:grid-cols-3 md:gap-10">
+        {points.map(([title, text]) => (
+          <li key={title}>
+            <h2 className="display text-3xl">{title}</h2>
+            <p className="mt-3 leading-relaxed text-muted-foreground">{text}</p>
           </li>
         ))}
-      </ol>
-      <div className="mt-14">
-        <Link href="/products" className={buttonVariants({ size: "xl" })}>
-          Voir la sélection
-        </Link>
-      </div>
+      </ul>
+      <Link href="/products" className={`${buttonVariants({ size: "xl" })} mt-12`}>
+        {t("cta")}
+      </Link>
     </div>
   );
 }

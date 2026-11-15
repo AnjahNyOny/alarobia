@@ -1,7 +1,9 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { getLocale } from "next-intl/server";
 import { db } from "./db";
+import { localize } from "./localize";
 import { evaluatePromo } from "./pricing";
 
 export const CART_COOKIE = "cart";
@@ -41,11 +43,11 @@ export async function writeCartEntries(entries: CartEntry[]) {
 
 /** Panier résolu contre la base : prix et stocks viennent toujours du serveur, jamais du cookie. */
 export const getCart = cache(async () => {
-  const entries = await readCartEntries();
+  const [entries, locale] = await Promise.all([readCartEntries(), getLocale()]);
   const products = entries.length
     ? await db.product.findMany({
         where: { id: { in: entries.map((e) => e.id) }, status: "ACTIVE" },
-        include: { images: { orderBy: { position: "asc" }, take: 1 } },
+        include: { images: { orderBy: { position: "asc" }, take: 1 }, translations: true },
       })
     : [];
   const lines = entries.flatMap((e) => {
@@ -54,6 +56,8 @@ export const getCart = cache(async () => {
     return [
       {
         product,
+        // Nom dans la langue du visiteur, pour l'affichage. `product.name` reste le nom français, celui qu'enregistre la commande.
+        displayName: localize(product, locale, ["name"]).name,
         quantity: e.q,
         image: product.images[0]?.url ?? null,
         lineTotalCents: product.priceCents * e.q,

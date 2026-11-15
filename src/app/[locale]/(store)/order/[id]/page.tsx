@@ -11,33 +11,36 @@ import { PaymentPanel } from "@/components/store/payment-panel";
 import { isMobileMoney, OPERATOR_NAME, paymentState, type MobileMoney } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 
-export const metadata: Metadata = { title: "Commande confirmée", robots: { index: false } };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("order");
+  return { title: t("metaTitle"), robots: { index: false } };
+}
 
 export default async function ConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [order, settings, user] = await Promise.all([db.order.findUnique({ where: { id }, include: { items: true } }), getSettings(), getUser()]);
   // Une commande rattachée à un compte n'est visible que par ce compte ; une commande invitée, par son lien non devinable.
   if (!order || (order.userId && order.userId !== user?.id && user?.role !== "ADMIN")) notFound();
-  const t = await getTranslations("payment");
+  const [t, to, tk] = await Promise.all([getTranslations("payment"), getTranslations("order"), getTranslations("cart")]);
   const awaiting = paymentState(order) === "awaiting";
 
   return (
     <div className="container-page pt-10 md:pt-16">
       <div className="max-w-2xl">
-        <span className="grid size-11 place-items-center rounded-full bg-success text-white">
+        <span className="grid size-11 place-items-center rounded-sm bg-success text-white">
           <Check className="size-5" aria-hidden />
         </span>
-        <h1 className="display mt-6 text-4xl md:text-5xl">Merci, votre commande est enregistrée.</h1>
+        <h1 className="display mt-6 text-4xl md:text-5xl">{to("thanks")}</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Commande <span className="font-medium text-foreground">{order.number}</span>. {awaiting ? t("confirmationMobile", { operator: OPERATOR_NAME[order.paymentMethod as MobileMoney] }) : isMobileMoney(order.paymentMethod) ? "" : t("confirmationCod")} Nous vous préviendrons à l'adresse {order.email} dès l'expédition du colis.
+          {to.rich("number", { number: order.number, b: (chunks) => <span className="font-medium whitespace-nowrap text-foreground">{chunks}</span> })} {awaiting ? t("confirmationMobile", { operator: OPERATOR_NAME[order.paymentMethod as MobileMoney] }) : isMobileMoney(order.paymentMethod) ? "" : t("confirmationCod")} {to("notify", { email: order.email })}
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
           <Link href="/products" className={buttonVariants({ size: "md" })}>
-            Continuer mes achats
+            {tk("continue")}
           </Link>
           {user && (
             <Link href="/account" className={buttonVariants({ size: "md", variant: "outline" })}>
-              Suivre mes commandes
+              {to("track")}
             </Link>
           )}
         </div>
