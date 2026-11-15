@@ -41,16 +41,17 @@ export function Stepper({
   );
 }
 
-export function CartLineControls({ productId, quantity, max, name }: { productId: string; quantity: number; max: number; name: string }) {
+/** `lineKey` désigne la ligne du panier : un produit personnalisé de deux façons occupe deux lignes. */
+export function CartLineControls({ lineKey, quantity, max, name }: { lineKey: string; quantity: number; max: number; name: string }) {
   const t = useTranslations("cart");
   const [pending, start] = useTransition();
   return (
     <div className="flex items-center gap-3">
-      <Stepper size="sm" value={quantity} max={max} disabled={pending} label={t("quantityFor", { name })} onChange={(q) => start(() => setCartQuantity(productId, q))} />
+      <Stepper size="sm" value={quantity} max={max} disabled={pending} label={t("quantityFor", { name })} onChange={(q) => start(() => setCartQuantity(lineKey, q))} />
       <button
         type="button"
         disabled={pending}
-        onClick={() => start(() => setCartQuantity(productId, 0))}
+        onClick={() => start(() => setCartQuantity(lineKey, 0))}
         className="text-[0.8125rem] text-muted-foreground underline underline-offset-4 hover:text-foreground"
       >
         {t("remove")}

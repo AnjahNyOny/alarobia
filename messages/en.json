@@ -153,6 +153,12 @@
       "s2text": "By Mobile Money or on delivery.",
       "s3": "Receive",
       "s3text": "At home or at work, with parcel tracking."
+    },
+    "demo": {
+      "label": "Write your first name",
+      "hint": "It appears on the mug. Colour, lettering and image come next.",
+      "cta": "Personalise this mug",
+      "alt": "Laterite red mug bearing the name {name}"
     }
   },
   "card": {
@@ -428,5 +434,84 @@
     "errorTitle": "The page could not be displayed",
     "errorText": "Try again; if the problem persists, come back in a few minutes.",
     "retry": "Try again"
+  },
+  "customizer": {
+    "colors": {
+      "blanc": "White",
+      "vanille": "Vanilla",
+      "raphia": "Raffia",
+      "laterite": "Laterite",
+      "lagon": "Lagoon",
+      "foret": "Forest",
+      "indigo": "Indigo",
+      "charbon": "Charcoal"
+    },
+    "summary": {
+      "label": "Personalised: {details}",
+      "text": "“{text}”",
+      "image": "with image"
+    },
+    "tabs": {
+      "label": "View the product",
+      "photos": "Photos",
+      "custom": "Personalise"
+    },
+    "alt": "Preview of your {name}, colour {color}",
+    "dragHint": "Drag to turn the object.",
+    "flatOnly": "Flat preview: 3D is not available on this device.",
+    "flatChosen": "Flat preview.",
+    "see3d": "View in 3D",
+    "seeFlat": "View flat",
+    "turnLeft": "Turn left",
+    "turnRight": "Turn right",
+    "invite": {
+      "title": "Put your name on it",
+      "text": "Colour, text, image: personalise this item and see the result live. {surcharge} for printing.",
+      "textFree": "Colour, text, image: personalise this item and see the result live."
+    },
+    "color": "Colour",
+    "text": "Your text",
+    "textPlaceholder": "A name, a word…",
+    "counter": "{count} / {max}",
+    "font": "Lettering",
+    "fontSample": "Alarobia",
+    "fonts": {
+      "enseigne": "Sign",
+      "ronde": "Rounded",
+      "classique": "Classic",
+      "manuscrite": "Handwritten"
+    },
+    "ink": "Text colour",
+    "textSize": "Text size",
+    "textY": "Text height",
+    "image": "Your image",
+    "imageAdd": "Add an image",
+    "imageReplace": "Change image",
+    "imageRemove": "Remove",
+    "imageSending": "Sending…",
+    "imageYours": "Your image",
+    "imageHint": "Photo or logo in JPG, PNG or WebP. The image is made smaller on your phone before sending.",
+    "imageSize": "Image size",
+    "imageX": "Left, right",
+    "imageY": "Up, down",
+    "surcharge": "With printing ({surcharge})",
+    "noReturn": "An item printed to your order cannot be returned or exchanged. Check the spelling before ordering.",
+    "backToPhotos": "Back to photos",
+    "upload": {
+      "missing": "No image received. Choose a file and try again.",
+      "tooLarge": "This image is over 5 MB. Choose a lighter one.",
+      "heic": "This iPhone photo format (HEIC) is not accepted. Send a screenshot of the photo, or set the camera to “Most Compatible”.",
+      "type": "This file is not a JPG, PNG or WebP image.",
+      "dimensions": "This image is too large. It must not exceed 4096 pixels on a side.",
+      "rate": "Too many uploads in a short time. Try again in a few minutes.",
+      "network": "The upload did not go through. Check your connection and try again."
+    },
+    "errors": {
+      "rate": "Too many additions in a short time. Try again in a few minutes.",
+      "color": "This colour is not offered for this item.",
+      "textTooLong": "The text is too long for this item.",
+      "image": "The image could not be found. Send it again.",
+      "files": "The preview could not be saved. Try again."
+    }
   }
 }

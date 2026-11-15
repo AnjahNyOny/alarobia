@@ -111,13 +111,14 @@ export function Header({ settings, user, cart, categories, locale, announcement 
         subtotalCents={cart.subtotalCents}
         freeShippingThresholdCents={settings.freeShippingThresholdCents}
         lines={cart.lines.map((l) => ({
-          id: l.product.id,
+          key: l.key,
           name: l.displayName,
           slug: l.product.slug,
           image: l.image,
-          priceCents: l.product.priceCents,
+          priceCents: l.unitCents,
           quantity: l.quantity,
-          stock: l.product.stock,
+          max: l.maxQuantity,
+          custom: l.custom,
         }))}
       />
     </>

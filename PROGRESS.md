@@ -2,15 +2,19 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 à 3 faites. Restent en attente du propriétaire : la relecture du malgache (D2) et la validation du texte « Qui sommes-nous » (D3).
+**État au 15/11/2026** : phases 0 à 4 faites. Restent en attente du propriétaire : la relecture du malgache (D2), la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : phase 4, tâche 4.1 (modèle de données de la personnalisation).
+**Prochaine action** : phase 5, tâche 5.1 (produits : traductions et personnalisation dans le back-office).
 
 ## Décisions en attente
 
 - **Texte « Qui sommes-nous »** (D3) : proposé par Claude dans `messages/*.json`, espace `about`. À corriger ou valider.
 - **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer.
 - **Préfixe « AL- »** des numéros de commande et des références : à confirmer.
+- **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. À ajouter avec les photos du propriétaire, ou depuis le back-office une fois 5.1 faite.
+- **« Taille » dans la tâche 4.5** : compris comme la taille du texte et de l'image sur l'objet (curseurs). Si le propriétaire pensait à des tailles de produit (S, M, L, contenance), c'est un autre chantier : il n'y a pas de variantes de produit dans le modèle de données.
+- **Polices proposées au client** : Archivo étroite (« Enseigne »), Baloo 2 (« Ronde »), Lora (« Classique »), Caveat (« Manuscrite »). Choix de Claude, à changer librement.
+- **Mise en ligne** : choix de la base hébergée (Turso ou PostgreSQL) et du stockage des fichiers envoyés, nécessaires pour que le site fonctionne sur Vercel.
 
 ## Décisions prises
 
@@ -29,6 +33,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 14/11/2026 | Phase 3 commencée avant la fin de la phase 2, à la demande du propriétaire. Les pages 2.5 et 2.6 gardent leur ancienne mise en page en attendant. |
 | 14/11/2026 | Plafond de 20 000 000 Ar par montant validé par le propriétaire. |
 | 14/11/2026 | Passage à Next 16 et React 19.3 : seule façon trouvée d'éliminer les erreurs d'hydratation intermittentes (mesuré). |
+| 15/11/2026 | Le propriétaire demande de pousser sur GitHub (`AnjahNyOny/alarobia`) pour voir le site en ligne sur Vercel. Remplace « sans pousser » de D1. La phase 4 est committée en un seul commit. |
 
 ## Avancement
 
@@ -70,13 +75,13 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 3.4 Renommage complet : comptes de démonstration `@alarobia.example`, numéros de commande et références produit en « AL- », titre et description du site dans la langue du visiteur, `README.md` réécrit. Vérifié : 105 tests unitaires, 24 parcours navigateur
 
 ### Phase 4 — Personnalisation en direct et en 3D
-- [ ] 4.1 Modèle de données
-- [ ] 4.2 Dessin de la surface imprimée
-- [ ] 4.3 Envoi d'image par le client
-- [ ] 4.4 Gabarits 3D
-- [ ] 4.5 Interface de personnalisation, tres visuelle, couleur taille etc
-- [ ] 4.6 Chargement et solution de repli
-- [ ] 4.7 Démonstration sur l'accueil
+- [x] 4.1 Modèle de données : réglages de personnalisation sur le produit, table `Customization`, lignes de panier `{ id, q, c }`, copie figée dans la ligne de commande, supplément de prix recalculé côté serveur. Tasse et gourde de démonstration personnalisables. Vérifié : 163 tests unitaires, 26 parcours navigateur, lint, types et compilation propres
+- [x] 4.2 Dessin de la surface imprimée : mise en place en millimètres (`layout.ts`), un seul tracé pour la texture 3D, l'aperçu à plat et le fichier d'impression (`paint.ts`), objets vus à plat (`flat.ts`). Vérifié : 29 tests, dont l'égalité aperçu / impression à un facteur d'échelle près ; tests validés en cassant le code
+- [x] 4.3 Envoi d'image par le client : point d'envoi public `/api/customizer/upload` (type lu dans le contenu, 5 Mo, 4096 px, nom généré, 60 envois par adresse et par 10 minutes, SVG et HEIC refusés avec leur motif), image réduite à 2048 px dans le navigateur, script de nettoyage à sept jours. Vérifié : 31 tests unitaires, 5 parcours sur le point d'envoi, simulation du nettoyage
+- [x] 4.4 Gabarits 3D : tasse, gourde, carnet, sac, construits par le code ; ombre de contact, rotation au doigt, à la souris et par deux boutons, balancement lent jusqu'au premier geste (jamais si l'utilisateur a demandé moins d'animations). Vérifié sur captures pour les quatre gabarits
+- [x] 4.5 Interface de personnalisation : onglets « Photos » et « Personnaliser » sur la fiche ; pastilles de couleur, texte en grand avec compteur, quatre écritures montrées avec le texte du client, couleur du texte, curseurs de taille et de position, image avec ses réglages ; supplément et mention « ni repris ni échangé » ; aperçu dans le panier. En fr, en, mg. Vérifié : 5 parcours navigateur, captures à 320, 412 et 1440 px
+- [x] 4.6 Chargement et solution de repli : la 3D (243 ko compressés) n'est téléchargée qu'à l'ouverture de l'onglet, et l'objet s'affiche à plat pendant ce temps ; sans WebGL, si l'appareil peine ou si la scène plante, aperçu à plat avec les mêmes réglages, et bascule 3D / à plat au choix. Vérifié : 3 parcours (sans WebGL, réseau lent, bascule). Poids mesuré : accueil 358,4 ko (référence 390,8), catalogue 422,5 ko (référence 421,4)
+- [x] 4.7 Démonstration sur l'accueil : « Écrivez votre prénom » et une tasse qui le porte ; photo fixe au repos, objet en direct au premier contact avec le champ ; le prénom suit jusqu'à la fiche (`?perso=`). Vérifié : 1 parcours, captures en fr et mg à 320, 412 et 1440 px
 
 ### Phase 5 — Back-office
 - [ ] 5.1 Produits : traductions et personnalisation
@@ -97,9 +102,9 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 
 ## Points de vigilance (voir PLAN.md)
 
-- [ ] 1. Téléphone sans WebGL : aperçu 2D et commande possible
-- [ ] 2. Image envoyée inadaptée : refus expliqué
-- [ ] 3. Texte de personnalisation inattendu
+- [x] 1. Téléphone sans WebGL : aperçu à plat et commande possible (test `e2e/personnalisation.spec.ts`, « téléphone sans WebGL »)
+- [x] 2. Image envoyée inadaptée : refus expliqué, par le serveur et sous le bouton d'envoi (tests `e2e/personnalisation.spec.ts` et `src/lib/__tests__/upload.test.ts`)
+- [x] 3. Texte de personnalisation inattendu : 200 caractères, mot trop long, émoji composé, apostrophes, espaces seuls, caractères invisibles (tests `src/lib/customizer/__tests__/layout.test.ts` et `src/lib/__tests__/customization.test.ts`)
 - [x] 4. Changement de langue en cours de commande : panier, code promo et saisie conservés (test `e2e/langues.spec.ts`)
 - [x] 5. Traduction de produit manquante : repli sur le français (test `e2e/langues.spec.ts`, fiche en malgache)
 - [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
@@ -181,3 +186,37 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Les libellés du back-office restent en français (phase 5.4), y compris le mot « facultatif » par défaut des champs.
 - Le serveur de développement tournait depuis 19 h avec un ancien client Prisma (erreur 500 sur l'accueil) : redémarré. La base de développement a été rechargée (`npm run db:seed`) pour les comptes `@alarobia.example`.
 - État des vérifications : 105 tests unitaires, 26 parcours navigateur, lint, types et compilation propres.
+- Phase 4 commencée. Mesure de référence prise avant tout changement, en production locale, cache vide, écran de 390 px (`node scripts/poids-pages.mjs`) : accueil 390,8 ko transférés dont 211,5 ko de JavaScript ; catalogue 421,4 ko dont 211,9 ko de JavaScript. La tâche 4.6 compare à ces chiffres.
+- Dépendances ajoutées : `three` et `@react-three/fiber` (3D de la phase 4, prévues au plan), `@types/three` (types). `@react-three/drei`, prévu au plan, n'est pas installé : rien n'en a besoin (rotation et ombre écrites à la main, pas d'environnement à télécharger), et c'est du poids en moins pour le téléphone du client.
+- Tâche 4.1 faite. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Huit couleurs nommées** servent à la fois pour l'objet et pour le texte : blanc, vanille, raphia, latérite, lagon, forêt, indigo, charbon (`src/lib/customization.ts`). Chaque produit en propose une partie.
+  - **Le supplément ne s'applique que s'il y a quelque chose à imprimer** (texte ou image). Choisir seulement une couleur ne coûte rien de plus. Démonstration : tasse 12 000 Ar + 3 000 Ar, gourde 45 000 Ar + 5 000 Ar.
+  - **Une encre illisible est remplacée** (texte blanc sur tasse blanche) : blanc sur un objet sombre, indigo sur un objet clair.
+  - **Un produit personnalisable reste achetable sans personnalisation.** Deux personnalisations différentes font deux lignes ; le stock est partagé entre les lignes d'un même produit.
+  - **Le panier est limité à 30 lignes** (50 auparavant) : au-delà, le cookie dépasserait 4 Ko avec des lignes personnalisées.
+  - La ligne de commande garde le prix payé (supplément compris), l'aperçu à la place de la photo, le fichier d'impression et une copie du dessin en JSON. Le back-office affiche déjà l'aperçu ; le détail (texte, couleur, téléchargements) vient en 5.2.
+- Base : colonnes ajoutées avec valeur par défaut, table `Customization` créée, rien de supprimé. `prisma format` a réaligné le schéma.
+- État des vérifications : 163 tests unitaires, 26 parcours navigateur, lint, types et compilation propres.
+- Tâche 4.2 faite. Le texte et l'image sont placés par une fonction pure, en millimètres ; `paintLayout` est le seul endroit où ils sont tracés, à trois échelles (texture 3D 1024 px, fichier d'impression 1600 px, aperçu à plat). Un test vérifie que l'impression est l'aperçu agrandi, tracé pour tracé.
+- Tâche 4.3 faite. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Le navigateur réduit et réenregistre l'image avant l'envoi** (2048 px de grand côté) : une photo de 6 Mo n'en pèse plus que quelques centaines de ko, et ses métadonnées (dont la position GPS) disparaissent. Un PNG reste un PNG tant qu'il tient dans 5 Mo, pour garder la transparence d'un logo.
+  - **HEIC refusé avec une explication à part** (capture d'écran, ou réglage « Le plus compatible »). Safari sait le lire et le convertit de lui-même.
+  - **Limite de 60 envois par adresse IP et par 10 minutes**, 30 ajouts personnalisés au panier. Volontairement large : les opérateurs mobiles font sortir beaucoup de clients par la même adresse, et chaque ajout au panier fait deux envois. À ajuster avec le trafic réel (6.3). La limite est en mémoire : elle repart de zéro au redémarrage du serveur.
+  - L'aperçu et le fichier d'impression passent par le même point d'envoi que l'image du client, donc par les mêmes contrôles ; l'action d'ajout au panier ne reçoit que des noms de fichiers, qu'elle vérifie sur le disque.
+  - Le serveur ne réencode pas l'image (pas de bibliothèque d'images côté serveur) : un client qui contourne le navigateur peut envoyer un JPEG avec ses métadonnées. Le fichier reste servi comme image, sans interprétation.
+- Bug corrigé en reprenant : un WebP sans perte de 25 octets d'en-tête était refusé, le contrôle exigeait 30 octets pour les trois variantes.
+- Tâches 4.4 à 4.7 faites, avec le skill `frontend-design`. Choix retenus :
+  - **L'audace est l'objet lui-même**, en grand sur fond pierre, qui change pendant qu'on écrit. Les réglages sont à côté (dessous sur téléphone, où l'objet reste collé en haut de l'écran pendant qu'on fait défiler).
+  - **Le dessin est une étiquette transparente posée sur l'objet**, aux dimensions exactes de la zone imprimable. L'objet ne porte que sa couleur : la texture 3D et le fichier d'impression sont la même image.
+  - **La vignette du panier est l'aperçu à plat**, pas une capture de la 3D : elle est identique avec ou sans WebGL.
+  - **Le même dessin ajouté deux fois augmente la quantité** au lieu de créer une seconde ligne.
+  - **Sur l'accueil, la photo fixe est une capture de la scène 3D elle-même** (`public/home/tasse-miora.jpg`, 32 ko) : le passage de la photo à l'objet en direct ne se voit pas. Si la couleur ou le prénom de démonstration changent (`src/lib/customizer/demo.ts`), refaire la photo. Sans tasse personnalisable au catalogue, l'accueil retrouve ses quatre photos.
+  - `models/{mug,…}.tsx` du plan est devenu un seul fichier `models.tsx` : les quatre gabarits tiennent en 150 lignes.
+- Bugs trouvés sur captures et corrigés : ombre flottant sous la tasse (sol à hauteur fixe), sac coupé en bas de trois quarts, police Archivo téléchargée deux fois sur les fiches personnalisables (176 ko au lieu de 88), et retour à la 3D impossible après « Voir à plat » (la scène, en se fermant, libère son contexte WebGL ; l'événement passait pour une panne). Ce dernier a son test.
+- Poids, en production locale, cache vide, 390 px : accueil 358,4 ko dont 214,6 de JavaScript (référence 390,8 dont 211,5 : la page perd quatre photos et gagne 3 ko de code) ; catalogue 422,5 ko dont 212,1 (référence 421,4 dont 211,9). Le catalogue prend 1,1 ko : ce sont les textes de la personnalisation, envoyés avec tous les autres textes sur chaque page. Les fiches produit prennent 11 ko de JavaScript (réglages), personnalisables ou non. À revoir en 6.2 : n'envoyer à chaque page que ses textes.
+- three.js pèse 243 ko compressé, ce qui est long en 3G : pendant son téléchargement, l'onglet montre déjà l'objet à plat avec les réglages en cours, et la 3D le remplace quand elle est peinte.
+- Relevé, non traité : une photo collée sur le sac blanc paraît délavée en 3D (éclairage), pas dans l'aperçu à plat ni dans le fichier d'impression.
+- Avertissement de compilation supprimé au passage : Turbopack traçait tout le projet à cause du chemin du dossier des envois (`uploadPath` dans `src/lib/upload-dir.ts`).
+- Un parcours du back-office (« création d'un produit avec photo ») a échoué une fois dans une suite complète lancée machine très chargée (13 minutes au lieu de 2), puis est repassé seul et dans deux suites complètes. Même profil que l'échec noté en 3.3.
+- Malgache : textes de la personnalisation et de la démonstration rédigés par Claude, à relire (D2).
+- État des vérifications : 223 tests unitaires, 39 parcours navigateur (dont 13 pour la personnalisation), lint, types et compilation propres, aucun avertissement de compilation.

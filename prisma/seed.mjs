@@ -31,6 +31,7 @@ async function main() {
   await db.productTranslation.deleteMany();
   await db.categoryTranslation.deleteMany();
   await db.productImage.deleteMany();
+  await db.customization.deleteMany();
   await db.product.deleteMany();
   await db.category.deleteMany();
   await db.promoCode.deleteMany();
@@ -84,6 +85,13 @@ async function main() {
           compareAtCents: p.compareAtAr ? p.compareAtAr * 100 : null,
           categoryId: cats[p.category].id,
           createdAt: new Date(Date.now() - (products.length - i) * 2 * 864e5),
+          ...(p.custom && {
+            customTemplate: p.custom.template,
+            customColors: p.custom.colors.join(","),
+            customTextMax: p.custom.textMax,
+            customImage: p.custom.image,
+            customSurchargeCents: p.custom.surchargeAr * 100,
+          }),
           images: { create: p.images.map((n, position) => ({ url: img(n), position })) },
           translations: translations(p, ["name", "tagline", "description", "details"]),
         },

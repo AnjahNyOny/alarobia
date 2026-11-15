@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
+import { CustomSummary } from "@/components/store/custom-summary";
 import { PromoForm } from "@/components/store/promo-form";
 import { CartLineControls } from "@/components/store/quantity";
 import { TotalsRows } from "@/components/store/summary";
@@ -40,7 +41,7 @@ export default async function CartPage() {
       <div className="mt-8 grid gap-10 *:min-w-0 lg:grid-cols-[1fr_380px] lg:gap-14">
         <ul className="divide-y border-y">
           {cart.lines.map((line) => (
-            <li key={line.product.id} className="flex gap-4 py-5 sm:gap-6">
+            <li key={line.key} className="flex gap-4 py-5 sm:gap-6">
               <Link href={`/products/${line.product.slug}`} className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-stone sm:size-28">
                 {line.image && <Image src={line.image} alt="" fill sizes="112px" className="object-cover" />}
               </Link>
@@ -50,7 +51,8 @@ export default async function CartPage() {
                     <Link href={`/products/${line.product.slug}`} className="font-medium hover:underline hover:underline-offset-4">
                       {line.displayName}
                     </Link>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{t("unit", { price: price(line.product.priceCents) })}</p>
+                    {line.custom && <CustomSummary custom={line.custom} className="mt-0.5" />}
+                    <p className="mt-0.5 text-sm text-muted-foreground">{t("unit", { price: price(line.unitCents) })}</p>
                     {line.insufficientStock && (
                       <p role="alert" className="mt-1.5 text-sm text-destructive">
                         {line.product.stock === 0 ? t("noStock") : t("onlyLeft", { count: line.product.stock })}
@@ -59,7 +61,7 @@ export default async function CartPage() {
                   </div>
                   <p className="display-sm text-xl whitespace-nowrap tabular-nums">{price(line.lineTotalCents)}</p>
                 </div>
-                <CartLineControls productId={line.product.id} quantity={line.quantity} max={Math.min(Math.max(line.product.stock, 1), 10)} name={line.displayName} />
+                <CartLineControls lineKey={line.key} quantity={line.quantity} max={Math.max(line.maxQuantity, 1)} name={line.displayName} />
               </div>
             </li>
           ))}

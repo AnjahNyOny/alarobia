@@ -3,48 +3,27 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
-import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
-import { MAX_QTY, PROMO_COOKIE, readCartEntries, writeCartEntries } from "@/lib/cart";
+import { addCartLine, addResultState, getCart, PROMO_COOKIE, readCartEntries, writeCartEntries } from "@/lib/cart";
+import { setEntryQuantity } from "@/lib/cart-lines";
 import { evaluatePromo } from "@/lib/pricing";
 import type { FormState } from "@/lib/form";
 
 export async function addToCart(productId: string, quantity = 1): Promise<FormState> {
-  const [t, n] = await Promise.all([getTranslations("errors"), getTranslations("notices")]);
-  if (!Number.isInteger(quantity) || quantity < 1) return { error: t("quantityInvalid") };
-  const product = await db.product.findFirst({ where: { id: productId, status: "ACTIVE" } });
-  if (!product) return { error: t("productUnavailable") };
-
-  const entries = await readCartEntries();
-  const existing = entries.find((e) => e.id === productId);
-  const wanted = (existing?.q ?? 0) + quantity;
-  const allowed = Math.min(wanted, product.stock, MAX_QTY);
-  if (allowed <= (existing?.q ?? 0))
-    return { error: product.stock === 0 ? t("outOfStock") : t("maxQuantity") };
-
-  if (existing) existing.q = allowed;
-  else entries.push({ id: productId, q: allowed });
-  await writeCartEntries(entries);
-  revalidatePath("/", "layout");
-  return { ok: true, message: n("addedToCart", { name: product.name }) };
+  return addResultState(await addCartLine({ id: productId }, quantity));
 }
 
-export async function setCartQuantity(productId: string, quantity: number) {
-  const entries = await readCartEntries();
-  const next =
-    quantity <= 0
-      ? entries.filter((e) => e.id !== productId)
-      : entries.map((e) => (e.id === productId ? { ...e, q: Math.min(Math.floor(quantity), MAX_QTY) } : e));
-  await writeCartEntries(next);
+/** `key` est la clé de la ligne (`lineKey`) : un produit peut occuper plusieurs lignes s'il est personnalisé. */
+export async function setCartQuantity(key: string, quantity: number) {
+  await writeCartEntries(setEntryQuantity(await readCartEntries(), key, quantity));
   revalidatePath("/", "layout");
 }
 
 export async function applyPromo(_: FormState, formData: FormData): Promise<FormState> {
   const code = String(formData.get("code") ?? "");
-  const entries = await readCartEntries();
-  const products = await db.product.findMany({ where: { id: { in: entries.map((e) => e.id) }, status: "ACTIVE" } });
-  const subtotal = entries.reduce((s, e) => s + (products.find((p) => p.id === e.id)?.priceCents ?? 0) * e.q, 0);
+  // Le sous-total vient du panier résolu : il compte les suppléments de personnalisation.
+  const subtotal = (await getCart()).subtotalCents;
   const result = await evaluatePromo(code, subtotal);
   if (!result.ok) {
     const t = await getTranslations("errors");

@@ -8,10 +8,12 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { DesignSummary } from "@/lib/customization";
 import { useCartUI } from "./cart-context";
+import { CustomSummary } from "./custom-summary";
 import { CartLineControls } from "./quantity";
 
-export type DrawerLine = { id: string; name: string; slug: string; image: string | null; priceCents: number; quantity: number; stock: number };
+export type DrawerLine = { key: string; name: string; slug: string; image: string | null; priceCents: number; quantity: number; max: number; custom: DesignSummary | null };
 
 export function CartButton({ count, label }: { count: number; label: string }) {
   const { setOpen } = useCartUI();
@@ -71,18 +73,21 @@ export function CartDrawer({
             {freeShippingThresholdCents > 0 && <p className="bg-highlight px-5 py-2.5 text-sm font-medium text-highlight-foreground">{remaining > 0 ? t("freeRemaining", { amount: price(remaining) }) : t("freeReached")}</p>}
             <ul className="flex-1 divide-y overflow-y-auto px-5">
               {lines.map((line) => (
-                <li key={line.id} className="flex gap-4 py-4">
+                <li key={line.key} className="flex gap-4 py-4">
                   <Link href={`/products/${line.slug}`} onClick={close} className="relative size-20 shrink-0 overflow-hidden rounded-sm bg-stone">
                     {line.image && <Image src={line.image} alt="" fill sizes="80px" className="object-cover" />}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">
                     <div className="flex justify-between gap-3">
-                      <Link href={`/products/${line.slug}`} onClick={close} className="leading-snug font-medium hover:underline hover:underline-offset-4">
-                        {line.name}
-                      </Link>
+                      <div className="min-w-0">
+                        <Link href={`/products/${line.slug}`} onClick={close} className="leading-snug font-medium hover:underline hover:underline-offset-4">
+                          {line.name}
+                        </Link>
+                        {line.custom && <CustomSummary custom={line.custom} className="mt-0.5 text-[0.8125rem]" />}
+                      </div>
                       <span className="font-medium whitespace-nowrap tabular-nums">{price(line.priceCents * line.quantity)}</span>
                     </div>
-                    <CartLineControls productId={line.id} quantity={line.quantity} max={Math.min(line.stock, 10)} name={line.name} />
+                    <CartLineControls lineKey={line.key} quantity={line.quantity} max={line.max} name={line.name} />
                   </div>
                 </li>
               ))}

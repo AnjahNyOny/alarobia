@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
-import { uploadDir } from "@/lib/upload-dir";
+import { uploadDir, uploadPath } from "@/lib/upload-dir";
 
 const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" };
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -22,6 +21,6 @@ export async function POST(req: Request) {
   const name = `${randomUUID()}.${ext}`;
   const dir = uploadDir();
   await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+  await writeFile(uploadPath(name), Buffer.from(await file.arrayBuffer()));
   return NextResponse.json({ url: `/uploads/${name}` });
 }

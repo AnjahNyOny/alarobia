@@ -3,6 +3,8 @@
 // `src/lib/__tests__/demo-catalog.test.ts` en vérifie la cohérence.
 //
 // Prix en ariary entiers (`priceAr`) ; le seed les convertit en unités mineures (× 100).
+// `custom` rend un produit personnalisable : gabarit 3D, couleurs proposées (clés de
+// src/lib/customization.ts), longueur maximale du texte, image autorisée, supplément en ariary.
 // Le français est la version de référence. Le malgache est rédigé par Claude et reste
 // à relire (voir docs/glossaire.md) ; les caractéristiques (`details`) n'y sont pas
 // traduites et retombent sur le français.
@@ -73,6 +75,7 @@ export const products = [
   {
     category: "cuisine", name: "Tasse en grès Vato", tagline: "Émail blanc mat, 30 cl",
     priceAr: 12_000, stock: 85, featured: true, images: ["mug"],
+    custom: { template: "mug", colors: ["blanc", "vanille", "raphia", "laterite", "lagon", "indigo", "charbon"], textMax: 20, image: true, surchargeAr: 3_000 },
     description: "Une tasse en grès tourné, émaillée blanc mat. Sa forme arrondie tient bien en main et garde le café chaud.",
     details: "Grès émaillé, 30 cl\nPasse au micro-ondes\nSe lave à la main ou en machine",
     en: {
@@ -88,6 +91,7 @@ export const products = [
   {
     category: "cuisine", name: "Gourde isotherme Forêt", tagline: "Inox double paroi, 50 cl",
     priceAr: 45_000, stock: 48, featured: true, images: ["gourde"],
+    custom: { template: "gourde", colors: ["foret", "indigo", "laterite", "charbon", "blanc"], textMax: 16, image: true, surchargeAr: 5_000 },
     description: "Douze heures au chaud, vingt-quatre au frais. Une gourde en inox à double paroi, finition mate qui ne glisse pas.",
     details: "Inox 18/8 double paroi\n50 cl, bouchon étanche\nSans BPA",
     en: {

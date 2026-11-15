@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { redirectTo } from "@/i18n/server";
 import { CheckoutForm } from "@/components/store/checkout-form";
+import { CustomSummary } from "@/components/store/custom-summary";
 import { getUser } from "@/lib/auth";
 import { getCart } from "@/lib/cart";
 import { db } from "@/lib/db";
@@ -83,10 +84,11 @@ export default async function CheckoutPage() {
       >
         <ul className="mt-5 grid gap-4">
           {cart.lines.map((l) => (
-            <li key={l.product.id} className="flex items-center gap-3.5">
+            <li key={l.key} className="flex items-center gap-3.5">
               <div className="relative size-14 shrink-0 overflow-hidden rounded-sm bg-stone">{l.image && <Image src={l.image} alt="" fill sizes="56px" className="object-cover" />}</div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm leading-snug font-medium">{l.displayName}</p>
+                {l.custom && <CustomSummary custom={l.custom} className="text-[0.8125rem]" />}
                 <p className="text-[0.8125rem] text-muted-foreground">{tc("quantity", { count: l.quantity })}</p>
               </div>
               <p className="text-sm whitespace-nowrap tabular-nums">{price(l.lineTotalCents)}</p>

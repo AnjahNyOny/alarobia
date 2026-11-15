@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
-import { CART_COOKIE, PROMO_COOKIE, getCart } from "@/lib/cart";
+import { CART_COOKIE, PROMO_COOKIE, designOf, getCart } from "@/lib/cart";
 import { availablePaymentMethods, PAYMENT_METHODS } from "@/lib/payment";
 import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
@@ -86,12 +86,18 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
               productId: l.product.id,
               name: l.product.name,
               imageUrl: l.image,
-              priceCents: l.product.priceCents,
+              priceCents: l.unitCents,
               quantity: l.quantity,
+              // Copie figée : la commande ne dépend plus de la personnalisation ni du produit, qui peuvent changer.
+              customization: l.customization ? JSON.stringify({ template: l.product.customTemplate, ...designOf(l.customization) }) : null,
+              printUrl: l.customization?.print ? `/uploads/${l.customization.print}` : null,
             })),
           },
         },
       });
+      // Une personnalisation commandée n'est plus jamais nettoyée : ses fichiers servent au vendeur.
+      const ordered = cart.lines.flatMap((l) => (l.customization ? [l.customization.id] : []));
+      if (ordered.length) await tx.customization.updateMany({ where: { id: { in: ordered }, orderedAt: null }, data: { orderedAt: new Date() } });
       return order.id;
     });
   } catch (e) {

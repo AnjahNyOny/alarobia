@@ -2,8 +2,10 @@ import Image from "next/image";
 import type { Order, OrderItem } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { addressLines } from "@/lib/address";
+import { describeDesign } from "@/lib/customization";
 import { isMobileMoney, OPERATOR_NAME } from "@/lib/payment";
 import { formatDate, formatPrice } from "@/lib/format";
+import { CustomSummary } from "./custom-summary";
 import { TotalsRows } from "./summary";
 
 /** Détail d'une commande, partagé entre la confirmation et l'espace client. */
@@ -13,6 +15,7 @@ export function OrderView({ order, currency }: { order: Order & { items: OrderIt
   const tp = useTranslations("payment");
   const to = useTranslations("order");
   const price = (cents: number) => formatPrice(cents, currency, locale);
+  const custom = (item: OrderItem) => describeDesign(item.customization);
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:gap-12">
       <div>
@@ -23,6 +26,7 @@ export function OrderView({ order, currency }: { order: Order & { items: OrderIt
               <div className="relative size-16 shrink-0 overflow-hidden rounded-sm bg-stone">{item.imageUrl && <Image src={item.imageUrl} alt="" fill sizes="64px" className="object-cover" />}</div>
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{item.name}</p>
+                {custom(item) && <CustomSummary custom={custom(item)!} />}
                 <p className="text-sm text-muted-foreground">
                   {item.quantity} × {price(item.priceCents)}
                 </p>

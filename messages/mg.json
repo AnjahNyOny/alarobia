@@ -153,6 +153,12 @@
       "s2text": "Amin'ny Mobile Money na rehefa tonga ny entana.",
       "s3": "Raiso",
       "s3text": "Any an-trano na any am-piasana, azo arahina ny entana."
+    },
+    "demo": {
+      "label": "Soraty ny anaranao",
+      "hint": "Miseho eo amin'ny kaopy izany. Avy eo vao misafidy loko, endri-tsoratra ary sary.",
+      "cta": "Amboary manokana ity kaopy ity",
+      "alt": "Kaopy mena tany mitondra ny anarana {name}"
     }
   },
   "card": {
@@ -428,5 +434,84 @@
     "errorTitle": "Tsy afaka naseho ny pejy",
     "errorText": "Andramo indray; raha mbola misy olana dia miverena afaka minitra vitsy.",
     "retry": "Andramo indray"
+  },
+  "customizer": {
+    "colors": {
+      "blanc": "Fotsy",
+      "vanille": "Lavanila",
+      "raphia": "Rofia",
+      "laterite": "Tany mena",
+      "lagon": "Manga ranomasina",
+      "foret": "Maitso ala",
+      "indigo": "Manga antitra",
+      "charbon": "Mainty arina"
+    },
+    "summary": {
+      "label": "Namboarina manokana: {details}",
+      "text": "« {text} »",
+      "image": "misy sary"
+    },
+    "tabs": {
+      "label": "Hijery ny entana",
+      "photos": "Sary",
+      "custom": "Amboary manokana"
+    },
+    "alt": "Topi-maso ny {name}-nao, loko {color}",
+    "dragHint": "Tariho mba hihodina ilay entana.",
+    "flatOnly": "Topi-maso fisaka: tsy mandeha amin'ity fitaovana ity ny 3D.",
+    "flatChosen": "Topi-maso fisaka.",
+    "see3d": "Hijery amin'ny 3D",
+    "seeFlat": "Hijery fisaka",
+    "turnLeft": "Ahodino miankavia",
+    "turnRight": "Ahodino miankavanana",
+    "invite": {
+      "title": "Asio ny anaranao",
+      "text": "Loko, soratra, sary: amboary manokana ity entana ity ary jereo avy hatrany ny vokany. {surcharge} ho an'ny fanontana.",
+      "textFree": "Loko, soratra, sary: amboary manokana ity entana ity ary jereo avy hatrany ny vokany."
+    },
+    "color": "Loko",
+    "text": "Ny soratrao",
+    "textPlaceholder": "Anarana, teny iray…",
+    "counter": "{count} / {max}",
+    "font": "Endri-tsoratra",
+    "fontSample": "Alarobia",
+    "fonts": {
+      "enseigne": "Soratra famantarana",
+      "ronde": "Boribory",
+      "classique": "Mahazatra",
+      "manuscrite": "Sora-tanana"
+    },
+    "ink": "Lokon'ny soratra",
+    "textSize": "Haben'ny soratra",
+    "textY": "Haavon'ny soratra",
+    "image": "Ny sarinao",
+    "imageAdd": "Hampiditra sary",
+    "imageReplace": "Hanova sary",
+    "imageRemove": "Esory",
+    "imageSending": "Eo am-pandefasana…",
+    "imageYours": "Ny sarinao",
+    "imageHint": "Sary na logo JPG, PNG na WebP. Hakelezina ao amin'ny findainao ny sary alohan'ny handefasana azy.",
+    "imageSize": "Haben'ny sary",
+    "imageX": "Havia, havanana",
+    "imageY": "Ambony, ambany",
+    "surcharge": "Miaraka amin'ny fanontana ({surcharge})",
+    "noReturn": "Tsy azo averina na takalozina ny entana natonta araka ny fangatahanao. Hamarino ny tsipelina alohan'ny hanafarana.",
+    "backToPhotos": "Hiverina amin'ny sary",
+    "upload": {
+      "missing": "Tsy nisy sary voaray. Misafidiana rakitra dia andramo indray.",
+      "tooLarge": "Mihoatra ny 5 Mo ity sary ity. Misafidiana maivana kokoa.",
+      "heic": "Tsy ekena ity karazana sarin'ny iPhone ity (HEIC). Alefaso ny sarin'ny efijery misy azy, na ataovy « Le plus compatible » ny fakantsary.",
+      "type": "Tsy sary JPG, PNG na WebP ity rakitra ity.",
+      "dimensions": "Lehibe loatra ity sary ity. Tsy tokony hihoatra ny 4096 piksely ny lafiny.",
+      "rate": "Be loatra ny fandefasana tao anatin'ny fotoana fohy. Andramo indray afaka minitra vitsy.",
+      "network": "Tsy tontosa ny fandefasana. Hamarino ny fifandraisanao dia andramo indray."
+    },
+    "errors": {
+      "rate": "Be loatra ny fampidirana tao anatin'ny fotoana fohy. Andramo indray afaka minitra vitsy.",
+      "color": "Tsy misy io loko io ho an'ity entana ity.",
+      "textTooLong": "Lava loatra ny soratra ho an'ity entana ity.",
+      "image": "Tsy hita ny sary. Alefaso indray.",
+      "files": "Tsy voatahiry ny topi-maso. Andramo indray."
+    }
   }
 }

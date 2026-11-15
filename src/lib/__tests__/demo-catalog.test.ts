@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { categories, customers, products, settings, shippingZones } from "../../../prisma/catalog.mjs";
 import { normalizePhone, PROVINCES } from "../address";
+import { COLORS, MAX_TEXT, TEMPLATES } from "../customization";
 import { formatPrice, slugify } from "../format";
 import { operatorOf } from "../payment";
 
@@ -65,6 +66,28 @@ describe("catalogue de démonstration", () => {
 
   it("ne parle plus d'euros", () => {
     expect(JSON.stringify({ categories, products, settings })).not.toMatch(/€|\beuros?\b/i);
+  });
+});
+
+describe("produits personnalisables de démonstration", () => {
+  const custom = products.flatMap((p) => (p.custom ? [{ name: p.name, priceAr: p.priceAr, custom: p.custom }] : []));
+  it("comprend au moins la tasse et la gourde (décision D5)", () => {
+    expect(custom.map((p) => p.custom.template)).toEqual(expect.arrayContaining(["mug", "gourde"]));
+  });
+  it("donne à chacun un gabarit connu, des couleurs connues et un texte de longueur raisonnable", () => {
+    for (const p of custom) {
+      expect(TEMPLATES, p.name).toContain(p.custom.template);
+      expect(p.custom.colors.length, p.name).toBeGreaterThan(1);
+      for (const color of p.custom.colors) expect(Object.keys(COLORS), `${p.name} : ${color}`).toContain(color);
+      expect(p.custom.textMax, p.name).toBeGreaterThan(0);
+      expect(p.custom.textMax, p.name).toBeLessThanOrEqual(MAX_TEXT);
+    }
+  });
+  it("fixe un supplément en ariary entiers, inférieur au prix de l'article", () => {
+    for (const p of custom) {
+      expect(Number.isInteger(p.custom.surchargeAr) && p.custom.surchargeAr >= 0 && p.custom.surchargeAr % 100 === 0, p.name).toBe(true);
+      expect(p.custom.surchargeAr, p.name).toBeLessThan(p.priceAr);
+    }
   });
 });
 

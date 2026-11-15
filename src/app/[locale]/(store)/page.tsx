@@ -1,11 +1,14 @@
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
+import { HomeDemo } from "@/components/customizer/home-demo";
 import { ProductCard } from "@/components/store/product-card";
 import { WeekStrip } from "@/components/store/week-strip";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { getUser } from "@/lib/auth";
 import { cardInclude, wishedIds } from "@/lib/catalog";
+import { customizerOptions } from "@/lib/customization";
+import { DEMO_COLOR } from "@/lib/customizer/demo";
 import { db } from "@/lib/db";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
 import { getSettings } from "@/lib/settings";
@@ -22,6 +25,10 @@ export default async function HomePage() {
   // La frise prend pour exemple la première zone de livraison active ; sans zone, elle ne promet rien et disparaît.
   const zone = await db.shippingZone.findFirst({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] });
   const today = madagascarTime();
+  // La démonstration du héros a besoin d'une tasse personnalisable, en stock, qui accepte un texte et la couleur de sa photo. Sinon, les quatre photos.
+  const mug = await db.product.findFirst({ where: { status: "ACTIVE", customTemplate: "mug", stock: { gt: 0 } }, include: { translations: true }, orderBy: { featured: "desc" } });
+  const mugOptions = mug && customizerOptions(mug);
+  const demo = mug && mugOptions && mugOptions.textMax > 0 && mugOptions.colors.includes(DEMO_COLOR) ? { options: mugOptions, slug: mug.slug, name: localize(mug, locale, PRODUCT_FIELDS).name } : null;
   const mosaic = featured.filter((p) => p.images[0]).slice(0, 4);
   const steps = [
     [t("steps.s1"), t("steps.s1text")],
@@ -39,7 +46,10 @@ export default async function HomePage() {
             {t("cta")}
           </Link>
         </div>
-        {/* Quatre objets du catalogue, cliquables. La démonstration 3D prendra cette place en phase 4. */}
+        {/* L'audace de la page : on écrit son prénom, la tasse le porte. Sans tasse personnalisable au catalogue, quatre objets cliquables. */}
+        {demo ? (
+          <HomeDemo {...demo} />
+        ) : (
         <ul className="grid grid-cols-2 gap-2 sm:gap-3">
           {mosaic.map((p, i) => {
             const product = localize(p, locale, PRODUCT_FIELDS);
@@ -52,6 +62,7 @@ export default async function HomePage() {
             );
           })}
         </ul>
+        )}
       </section>
 
       {zone && (

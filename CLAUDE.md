@@ -17,6 +17,25 @@ Plateforme e-commerce pour Madagascar : objets du quotidien, catalogue libre (le
 
 Le propriétaire a rejeté une première version jugée « comme tous les sites e-commerce ». Une demande explicite d'outil ou de méthode (un skill, une bibliothèque) se suit telle quelle ; si c'est impossible, le dire tout de suite plutôt que de substituer autre chose.
 
+## Délégation aux sous-agents
+
+La session principale (Fable ou Opus) est l'architecte. Elle lit le plan, découpe la tâche, rédige les consignes, relit les résultats et tient `PROGRESS.md`. Elle n'écrit pas elle-même le code de l'application : chaque tâche part chez le sous-agent du niveau qui convient. Cette section vaut demande explicite du propriétaire de lancer des sous-agents.
+
+| Sous-agent (`.claude/agents/`) | Modèle | Ce qu'on lui confie |
+| --- | --- | --- |
+| `developpeur` | Opus | Tâche complète qui demande du jugement : nouvelle logique, action serveur, composant d'interface, bug dont la cause reste à trouver. |
+| `executant` | Sonnet | Changement court et entièrement spécifié : clés de traduction, même retouche dans plusieurs fichiers, test d'une fonction existante, correctif déjà diagnostiqué. |
+| `verificateur` | Haiku | Lancer lint, types, tests, build, tests navigateur, captures d'écran, et rapporter. Ne modifie rien. |
+| `Explore` (intégré) | — | Chercher dans le code quand la réponse demande de parcourir beaucoup de fichiers. |
+
+Ce qui reste chez l'architecte : le découpage, les choix d'architecture et de schéma, la direction visuelle et la critique sur capture d'écran, la relecture des diffs, `PROGRESS.md`.
+
+- **Consigne complète.** Un sous-agent part de zéro et ne voit pas la conversation. Lui donner le but et à quoi il sert, les fichiers concernés, ce qui est déjà décidé ou écarté, le critère de fin, ce qu'il ne doit pas toucher, et la forme du rapport attendu.
+- **Un seul sous-agent qui écrit à la fois**, sauf si les fichiers sont clairement disjoints. Un seul `build` ou `test:e2e` à la fois (port 3100, `prisma/test.db`).
+- **Un rapport n'est pas une preuve.** Relire le `git diff` de chaque sous-agent, puis faire passer `verificateur`, avant de cocher la tâche.
+- **Changer de niveau plutôt qu'insister.** Si un `executant` signale que la tâche dépasse sa consigne, la confier à `developpeur` avec ce qu'il a trouvé.
+- Les sous-agents ne committent pas et ne touchent ni à `PROGRESS.md`, ni à `PLAN.md`, ni à ce fichier.
+
 ## Skills installés (`.claude/skills/`)
 
 | Skill | Source | Quand le charger |
@@ -53,7 +72,9 @@ Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind v4, shad
 prisma/schema.prisma     modèle de données (statuts en chaînes : SQLite n'a pas d'enum)
 prisma/seed.mjs          données de démonstration, déterministes
 src/actions/             actions serveur : toute écriture en base passe par ici
-src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schemas Zod, format, address (provinces, téléphone), shipping (zones, dates promises)
+src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schemas Zod, format, address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées)
+src/lib/customizer/      mise en place du dessin (layout), tracé sur canevas (paint), objet vu à plat (flat) : fonctions pures, testées
+src/components/customizer/  personnalisation : scène 3D (scene, models), objet en direct 3D ou à plat (live-object), onglets et réglages de la fiche (stage, controls), démonstration de l'accueil (home-demo)
 src/components/ui/       shadcn/ui
 src/components/store/    boutique
 src/components/admin/    back-office
@@ -104,6 +125,11 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar) dans `src/lib/pricing.ts`.
 - **Dates de livraison** : partir de `madagascarTime()` (`src/lib/shipping.ts`), jamais de `new Date()` seul : le serveur peut tourner dans un autre fuseau.
 - **Schéma Prisma** : `db push` refuse de supprimer une colonne remplie. Ajouter des colonnes avec une valeur par défaut ; les colonnes devenues inutiles sont marquées « obsolètes » dans le schéma.
+- **Constante exportée d'un fichier `"use client"`** : importée dans un composant serveur, elle arrive sous forme de référence, pas de valeur, et toute comparaison échoue en silence. Les valeurs lues des deux côtés vont dans `src/lib/` (exemple : `src/lib/customizer/demo.ts`).
+- **Polices** : ne pas redéclarer Archivo avec `next/font` dans un second fichier, le navigateur la téléchargerait deux fois (88 ko). La personnalisation lit son nom dans la variable CSS `--font-archivo`.
+- **Three.js n'est chargé qu'à la demande** (243 ko compressé) : n'importer `scene.tsx` ou `live-object.tsx` que par `next/dynamic`, jamais directement depuis l'accueil ou le catalogue. Vérifier avec `node scripts/poids-pages.mjs`.
+- **Scène 3D et tests** : le cadre `[data-view="3d"]` existe avant que la scène ne soit téléchargée ; un test qui agit sur la 3D attend `[data-view="3d"] canvas`. En se fermant, la scène libère son contexte WebGL et déclenche `webglcontextlost` une demi-seconde plus tard : ce n'est pas une panne.
+- **Pas de configuration Prettier** dans le dépôt : `npx prettier --write` recoupe tout à 80 colonnes. Ne pas le lancer sur les fichiers existants.
 - **Recherche de photos** : l'interface non officielle d'Unsplash est bloquée dans cet environnement. Utiliser les photos de `public/products/` ou celles fournies par le propriétaire.
 
 ## Limites actuelles (voir phase 7)

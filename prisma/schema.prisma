@@ -63,30 +63,65 @@ model CategoryTranslation {
 }
 
 model Product {
-  id             String               @id @default(cuid())
-  name           String
-  slug           String               @unique
-  tagline        String               @default("")
-  description    String
-  details        String               @default("") // une caractéristique par ligne
-  priceCents     Int
-  compareAtCents Int?
-  sku            String               @unique
-  stock          Int                  @default(0)
-  status         String               @default("ACTIVE") // ACTIVE | DRAFT | ARCHIVED
-  featured       Boolean              @default(false)
-  categoryId     String
-  category       Category             @relation(fields: [categoryId], references: [id])
-  images         ProductImage[]
-  reviews        Review[]
-  wishlistedBy   WishlistItem[]
-  orderItems     OrderItem[]
-  translations   ProductTranslation[]
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  id                   String               @id @default(cuid())
+  name                 String
+  slug                 String               @unique
+  tagline              String               @default("")
+  description          String
+  details              String               @default("") // une caractéristique par ligne
+  priceCents           Int
+  compareAtCents       Int?
+  sku                  String               @unique
+  stock                Int                  @default(0)
+  status               String               @default("ACTIVE") // ACTIVE | DRAFT | ARCHIVED
+  featured             Boolean              @default(false)
+  categoryId           String
+  category             Category             @relation(fields: [categoryId], references: [id])
+  images               ProductImage[]
+  reviews              Review[]
+  wishlistedBy         WishlistItem[]
+  orderItems           OrderItem[]
+  translations         ProductTranslation[]
+  // Personnalisation (phase 4). Un gabarit vide : le produit n'est pas personnalisable.
+  // Valeurs autorisées et lecture de ces champs : src/lib/customization.ts.
+  customTemplate       String               @default("") // "" | mug | gourde | carnet | tote
+  customColors         String               @default("") // clés de couleur séparées par des virgules : blanc,laterite,indigo
+  customTextMax        Int                  @default(0) // longueur maximale du texte ; 0 : pas de texte
+  customImage          Boolean              @default(false) // le client peut envoyer une image
+  customSurchargeCents Int                  @default(0) // ajouté au prix dès qu'il y a un texte ou une image à imprimer
+  customizations       Customization[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   @@index([categoryId])
   @@index([status])
+}
+
+// Ce qu'un client a dessiné sur un produit personnalisable. Créée à l'ajout au panier (le panier n'en garde
+// que l'identifiant), figée dans la ligne de commande à l'achat. Les fichiers sont dans le dossier des envois,
+// sous un nom généré par le serveur (perso-<uuid>.<ext>). Sans commande au bout de sept jours, la ligne et
+// ses fichiers sont supprimés par scripts/nettoyer-personnalisations.mjs.
+model Customization {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color     String // clé de couleur de l'objet
+  text      String    @default("")
+  font      String    @default("enseigne")
+  ink       String    @default("indigo") // couleur du texte
+  textSize  Int       @default(50) // tailles et positions : de 0 à 100
+  textY     Int       @default(50)
+  image     String? // image envoyée par le client
+  imageSize Int       @default(60)
+  imageX    Int       @default(50)
+  imageY    Int       @default(50)
+  preview   String? // aperçu de l'objet, montré dans le panier et la commande
+  print     String? // fichier d'impression (zone imprimable seule, fond transparent) ; absent pour un simple choix de couleur
+  orderedAt DateTime? // première commande contenant cette personnalisation : elle n'est alors plus jamais nettoyée
+  createdAt DateTime  @default(now())
+
+  @@index([productId])
+  @@index([orderedAt, createdAt])
 }
 
 model ProductTranslation {
@@ -137,39 +172,39 @@ model WishlistItem {
 }
 
 model Order {
-  id             String      @id @default(cuid())
-  number         String      @unique
-  userId         String?
-  user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  email          String
-  status         String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
-  paymentMethod  String // MVOLA | ORANGE_MONEY | AIRTEL_MONEY | COD
+  id                String      @id @default(cuid())
+  number            String      @unique
+  userId            String?
+  user              User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email             String
+  status            String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
+  paymentMethod     String // MVOLA | ORANGE_MONEY | AIRTEL_MONEY | COD
   paymentReference  String? // référence de transaction Mobile Money déclarée par le client
   paymentDeclaredAt DateTime?
   paidAt            DateTime? // paiement confirmé par le vendeur
   // Nom de la zone de livraison au moment de la commande (copie figée : la zone peut changer ou disparaître).
   // La colonne garde son ancien nom pour éviter une migration destructive.
-  shippingZone      String    @map("shippingMethod")
+  shippingZone      String      @map("shippingMethod")
   estimatedDelivery DateTime? // date promise à la commande
-  subtotalCents  Int
-  discountCents  Int         @default(0)
-  shippingCents  Int
-  totalCents     Int
-  promoCode      String?
-  fullName       String
-  line1          String
-  line2          String?
-  district       String      @default("")
-  postalCode     String      @default("")
-  city           String
-  province       String      @default("")
-  country        String      @default("Madagascar")
-  phone          String
-  trackingNumber String?
-  note           String?
-  items          OrderItem[]
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  subtotalCents     Int
+  discountCents     Int         @default(0)
+  shippingCents     Int
+  totalCents        Int
+  promoCode         String?
+  fullName          String
+  line1             String
+  line2             String?
+  district          String      @default("")
+  postalCode        String      @default("")
+  city              String
+  province          String      @default("")
+  country           String      @default("Madagascar")
+  phone             String
+  trackingNumber    String?
+  note              String?
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -177,15 +212,19 @@ model Order {
 }
 
 model OrderItem {
-  id         String   @id @default(cuid())
-  orderId    String
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  String?
-  product    Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-  name       String
-  imageUrl   String?
-  priceCents Int
-  quantity   Int
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name          String
+  imageUrl      String? // photo du produit, ou aperçu de l'objet personnalisé
+  priceCents    Int // prix unitaire payé, supplément de personnalisation compris
+  quantity      Int
+  // Copie figée de la personnalisation (JSON : gabarit, couleur, texte, police, encre, image, réglages).
+  // Elle ne dépend plus de la table Customization ni du produit, qui peuvent changer ou disparaître.
+  customization String?
+  printUrl      String? // fichier d'impression à télécharger par le vendeur
 
   @@index([orderId])
 }

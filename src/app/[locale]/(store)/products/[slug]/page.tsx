@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BadgeCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { BuyBox } from "@/components/customizer/controls";
+import { CustomizerShell } from "@/components/customizer/customizer-context";
+import { Stage } from "@/components/customizer/stage";
 import { AddToCart } from "@/components/store/add-to-cart";
 import { Gallery } from "@/components/store/gallery";
 import { ProductCard } from "@/components/store/product-card";
@@ -13,6 +16,7 @@ import { Link } from "@/i18n/navigation";
 import { getUser } from "@/lib/auth";
 import { cardInclude, discountPercent, ratingOf, wishedIds } from "@/lib/catalog";
 import { LOW_STOCK_THRESHOLD, REVENUE_STATUSES } from "@/lib/constants";
+import { cleanText, customizerOptions, graphemes } from "@/lib/customization";
 import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
@@ -45,7 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string; locale: string }> }) {
+export default async function ProductPage({ params, searchParams }: { params: Promise<{ slug: string; locale: string }>; searchParams: Promise<{ perso?: string | string[] }> }) {
   const { slug, locale } = await params;
   const raw = await getProduct(slug);
   if (!raw) notFound();
@@ -80,6 +84,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const today = madagascarTime();
   const operators = availablePaymentMethods(settings).filter(isMobileMoney).map((method) => OPERATOR_NAME[method]);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const custom = customizerOptions(product);
+  // Prénom écrit sur la démonstration de l'accueil (« ?perso=Miora ») : coupé à la longueur que le produit accepte.
+  const { perso } = await searchParams;
+  const initialText = custom && typeof perso === "string" ? graphemes(cleanText(perso)).slice(0, custom.textMax).join("") : "";
+  const photos = product.images.map((i) => i.url);
+  const wishlist = <WishlistButton productId={product.id} active={wished.has(product.id)} name={product.name} variant="page" />;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -107,8 +117,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </Link>
         </nav>
 
+        {/* Produit personnalisable : la colonne de photos et le bloc d'achat partagent le dessin en cours. */}
+        <CustomizerShell options={custom} initialText={initialText}>
         <div className="mt-5 grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
-          <Gallery images={product.images.map((i) => i.url)} name={product.name} />
+          {custom ? <Stage images={photos} name={product.name} /> : <Gallery images={photos} name={product.name} />}
 
           <div className="min-w-0">
             <h1 className="display text-4xl sm:text-5xl">{product.name}</h1>
@@ -141,9 +153,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </p>
 
             <div className="mt-4">
-              <AddToCart productId={product.id} stock={product.stock}>
-                <WishlistButton productId={product.id} active={wished.has(product.id)} name={product.name} variant="page" />
-              </AddToCart>
+              {custom ? (
+                <BuyBox productId={product.id} stock={product.stock} surcharge={`+ ${price(custom.surchargeCents)}`} total={price(product.priceCents + custom.surchargeCents)}>
+                  {wishlist}
+                </BuyBox>
+              ) : (
+                <AddToCart productId={product.id} stock={product.stock}>
+                  {wishlist}
+                </AddToCart>
+              )}
             </div>
 
             {/* L'élément propre à cette page : quel jour le colis arrive, zone par zone, pour une commande passée maintenant. */}
@@ -183,6 +201,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </section>
           </div>
         </div>
+        </CustomizerShell>
 
         <div className="mt-14 grid gap-10 border-t pt-10 md:mt-20 lg:grid-cols-[1.1fr_1fr] lg:gap-14">
           <section aria-labelledby="description-titre">

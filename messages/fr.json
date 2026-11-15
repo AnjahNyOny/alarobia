@@ -153,6 +153,12 @@
       "s2text": "Par Mobile Money ou à la livraison.",
       "s3": "Recevez",
       "s3text": "Chez vous ou au bureau, avec le suivi du colis."
+    },
+    "demo": {
+      "label": "Écrivez votre prénom",
+      "hint": "Il s'affiche sur la tasse. Couleur, écriture et image se choisissent ensuite.",
+      "cta": "Personnaliser cette tasse",
+      "alt": "Tasse rouge latérite portant le prénom {name}"
     }
   },
   "card": {
@@ -428,5 +434,84 @@
     "errorTitle": "La page n'a pas pu s'afficher",
     "errorText": "Réessayez ; si le problème persiste, revenez dans quelques minutes.",
     "retry": "Réessayer"
+  },
+  "customizer": {
+    "colors": {
+      "blanc": "Blanc",
+      "vanille": "Vanille",
+      "raphia": "Raphia",
+      "laterite": "Latérite",
+      "lagon": "Lagon",
+      "foret": "Forêt",
+      "indigo": "Indigo",
+      "charbon": "Charbon"
+    },
+    "summary": {
+      "label": "Personnalisé : {details}",
+      "text": "« {text} »",
+      "image": "avec image"
+    },
+    "tabs": {
+      "label": "Voir le produit",
+      "photos": "Photos",
+      "custom": "Personnaliser"
+    },
+    "alt": "Aperçu de votre {name}, couleur {color}",
+    "dragHint": "Faites glisser pour tourner l'objet.",
+    "flatOnly": "Aperçu à plat : la 3D n'est pas disponible sur cet appareil.",
+    "flatChosen": "Aperçu à plat.",
+    "see3d": "Voir en 3D",
+    "seeFlat": "Voir à plat",
+    "turnLeft": "Tourner vers la gauche",
+    "turnRight": "Tourner vers la droite",
+    "invite": {
+      "title": "Mettez-y votre nom",
+      "text": "Couleur, texte, image : personnalisez cet article et voyez le résultat en direct. {surcharge} pour l'impression.",
+      "textFree": "Couleur, texte, image : personnalisez cet article et voyez le résultat en direct."
+    },
+    "color": "Couleur",
+    "text": "Votre texte",
+    "textPlaceholder": "Un prénom, un mot…",
+    "counter": "{count} / {max}",
+    "font": "Écriture",
+    "fontSample": "Alarobia",
+    "fonts": {
+      "enseigne": "Enseigne",
+      "ronde": "Ronde",
+      "classique": "Classique",
+      "manuscrite": "Manuscrite"
+    },
+    "ink": "Couleur du texte",
+    "textSize": "Taille du texte",
+    "textY": "Hauteur du texte",
+    "image": "Votre image",
+    "imageAdd": "Ajouter une image",
+    "imageReplace": "Changer d'image",
+    "imageRemove": "Retirer",
+    "imageSending": "Envoi en cours…",
+    "imageYours": "Votre image",
+    "imageHint": "Photo ou logo en JPG, PNG ou WebP. L'image est réduite sur votre téléphone avant l'envoi.",
+    "imageSize": "Taille de l'image",
+    "imageX": "Gauche, droite",
+    "imageY": "Haut, bas",
+    "surcharge": "Avec l'impression ({surcharge})",
+    "noReturn": "Un article imprimé à votre demande n'est ni repris ni échangé. Vérifiez l'orthographe avant de commander.",
+    "backToPhotos": "Revenir aux photos",
+    "upload": {
+      "missing": "Aucune image reçue. Choisissez un fichier et réessayez.",
+      "tooLarge": "Cette image dépasse 5 Mo. Choisissez-en une plus légère.",
+      "heic": "Ce format de photo d'iPhone (HEIC) n'est pas accepté. Envoyez une capture d'écran de la photo, ou réglez l'appareil photo sur « Le plus compatible ».",
+      "type": "Ce fichier n'est pas une image JPG, PNG ou WebP.",
+      "dimensions": "Cette image est trop grande. Elle ne doit pas dépasser 4096 pixels de côté.",
+      "rate": "Trop d'envois en peu de temps. Réessayez dans quelques minutes.",
+      "network": "L'envoi n'a pas abouti. Vérifiez votre connexion et réessayez."
+    },
+    "errors": {
+      "rate": "Trop d'ajouts en peu de temps. Réessayez dans quelques minutes.",
+      "color": "Cette couleur n'est pas proposée pour cet article.",
+      "textTooLong": "Le texte est trop long pour cet article.",
+      "image": "L'image n'a pas été retrouvée. Envoyez-la de nouveau.",
+      "files": "L'aperçu n'a pas pu être enregistré. Réessayez."
+    }
   }
 }
