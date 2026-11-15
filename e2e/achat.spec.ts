@@ -57,7 +57,7 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   await expect(panel.getByText("630 000 Ar")).toBeVisible();
   await expect(panel.getByText("034 00 123 45")).toBeVisible();
   await expect(panel.getByText("Le compte est au nom de Alarobia.")).toBeVisible();
-  await expect(panel.getByText(/indiquez le numéro de commande SV-/)).toBeVisible();
+  await expect(panel.getByText(/indiquez le numéro de commande AL-/)).toBeVisible();
   await panel.getByLabel("Référence de la transaction").fill("12");
   await panel.getByRole("button", { name: "Envoyer la référence" }).click();
   await expect(panel.getByText(/Référence invalide/)).toBeVisible();
@@ -74,7 +74,7 @@ test("le stock a baissé et l'administrateur expédie la commande", async ({ pag
   await page.goto("/admin/orders?q=test.invite");
   // La liste signale la référence à vérifier ; la commande n'est pas payée tant que le vendeur ne l'a pas confirmé.
   await expect(page.getByRole("row", { name: /test\.invite/ })).toContainText("Référence à vérifier");
-  await page.getByRole("link", { name: /^SV-/ }).first().click();
+  await page.getByRole("link", { name: /^AL-/ }).first().click();
   await page.waitForURL(/\/admin\/orders\/c/);
   await expect(page.getByText("En attente").first()).toBeVisible();
   await expect(page.getByText("1234567890")).toBeVisible();

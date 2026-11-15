@@ -43,7 +43,7 @@ npm run db:reset         # recrée la base et recharge les données de démonstr
 npm run db:seed
 ```
 
-Comptes de démonstration : `admin@seve.example` / `admin1234`, `client@seve.example` / `client1234` (à renommer en phase 3). Adresses : `/fr/admin`, `/fr/login`.
+Comptes de démonstration : `admin@alarobia.example` / `admin1234`, `client@alarobia.example` / `client1234`. Adresses : `/fr/admin`, `/fr/login`.
 
 ## Architecture
 

@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 à 3.3 faites).
+**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 faite (3.1 à 3.4).
 
-**Prochaine action** : phase 3, tâche 3.4 (renommage complet). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
+**Prochaine action** : retour à la phase 2, tâche 2.5 (catalogue, carte produit, fiche produit), puis 2.6 et 2.7.
 
 ## Décisions en attente
 
@@ -65,7 +65,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 3.1 Ariary et nouveau catalogue de démonstration : devise MGA par défaut, 27 produits et 6 rayons en fr, en, mg (`prisma/catalog.mjs`), clients malgaches, plafond de 20 000 000 Ar par montant. Vérifié : 65 tests unitaires, 15 parcours navigateur, captures à 320 et 1440 px
 - [x] 3.2 Adresses et zones de livraison : adresse malgache (lot, quartier, repère, ville, province, téléphone +261, code postal facultatif), zones gérées dans le back-office (`/admin/shipping`), date promise calculée par zone. Vérifié : 86 tests unitaires, 18 parcours navigateur, captures à 320 et 1440 px
 - [x] 3.3 Paiement Mobile Money et à la livraison : MVola, Orange Money, Airtel Money (numéros du vendeur dans les réglages), référence de transaction saisie par le client, bouton « Paiement reçu » dans le back-office ; carte bancaire retirée. Vérifié : 105 tests unitaires, 23 parcours navigateur, captures à 320 et 1440 px en fr, en, mg
-- [ ] 3.4 Renommage complet
+- [x] 3.4 Renommage complet : comptes de démonstration `@alarobia.example`, numéros de commande et références produit en « AL- », titre et description du site dans la langue du visiteur, `README.md` réécrit. Vérifié : 105 tests unitaires, 24 parcours navigateur
 
 ### Phase 4 — Personnalisation en direct et en 3D
 - [ ] 4.1 Modèle de données
@@ -152,3 +152,8 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Relevé sur les captures, non corrigé : le numéro de commande se coupe après « SV- » à 320 px (il change de préfixe en 3.4).
 - Le parcours « les messages d'erreur suivent la langue » a échoué une fois quand la machine était très chargée (charge moyenne à 16), puis est repassé sans changement. À surveiller ; ne pas allonger le délai sans avoir trouvé la cause.
 - État des vérifications : 105 tests unitaires, 23 parcours navigateur, lint, types et compilation propres.
+- Tâche 3.4 faite. Plus aucune trace de « Sève » hors de l'historique (`PLAN.md`, ce fichier, une phrase de `CLAUDE.md`).
+  - Préfixe « AL- » pour les numéros de commande et les références produit : choix de Claude, à changer si le propriétaire préfère autre chose.
+  - Les commandes déjà en base gardent leur numéro « SV- » ; les comptes `@alarobia.example` n'existent qu'après `npm run db:seed` (qui efface les données de la base de développement).
+  - Le titre du site vient de `meta.title` dans les fichiers de messages, la description reprend l'accroche de l'accueil. Les titres des autres pages restent en français jusqu'à leur réécriture (2.5, 2.6).
+- État des vérifications : 105 tests unitaires, 24 parcours navigateur, lint, types et compilation propres.

@@ -11,6 +11,18 @@ test("la racine redirige vers la langue du navigateur", async ({ browser }) => {
   }
 });
 
+test("le titre et la description du site suivent la langue", async ({ page }) => {
+  for (const [locale, title, description] of [
+    ["fr", "Alarobia — Objets du quotidien, livrés à Madagascar", /livré partout à Madagascar/],
+    ["en", "Alarobia — Everyday things, delivered across Madagascar", /delivered anywhere in Madagascar/],
+    ["mg", "Alarobia — Entana isan'andro, aterina manerana an'i Madagasikara", /manerana an'i Madagasikara/],
+  ] as const) {
+    await page.goto(`/${locale}`);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", description);
+  }
+});
+
 test("une zone protégée renvoie vers la connexion dans la même langue", async ({ page }) => {
   await page.goto("/mg/admin/orders");
   await expect(page).toHaveURL(/\/mg\/login\?next=%2Fadmin%2Forders$/);

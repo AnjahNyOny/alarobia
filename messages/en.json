@@ -4,6 +4,9 @@
     "copy": "Copy",
     "copied": "Copied"
   },
+  "meta": {
+    "title": "Everyday things, delivered across Madagascar"
+  },
   "errors": {
     "formInvalid": "Some fields need fixing.",
     "required": "This field is required.",

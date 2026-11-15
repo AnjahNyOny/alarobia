@@ -489,7 +489,7 @@ export const products = [
 
 // Le premier client est le compte de démonstration (client@…). `zone` : rang de sa zone de livraison dans `shippingZones`.
 export const customers = [
-  { email: "client@seve.example", name: "Hery Rakotomalala", line1: "Lot II M 45", district: "Ankadivato", postalCode: "101", city: "Antananarivo", province: "Antananarivo", zone: 0, country: "Madagascar", phone: "034 12 345 67" },
+  { email: "client@alarobia.example", name: "Hery Rakotomalala", line1: "Lot II M 45", district: "Ankadivato", postalCode: "101", city: "Antananarivo", province: "Antananarivo", zone: 0, country: "Madagascar", phone: "034 12 345 67" },
   { email: "voahirana.razafy@example.com", name: "Voahirana Razafindrakoto", line1: "Lot 12 B", district: "Ambohimena", postalCode: "110", city: "Antsirabe", province: "Antananarivo", zone: 2, country: "Madagascar", phone: "033 45 210 98" },
   { email: "tiana.andria@example.com", name: "Tiana Andrianarisoa", line1: "Lot IVG 203", district: "Antanimena", line2: "Près de la pharmacie", postalCode: "101", city: "Antananarivo", province: "Antananarivo", zone: 0, country: "Madagascar", phone: "032 07 654 32" },
   { email: "fanja.rasoa@example.com", name: "Fanja Rasoanaivo", line1: "Lot 31", district: "Ampasambazaha", postalCode: "301", city: "Fianarantsoa", province: "Fianarantsoa", zone: 2, country: "Madagascar", phone: "034 88 120 45" },

@@ -26,9 +26,9 @@ test("inscription, favori, avis, puis accès refusé au back-office", async ({ p
 });
 
 test("mot de passe incorrect : message générique, sans vider l'e-mail", async ({ page }) => {
-  await login(page, "client@seve.example", "mauvais");
+  await login(page, "client@alarobia.example", "mauvais");
   await expect(page.getByText("E-mail ou mot de passe incorrect.")).toBeVisible();
-  await expect(page.getByLabel("Adresse e-mail")).toHaveValue("client@seve.example");
+  await expect(page.getByLabel("Adresse e-mail")).toHaveValue("client@alarobia.example");
 });
 
 test("un client ne peut pas lire la commande d'un autre", async ({ page }) => {
@@ -38,7 +38,7 @@ test("un client ne peut pas lire la commande d'un autre", async ({ page }) => {
 
 test("adresse du compte : téléphone malgache exigé, adresse proposée ensuite à la commande", async ({ page }) => {
   const check = watchErrors(page);
-  await login(page, "client@seve.example", "client1234");
+  await login(page, "client@alarobia.example", "client1234");
   await page.waitForURL("**/account");
   await page.goto("/account/profile");
   // L'adresse de démonstration est préremplie, quartier et province compris.

@@ -33,7 +33,7 @@ test("création d'un produit avec photo, visible en boutique", async ({ page }) 
   await page.getByLabel("Nom du produit").fill("Plaid Test en laine");
   await page.getByLabel("Description").fill("Un plaid de démonstration créé par le test automatique.");
   await page.getByLabel(/Prix de vente/).fill("59 900");
-  await page.getByLabel("Référence (SKU)").fill("SV-TEST-001");
+  await page.getByLabel("Référence (SKU)").fill("AL-TEST-001");
   await page.getByLabel("Quantité en stock").fill("7");
   await page.getByLabel("Catégorie").selectOption({ label: "Maison" });
   // Erreur de validation côté serveur : le message s'affiche et la saisie est conservée.

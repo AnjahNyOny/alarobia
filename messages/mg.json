@@ -4,6 +4,9 @@
     "copy": "Adikao",
     "copied": "Voadika"
   },
+  "meta": {
+    "title": "Entana isan'andro, aterina manerana an'i Madagasikara"
+  },
   "errors": {
     "formInvalid": "Misy saha mila ahitsy.",
     "required": "Ilaina ity saha ity.",

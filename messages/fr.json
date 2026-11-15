@@ -4,6 +4,9 @@
     "copy": "Copier",
     "copied": "Copié"
   },
+  "meta": {
+    "title": "Objets du quotidien, livrés à Madagascar"
+  },
   "errors": {
     "formInvalid": "Certains champs sont à corriger.",
     "required": "Ce champ est requis.",

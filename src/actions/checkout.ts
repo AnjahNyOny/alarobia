@@ -45,7 +45,7 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
   const shippingCents = shippingCost(zone, cart.subtotalCents - cart.discountCents, settings.freeShippingThresholdCents);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
   if (!orderWithinLimit(totalCents)) return { error: t("orderTooLarge", { amount: formatPrice(MAX_ORDER_CENTS, settings.currency, await getLocale()) }) };
-  const number = `SV-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
+  const number = `AL-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
 
   let orderId: string;
   try {

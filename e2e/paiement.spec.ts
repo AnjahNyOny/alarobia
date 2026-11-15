@@ -62,7 +62,7 @@ test("le vendeur voit la référence, n'a rien reçu, annule : le stock est rend
   const row = page.getByRole("row", { name: /jamais\.recu/ });
   await expect(row).toContainText("En attente");
   await expect(row).toContainText("Référence à vérifier");
-  await row.getByRole("link", { name: /^SV-/ }).click();
+  await row.getByRole("link", { name: /^AL-/ }).click();
   await page.waitForURL(/\/admin\/orders\/c/);
   await expect(page.getByText("PP261114.1010.A00002")).toBeVisible();
   await expect(page.getByText(/n'expédiez pas avant/)).toBeVisible();
@@ -90,7 +90,7 @@ test("paiement à la livraison : pas d'indications Mobile Money, encaissé à la
   await login(page, ADMIN.email, ADMIN.password);
   await page.waitForURL("**/admin");
   await page.goto("/admin/orders?q=a.la.livraison");
-  await page.getByRole("row", { name: /a\.la\.livraison/ }).getByRole("link", { name: /^SV-/ }).click();
+  await page.getByRole("row", { name: /a\.la\.livraison/ }).getByRole("link", { name: /^AL-/ }).click();
   await page.waitForURL(/\/admin\/orders\/c/);
   await expect(page.getByText("À encaisser par le livreur, en espèces.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Paiement reçu" })).toHaveCount(0);

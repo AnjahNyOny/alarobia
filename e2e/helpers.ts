@@ -16,4 +16,4 @@ export async function login(page: Page, email: string, password: string) {
   await page.getByRole("button", { name: "Se connecter" }).click();
 }
 
-export const ADMIN = { email: "admin@seve.example", password: "admin1234" };
+export const ADMIN = { email: "admin@alarobia.example", password: "admin1234" };

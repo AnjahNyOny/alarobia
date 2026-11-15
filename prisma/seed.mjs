@@ -44,7 +44,7 @@ async function main() {
 
   const adminHash = await bcrypt.hash("admin1234", 10);
   const clientHash = await bcrypt.hash("client1234", 10);
-  await db.user.create({ data: { email: "admin@seve.example", name: "Administration", role: "ADMIN", passwordHash: adminHash } });
+  await db.user.create({ data: { email: "admin@alarobia.example", name: "Administration", role: "ADMIN", passwordHash: adminHash } });
 
   const customers = [];
   for (const { email, name, phone, zone, ...address } of customerSeeds) {
@@ -78,7 +78,7 @@ async function main() {
         data: {
           name: p.name, tagline: p.tagline, description: p.description, details: p.details, stock: p.stock, featured: p.featured ?? false,
           slug: slugify(p.name),
-          sku: `SV-${p.category.slice(0, 3).toUpperCase()}-${String(i + 1).padStart(3, "0")}`,
+          sku: `AL-${p.category.slice(0, 3).toUpperCase()}-${String(i + 1).padStart(3, "0")}`,
           // Montants en unités mineures : 1 Ar = 100.
           priceCents: p.priceAr * 100,
           compareAtCents: p.compareAtAr ? p.compareAtAr * 100 : null,
@@ -145,7 +145,7 @@ async function main() {
       const a = user.address;
       await db.order.create({
         data: {
-          number: `SV-${++seq}`, userId: user.id, email: user.email, status: shownStatus,
+          number: `AL-${++seq}`, userId: user.id, email: user.email, status: shownStatus,
           paymentMethod, paymentReference,
           paymentDeclaredAt: paymentReference ? new Date(createdAt.getTime() + 20 * 60e3) : null,
           paidAt: !mobile && status === "DELIVERED" ? addBusinessDays(createdAt, zone.maxDays) : mobile && ["PAID", "SHIPPED", "DELIVERED", "REFUNDED"].includes(status) ? new Date(createdAt.getTime() + 3 * 36e5) : null,
