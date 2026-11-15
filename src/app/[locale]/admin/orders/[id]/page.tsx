@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
+import { markPaid } from "@/actions/admin/orders";
+import { ConfirmAction } from "@/components/admin/actions";
 import { OrderForm } from "@/components/admin/order-form";
 import { Card, PageHeader } from "@/components/admin/ui";
 import { OrderStatus } from "@/components/order-status";
@@ -10,6 +12,7 @@ import { addressLines } from "@/lib/address";
 import { PAYMENT_LABEL } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
+import { isMobileMoney, paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 
 export const metadata: Metadata = { title: "Commande" };
@@ -18,6 +21,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const { id } = await params;
   const [order, { currency }] = await Promise.all([db.order.findUnique({ where: { id }, include: { items: true, user: { select: { id: true, name: true } } } }), getSettings()]);
   if (!order) notFound();
+  const payment = paymentState(order);
 
   return (
     <>
@@ -55,7 +59,45 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </div>
         <div className="grid content-start gap-4">
           <Card title="Traitement">
-            <OrderForm id={order.id} status={order.status} trackingNumber={order.trackingNumber} />
+            <OrderForm id={order.id} status={order.status} trackingNumber={order.trackingNumber} unpaid={payment === "awaiting" || payment === "declared"} />
+          </Card>
+          <Card title="Paiement">
+            <div className="grid gap-3 text-sm">
+              <p className="font-medium">
+                {PAYMENT_LABEL[order.paymentMethod] ?? order.paymentMethod}
+                <span className="font-normal text-muted-foreground">, {formatPrice(order.totalCents, currency)}</span>
+              </p>
+              {payment === "awaiting" && <p className="text-muted-foreground">Le client n'a pas encore indiqué de référence de transaction. La commande reste en attente et son stock réservé ; annulez-la si le paiement ne vient pas.</p>}
+              {payment === "declared" && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">Référence déclarée par le client</p>
+                  <p className="mt-1 font-mono text-base break-all">{order.paymentReference}</p>
+                  {order.paymentDeclaredAt && <p className="text-muted-foreground">le {formatDateTime(order.paymentDeclaredAt)}</p>}
+                  <p className="mt-2 text-muted-foreground">Vérifiez sur votre téléphone que cette transaction est bien arrivée, pour le bon montant, avant de confirmer.</p>
+                </div>
+              )}
+              {payment === "received" && (
+                <p className="text-muted-foreground">
+                  {isMobileMoney(order.paymentMethod) ? "Paiement confirmé" : "Encaissé à la livraison"}
+                  {order.paidAt ? ` le ${formatDateTime(order.paidAt)}` : ""}.{order.paymentReference && <> Référence : <span className="font-mono text-foreground">{order.paymentReference}</span></>}
+                </p>
+              )}
+              {payment === "onDelivery" && <p className="text-muted-foreground">À encaisser par le livreur, en espèces.</p>}
+              {payment === "void" && <p className="text-muted-foreground">Commande clôturée{order.paymentReference && <> ; référence déclarée : <span className="font-mono text-foreground">{order.paymentReference}</span></>}.</p>}
+              {(payment === "awaiting" || payment === "declared") && (
+                <ConfirmAction
+                  action={markPaid.bind(null, order.id)}
+                  title="Confirmer la réception du paiement ?"
+                  description={`Vous confirmez avoir reçu ${formatPrice(order.totalCents, currency)} par ${PAYMENT_LABEL[order.paymentMethod]}. La commande passe à « payée » et peut être préparée.`}
+                  confirmLabel="Paiement reçu"
+                  variant={payment === "declared" ? "default" : "outline"}
+                  size="md"
+                  danger={false}
+                >
+                  Paiement reçu
+                </ConfirmAction>
+              )}
+            </div>
           </Card>
           <Card title="Client">
             <div className="grid gap-4 text-sm">
@@ -76,10 +118,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 </address>
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">Zone et paiement</p>
+                <p className="text-xs font-medium text-muted-foreground">Zone de livraison</p>
                 <p className="mt-1">{order.shippingZone}</p>
                 {order.estimatedDelivery && <p className="text-muted-foreground">Promise au plus tard {formatDate(order.estimatedDelivery, "fr", "weekday")}</p>}
-                <p>{PAYMENT_LABEL[order.paymentMethod]}</p>
               </div>
             </div>
           </Card>

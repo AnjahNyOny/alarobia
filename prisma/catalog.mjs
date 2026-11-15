@@ -13,6 +13,11 @@ export const settings = {
   announcementEn: "Free delivery on orders over Ar 150,000",
   announcementMg: "Fanaterana maimaim-poana raha mividy 150 000 Ar na mihoatra",
   freeShippingThresholdCents: 150_000 * 100,
+  // Numéros marchands fictifs : le préfixe correspond au réseau de chaque opérateur.
+  mvolaNumber: "034 00 123 45",
+  orangeMoneyNumber: "032 00 123 45",
+  airtelMoneyNumber: "033 00 123 45",
+  mobileMoneyName: "Alarobia",
 };
 
 // Zones de livraison, de la plus proche à la plus lointaine. Délais en jours ouvrés (pas de livraison le dimanche).

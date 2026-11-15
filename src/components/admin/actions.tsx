@@ -18,6 +18,8 @@ export function ConfirmAction({
   confirmLabel = "Supprimer",
   children,
   variant = "ghost",
+  size = "sm",
+  danger = true,
   redirectTo,
 }: {
   action: () => Promise<FormState>;
@@ -26,6 +28,9 @@ export function ConfirmAction({
   confirmLabel?: string;
   children: React.ReactNode;
   variant?: React.ComponentProps<typeof Button>["variant"];
+  size?: React.ComponentProps<typeof Button>["size"];
+  /** Faux pour une confirmation qui ne détruit rien (« Paiement reçu ») : le bouton n'est pas rouge. */
+  danger?: boolean;
   redirectTo?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -33,7 +38,7 @@ export function ConfirmAction({
   const router = useRouter();
   return (
     <>
-      <Button type="button" variant={variant} size="sm" onClick={() => setOpen(true)}>
+      <Button type="button" variant={variant} size={size} onClick={() => setOpen(true)}>
         {children}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -49,7 +54,7 @@ export function ConfirmAction({
             <Button
               type="button"
               size="lg"
-              className="bg-destructive text-white hover:bg-destructive/90"
+              className={danger ? "bg-destructive text-white hover:bg-destructive/90" : undefined}
               disabled={pending}
               onClick={() =>
                 start(async () => {

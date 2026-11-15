@@ -6,6 +6,7 @@ import { OrderStatus } from "@/components/order-status";
 import { ORDER_STATUSES, ORDER_STATUS_LABEL, PAYMENT_LABEL } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { formatDateTime, formatPrice } from "@/lib/format";
+import { paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +75,11 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                         {o.fullName}
                         <p className="text-xs text-muted-foreground">{o.email}</p>
                       </td>
-                      <td className={cn(td, "text-muted-foreground")}>{PAYMENT_LABEL[o.paymentMethod]}</td>
+                      <td className={cn(td, "text-muted-foreground")}>
+                        {PAYMENT_LABEL[o.paymentMethod] ?? o.paymentMethod}
+                        {paymentState(o) === "declared" && <p className="text-xs font-medium text-brand">Référence à vérifier</p>}
+                        {paymentState(o) === "awaiting" && <p className="text-xs">Pas encore payé</p>}
+                      </td>
                       <td className={td}><OrderStatus status={o.status} /></td>
                       <td className={cn(td, "text-right font-medium tabular-nums")}>{formatPrice(o.totalCents, currency)}</td>
                     </tr>

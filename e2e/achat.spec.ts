@@ -29,19 +29,19 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   await page.getByLabel("Ville", { exact: true }).fill("Antsirabe");
   await page.getByLabel("Province", { exact: true }).selectOption("Antananarivo");
   // Un numéro français n'est pas joignable par le livreur : le message dit quoi saisir.
-  await page.getByLabel("Téléphone").fill("06 11 22 33 44");
-  await page.getByRole("button", { name: /Payer et commander/ }).click();
+  await page.getByLabel("Téléphone", { exact: true }).fill("06 11 22 33 44");
+  await page.getByRole("button", { name: "Valider la commande" }).click();
   await expect(page.getByText("Indiquez un numéro malgache, par exemple 034 12 345 67.")).toBeVisible();
   // La saisie est conservée après l'erreur : seul le champ fautif est à corriger.
   await expect(page.getByLabel("Ville", { exact: true })).toHaveValue("Antsirabe");
   await expect(page.getByLabel("Province", { exact: true })).toHaveValue("Antananarivo");
 
-  await page.getByLabel("Téléphone").fill("+261 34 11 222 33");
+  await page.getByLabel("Téléphone", { exact: true }).fill("+261 34 11 222 33");
   // Le total suit la zone choisie : 2 × 350 000 Ar − 10 % = 630 000 Ar, au-dessus du seuil de gratuité.
   await expect(page.getByRole("radio", { name: /Antananarivo ville/ })).toBeChecked();
   await page.getByRole("radio", { name: /Grandes villes de province/ }).check();
   await expect(page.getByRole("radio", { name: /Grandes villes de province/ })).toBeChecked();
-  await page.getByRole("button", { name: /Payer et commander/ }).click();
+  await page.getByRole("button", { name: "Valider la commande" }).click();
   await page.waitForURL(/\/order\/c/);
   await expect(page.getByRole("heading", { name: /votre commande est enregistrée/ })).toBeVisible();
   await expect(page.getByText("630 000 Ar").first()).toBeVisible();
@@ -51,6 +51,19 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   await expect(page.getByText("034 11 222 33")).toBeVisible();
   await expect(page.getByText("Grandes villes de province")).toBeVisible();
   await expect(page.getByText(/Livraison prévue au plus tard (lundi|mardi|mercredi|jeudi|vendredi|samedi) \d/)).toBeVisible();
+
+  // MVola est proposé par défaut : la confirmation dit quoi envoyer, à quel numéro, puis attend la référence.
+  const panel = page.getByRole("region", { name: "Paiement MVola" });
+  await expect(panel.getByText("630 000 Ar")).toBeVisible();
+  await expect(panel.getByText("034 00 123 45")).toBeVisible();
+  await expect(panel.getByText("Le compte est au nom de Alarobia.")).toBeVisible();
+  await expect(panel.getByText(/indiquez le numéro de commande SV-/)).toBeVisible();
+  await panel.getByLabel("Référence de la transaction").fill("12");
+  await panel.getByRole("button", { name: "Envoyer la référence" }).click();
+  await expect(panel.getByText(/Référence invalide/)).toBeVisible();
+  await panel.getByLabel("Référence de la transaction").fill(" 1234567890 ");
+  await panel.getByRole("button", { name: "Envoyer la référence" }).click();
+  await expect(panel.getByText(/Référence 1234567890 reçue le .* la commande reste en attente/)).toBeVisible();
   check();
 });
 
@@ -59,8 +72,17 @@ test("le stock a baissé et l'administrateur expédie la commande", async ({ pag
   await login(page, ADMIN.email, ADMIN.password);
   await page.waitForURL("**/admin");
   await page.goto("/admin/orders?q=test.invite");
+  // La liste signale la référence à vérifier ; la commande n'est pas payée tant que le vendeur ne l'a pas confirmé.
+  await expect(page.getByRole("row", { name: /test\.invite/ })).toContainText("Référence à vérifier");
   await page.getByRole("link", { name: /^SV-/ }).first().click();
   await page.waitForURL(/\/admin\/orders\/c/);
+  await expect(page.getByText("En attente").first()).toBeVisible();
+  await expect(page.getByText("1234567890")).toBeVisible();
+  await page.getByRole("button", { name: "Paiement reçu" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Paiement reçu" }).click();
+  await expect(page.getByText("Paiement confirmé : la commande est à préparer.")).toBeVisible();
+  await expect(page.getByLabel("Statut")).toHaveValue("PAID");
+  await expect(page.getByRole("button", { name: "Paiement reçu" })).toHaveCount(0);
   await page.getByLabel("Statut").selectOption("SHIPPED");
   await page.getByLabel("Numéro de suivi").fill("6A00011122233");
   await page.getByRole("button", { name: "Enregistrer" }).click();

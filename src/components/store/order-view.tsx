@@ -2,13 +2,14 @@ import Image from "next/image";
 import type { Order, OrderItem } from "@prisma/client";
 import { useLocale, useTranslations } from "next-intl";
 import { addressLines } from "@/lib/address";
-import { PAYMENT_LABEL } from "@/lib/constants";
+import { isMobileMoney, OPERATOR_NAME } from "@/lib/payment";
 import { formatDate, formatPrice } from "@/lib/format";
 import { TotalsRows } from "./summary";
 
 /** Détail d'une commande, partagé entre la confirmation et l'espace client. */
 export function OrderView({ order, currency }: { order: Order & { items: OrderItem[] }; currency: string }) {
   const t = useTranslations("delivery");
+  const tp = useTranslations("payment");
   const locale = useLocale();
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:gap-12">
@@ -50,7 +51,7 @@ export function OrderView({ order, currency }: { order: Order & { items: OrderIt
                 </>
               )}
               <br />
-              {PAYMENT_LABEL[order.paymentMethod]}
+              {isMobileMoney(order.paymentMethod) ? OPERATOR_NAME[order.paymentMethod] : tp("cod")}
               {order.trackingNumber && (
                 <>
                   <br />

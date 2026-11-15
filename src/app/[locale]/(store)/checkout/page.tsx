@@ -7,6 +7,7 @@ import { getUser } from "@/lib/auth";
 import { getCart } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
+import { availablePaymentMethods } from "@/lib/payment";
 import { shippingCost } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
@@ -57,6 +58,7 @@ export default async function CheckoutPage() {
       <CheckoutForm
         signedIn={!!user}
         zones={choices}
+        paymentMethods={availablePaymentMethods(settings)}
         currency={currency}
         baseCents={base}
         defaults={{

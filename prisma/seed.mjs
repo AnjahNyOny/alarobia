@@ -135,11 +135,20 @@ async function main() {
       const status =
         day === 0 ? pick(["PENDING", "PAID"]) : day < 3 ? pick(["PAID", "PAID", "SHIPPED"]) : day < 7 ? pick(["SHIPPED", "DELIVERED"]) : r < 0.06 ? "CANCELLED" : r < 0.1 ? "REFUNDED" : "DELIVERED";
       const createdAt = new Date(Date.now() - day * 864e5 - Math.floor(rand() * 10) * 36e5);
+      // Mobile Money pour quatre commandes sur cinq. Une commande encore « en attente » a parfois déjà sa référence (à vérifier), parfois non.
+      const p = rand();
+      const paymentMethod = p < 0.5 ? "MVOLA" : p < 0.7 ? "ORANGE_MONEY" : p < 0.8 ? "AIRTEL_MONEY" : "COD";
+      const mobile = paymentMethod !== "COD";
+      const paymentReference = mobile && status !== "CANCELLED" && (status !== "PENDING" || rand() < 0.5) ? `${Math.floor(1e9 + rand() * 9e9)}` : null;
+      // Une commande payée à la livraison n'est jamais « payée » avant d'être livrée.
+      const shownStatus = !mobile && status === "PAID" ? "PENDING" : status;
       const a = user.address;
       await db.order.create({
         data: {
-          number: `SV-${++seq}`, userId: user.id, email: user.email, status,
-          paymentMethod: rand() < 0.85 ? "CARD" : "COD",
+          number: `SV-${++seq}`, userId: user.id, email: user.email, status: shownStatus,
+          paymentMethod, paymentReference,
+          paymentDeclaredAt: paymentReference ? new Date(createdAt.getTime() + 20 * 60e3) : null,
+          paidAt: !mobile && status === "DELIVERED" ? addBusinessDays(createdAt, zone.maxDays) : mobile && ["PAID", "SHIPPED", "DELIVERED", "REFUNDED"].includes(status) ? new Date(createdAt.getTime() + 3 * 36e5) : null,
           shippingZone: zone.name, estimatedDelivery: addBusinessDays(createdAt, zone.maxDays),
           subtotalCents, discountCents, shippingCents, totalCents: subtotalCents - discountCents + shippingCents,
           promoCode: usePromo ? "BIENVENUE10" : null,

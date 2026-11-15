@@ -143,7 +143,10 @@ model Order {
   user           User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   email          String
   status         String      @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
-  paymentMethod  String // CARD | COD
+  paymentMethod  String // MVOLA | ORANGE_MONEY | AIRTEL_MONEY | COD
+  paymentReference  String? // référence de transaction Mobile Money déclarée par le client
+  paymentDeclaredAt DateTime?
+  paidAt            DateTime? // paiement confirmé par le vendeur
   // Nom de la zone de livraison au moment de la commande (copie figée : la zone peut changer ou disparaître).
   // La colonne garde son ancien nom pour éviter une migration destructive.
   shippingZone      String    @map("shippingMethod")
@@ -213,6 +216,11 @@ model StoreSettings {
   shippingStandardCents      Int    @default(500000)
   shippingExpressCents       Int    @default(1000000)
   freeShippingThresholdCents Int    @default(15000000)
+  // Numéros du vendeur pour le Mobile Money. Un opérateur sans numéro n'est pas proposé à la commande.
+  mvolaNumber                String @default("")
+  orangeMoneyNumber          String @default("")
+  airtelMoneyNumber          String @default("")
+  mobileMoneyName            String @default("") // titulaire des comptes, affiché au client pour qu'il vérifie avant d'envoyer
 }
 
 // Zones de livraison, gérées dans le back-office. Délais en jours ouvrés (pas de livraison le dimanche).

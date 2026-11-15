@@ -1,6 +1,8 @@
 {
   "common": {
-    "language": "Langue"
+    "language": "Langue",
+    "copy": "Copier",
+    "copied": "Copié"
   },
   "errors": {
     "formInvalid": "Certains champs sont à corriger.",
@@ -33,7 +35,10 @@
     "reviewMin": "Votre avis doit contenir au moins 10 caractères.",
     "provinceRequired": "Choisissez une province.",
     "postalCodeInvalid": "Le code postal compte trois chiffres, par exemple 101.",
-    "zoneRequired": "Choisissez une zone de livraison."
+    "zoneRequired": "Choisissez une zone de livraison.",
+    "referenceInvalid": "Référence invalide : recopiez-la telle qu'elle apparaît dans le SMS (4 à 40 lettres ou chiffres, sans espace).",
+    "paymentUnavailable": "Ce moyen de paiement n'est pas disponible. Choisissez-en un autre.",
+    "paymentClosed": "Cette commande n'attend plus de paiement."
   },
   "notices": {
     "addedToCart": "{name} ajouté au panier.",
@@ -44,7 +49,8 @@
     "wishlistAdded": "Ajouté aux favoris.",
     "wishlistRemoved": "Retiré des favoris.",
     "reviewPublished": "Merci, votre avis est publié.",
-    "newsletterDone": "Inscription confirmée. À très vite."
+    "newsletterDone": "Inscription confirmée. À très vite.",
+    "referenceSaved": "Référence enregistrée. Nous vérifions votre paiement."
   },
   "address": {
     "fullName": "Nom complet",
@@ -69,6 +75,30 @@
     "free": "Offerte",
     "none": "Aucune zone de livraison n'est ouverte pour le moment. Écrivez-nous à {email} pour commander.",
     "expected": "Livraison prévue au plus tard {date}"
+  },
+  "payment": {
+    "legend": "Paiement",
+    "mobileMoneyHint": "Vous envoyez le montant depuis votre téléphone, juste après avoir validé la commande.",
+    "cod": "Paiement à la livraison",
+    "codHint": "En espèces, au livreur.",
+    "submit": "Valider la commande",
+    "title": "Paiement {operator}",
+    "awaitingLead": "Nous préparons votre commande dès réception du paiement.",
+    "step1": "Envoyez ce montant, par {operator}, à ce numéro.",
+    "amount": "Montant",
+    "number": "Numéro {operator}",
+    "holder": "Le compte est au nom de {name}.",
+    "step2": "Si un motif vous est demandé, indiquez le numéro de commande {order}.",
+    "step3": "Recopiez ici la référence de la transaction, reçue par SMS.",
+    "referenceLabel": "Référence de la transaction",
+    "referenceSubmit": "Envoyer la référence",
+    "referenceUpdate": "Corriger la référence",
+    "declared": "Référence {reference} reçue le {date}. Nous vérifions le paiement ; la commande reste en attente d'ici là.",
+    "received": "Paiement reçu le {date}. Merci.",
+    "receivedNoDate": "Paiement reçu. Merci.",
+    "onDelivery": "Vous réglerez {amount} en espèces au livreur.",
+    "confirmationMobile": "Il reste à la régler par {operator} : les indications sont ci-dessous.",
+    "confirmationCod": "Vous réglerez à la livraison."
   },
   "nav": {
     "skip": "Aller au contenu",
@@ -115,7 +145,7 @@
       "s1": "Choisissez",
       "s1text": "Ajoutez vos articles au panier, sans créer de compte.",
       "s2": "Payez",
-      "s2text": "En ligne ou à la livraison, comme vous préférez.",
+      "s2text": "Par Mobile Money ou à la livraison.",
       "s3": "Recevez",
       "s3text": "Chez vous ou au bureau, avec le suivi du colis."
     }

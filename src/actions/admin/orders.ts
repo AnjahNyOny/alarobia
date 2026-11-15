@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { ORDER_STATUSES } from "@/lib/constants";
 import type { FormState } from "@/lib/form";
+import { isMobileMoney } from "@/lib/payment";
 
 const VOID = ["CANCELLED", "REFUNDED"];
 
@@ -30,8 +31,20 @@ export async function updateOrder(id: string, _: FormState, formData: FormData):
           await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
       }
     }
-    await tx.order.update({ where: { id }, data: { status, trackingNumber: trackingNumber || null } });
+    // Date d'encaissement : au passage à « payée », ou à la remise du colis pour un paiement à la livraison.
+    const collected = status === "PAID" || (status === "DELIVERED" && !isMobileMoney(order.paymentMethod));
+    await tx.order.update({ where: { id }, data: { status, trackingNumber: trackingNumber || null, ...(collected && !order.paidAt && { paidAt: new Date() }) } });
   });
   revalidatePath("/admin", "layout");
   return { ok: true, message: "Commande mise à jour." };
+}
+
+/** Le vendeur a vérifié sur son téléphone que l'argent est arrivé : la commande passe d'« en attente » à « payée ». */
+export async function markPaid(id: string): Promise<FormState> {
+  await requireAdmin();
+  // Condition sur le statut dans l'écriture : sans effet sur une commande déjà traitée ou annulée entre-temps.
+  const { count } = await db.order.updateMany({ where: { id, status: "PENDING" }, data: { status: "PAID", paidAt: new Date() } });
+  if (count === 0) return { error: "Cette commande n'est plus en attente de paiement." };
+  revalidatePath("/", "layout");
+  return { ok: true, message: "Paiement confirmé : la commande est à préparer." };
 }

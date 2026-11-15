@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 et 3.2 faites).
+**État au 14/11/2026** : phases 0 et 1 faites, phase 2 faite jusqu'à 2.4, phase 3 commencée à la demande du propriétaire (3.1 à 3.3 faites).
 
-**Prochaine action** : phase 3, tâche 3.3 (paiement Mobile Money et à la livraison). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
+**Prochaine action** : phase 3, tâche 3.4 (renommage complet). Restent ouvertes en phase 2 : 2.5, 2.6 et 2.7.
 
 ## Décisions en attente
 
@@ -64,7 +64,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 ### Phase 3 — Commerce malgache
 - [x] 3.1 Ariary et nouveau catalogue de démonstration : devise MGA par défaut, 27 produits et 6 rayons en fr, en, mg (`prisma/catalog.mjs`), clients malgaches, plafond de 20 000 000 Ar par montant. Vérifié : 65 tests unitaires, 15 parcours navigateur, captures à 320 et 1440 px
 - [x] 3.2 Adresses et zones de livraison : adresse malgache (lot, quartier, repère, ville, province, téléphone +261, code postal facultatif), zones gérées dans le back-office (`/admin/shipping`), date promise calculée par zone. Vérifié : 86 tests unitaires, 18 parcours navigateur, captures à 320 et 1440 px
-- [ ] 3.3 Paiement Mobile Money et à la livraison
+- [x] 3.3 Paiement Mobile Money et à la livraison : MVola, Orange Money, Airtel Money (numéros du vendeur dans les réglages), référence de transaction saisie par le client, bouton « Paiement reçu » dans le back-office ; carte bancaire retirée. Vérifié : 105 tests unitaires, 23 parcours navigateur, captures à 320 et 1440 px en fr, en, mg
 - [ ] 3.4 Renommage complet
 
 ### Phase 4 — Personnalisation en direct et en 3D
@@ -101,7 +101,7 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - [x] 4. Changement de langue en cours de commande : panier, code promo et saisie conservés (test `e2e/langues.spec.ts`)
 - [ ] 5. Traduction de produit manquante : repli sur le français
 - [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
-- [ ] 7. Mobile Money déclaré mais non reçu
+- [x] 7. Mobile Money déclaré mais non reçu : la commande reste « en attente », l'annulation rend le stock, le client ne peut plus déclarer ensuite (test `e2e/paiement.spec.ts`)
 
 ## Journal
 
@@ -140,4 +140,15 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Débordement à 320 px corrigé sur la commande en malgache (un `fieldset` ne rétrécit pas sans `min-w-0`).
 - Reste français en dur dans la commande et le compte : titres d'étapes, paiement, récapitulatif (tâche 2.6). Les champs d'adresse et les zones sont traduits.
 - État des vérifications : 86 tests unitaires, 18 parcours navigateur, lint, types et compilation propres.
-
+- Tâche 3.3 faite. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Aucune commande n'est « payée » à sa création.** Toutes naissent « en attente » : le Mobile Money est confirmé par le vendeur, la livraison se paie au livreur (encaissement daté à la remise du colis).
+  - **Le client paie après avoir commandé** : la confirmation affiche le montant, le numéro du vendeur et le nom du titulaire, avec un bouton de copie, puis demande la référence reçue par SMS. Il peut la corriger tant que le vendeur n'a pas tranché.
+  - **Déclarer ne vaut pas paiement.** La référence est signalée au vendeur (« Référence à vérifier » dans la liste des commandes) ; seul le bouton « Paiement reçu » passe la commande à « payée ».
+  - **Le stock est réservé dès la commande** et rendu à l'annulation. Il n'y a pas d'annulation automatique d'une commande restée impayée : c'est le vendeur qui annule (à décider si un délai doit le faire à sa place).
+  - **Un opérateur sans numéro n'est pas proposé.** Un numéro du mauvais réseau est refusé dans les réglages (034 et 038 MVola, 032 et 037 Orange, 033 Airtel) : il ferait envoyer l'argent à quelqu'un d'autre.
+  - La référence de transaction n'est contrôlée que sur sa forme (4 à 40 lettres, chiffres, points, tirets) : rien ne la relie à l'opérateur tant qu'il n'y a pas d'API marchande (phase 7).
+- Base : colonnes ajoutées avec valeur par défaut (`Order.paymentReference`, `paymentDeclaredAt`, `paidAt` ; quatre champs Mobile Money dans `StoreSettings`). Rien de supprimé.
+- Reste en français en dur : la partie paiement du back-office (prévu en 5.4) et, sur la page de confirmation, le titre, l'introduction et le récapitulatif (2.6). Le panneau de paiement et le choix du moyen de paiement sont traduits dans les trois langues ; le malgache est à relire (D2).
+- Relevé sur les captures, non corrigé : le numéro de commande se coupe après « SV- » à 320 px (il change de préfixe en 3.4).
+- Le parcours « les messages d'erreur suivent la langue » a échoué une fois quand la machine était très chargée (charge moyenne à 16), puis est repassé sans changement. À surveiller ; ne pas allonger le délai sans avoir trouvé la cause.
+- État des vérifications : 105 tests unitaires, 23 parcours navigateur, lint, types et compilation propres.

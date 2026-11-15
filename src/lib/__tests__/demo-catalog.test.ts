@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { categories, customers, products, settings, shippingZones } from "../../../prisma/catalog.mjs";
 import { normalizePhone, PROVINCES } from "../address";
 import { formatPrice, slugify } from "../format";
+import { operatorOf } from "../payment";
 
 const filled = (value: unknown) => typeof value === "string" && value.trim() !== "";
 
@@ -100,5 +101,11 @@ describe("réglages de démonstration", () => {
     expect(settings.currency).toBe("MGA");
     for (const key of ["announcement", "announcementEn", "announcementMg"] as const) expect(filled(settings[key]), key).toBe(true);
     expect(settings.freeShippingThresholdCents).toBeGreaterThan(Math.max(...shippingZones.map((z) => z.priceCents)));
+  });
+  it("donnent un numéro marchand à chaque opérateur Mobile Money, sur le bon réseau", () => {
+    expect(operatorOf(settings.mvolaNumber)).toBe("MVOLA");
+    expect(operatorOf(settings.orangeMoneyNumber)).toBe("ORANGE_MONEY");
+    expect(operatorOf(settings.airtelMoneyNumber)).toBe("AIRTEL_MONEY");
+    expect(filled(settings.mobileMoneyName)).toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { OrderStatus } from "@/components/order-status";
 import { OrderView } from "@/components/store/order-view";
+import { PaymentPanel } from "@/components/store/payment-panel";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
@@ -12,7 +13,7 @@ export default async function AccountOrderPage({ params }: { params: Promise<{ i
   const user = await requireUser();
   const { id } = await params;
   // Le filtre userId empêche de consulter la commande d'un autre client en changeant l'identifiant.
-  const [order, { currency }] = await Promise.all([db.order.findFirst({ where: { id, userId: user.id }, include: { items: true } }), getSettings()]);
+  const [order, settings] = await Promise.all([db.order.findFirst({ where: { id, userId: user.id }, include: { items: true } }), getSettings()]);
   if (!order) notFound();
   return (
     <>
@@ -24,7 +25,10 @@ export default async function AccountOrderPage({ params }: { params: Promise<{ i
         <OrderStatus status={order.status} />
         <p className="w-full text-sm text-muted-foreground">Passée le {formatDate(order.createdAt)}</p>
       </div>
-      <OrderView order={order} currency={currency} />
+      <div className="mb-10 max-w-2xl">
+        <PaymentPanel order={order} settings={settings} />
+      </div>
+      <OrderView order={order} currency={settings.currency} />
     </>
   );
 }

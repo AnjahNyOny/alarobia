@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { CART_COOKIE, PROMO_COOKIE, getCart } from "@/lib/cart";
+import { availablePaymentMethods, PAYMENT_METHODS } from "@/lib/payment";
 import { MAX_ORDER_CENTS, orderWithinLimit, shippingCost } from "@/lib/pricing";
 import { formatPrice } from "@/lib/format";
 import { estimateDelivery, madagascarTime } from "@/lib/shipping";
@@ -24,7 +25,7 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
     .extend({
       email: schemas.email,
       shippingZoneId: z.string(t("zoneRequired")).min(1, t("zoneRequired")),
-      paymentMethod: z.enum(["CARD", "COD"]),
+      paymentMethod: z.enum(PAYMENT_METHODS, t("paymentUnavailable")),
       note: z.string().trim().max(500).optional(),
     })
     .safeParse(Object.fromEntries(formData));
@@ -39,6 +40,7 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
 
   // Le tarif vient de la zone en base, jamais du formulaire. Une zone fermée entre-temps n'est plus acceptée.
   const zone = await db.shippingZone.findFirst({ where: { id: shippingZoneId, active: true } });
+  if (!availablePaymentMethods(settings).includes(paymentMethod)) return { error: t("formInvalid"), fieldErrors: { paymentMethod: t("paymentUnavailable") } };
   if (!zone) return { error: t("formInvalid"), fieldErrors: { shippingZoneId: t("zoneRequired") } };
   const shippingCents = shippingCost(zone, cart.subtotalCents - cart.discountCents, settings.freeShippingThresholdCents);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
@@ -67,8 +69,8 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
           number,
           userId: user?.id,
           email,
-          // Paiement simulé : une carte est considérée comme encaissée. À remplacer par un vrai prestataire (voir README).
-          status: paymentMethod === "CARD" ? "PAID" : "PENDING",
+          // Toujours « en attente » : le Mobile Money est confirmé par le vendeur après vérification, la livraison se paie au livreur.
+          status: "PENDING",
           paymentMethod,
           shippingZone: zone.name,
           estimatedDelivery: estimateDelivery(madagascarTime(), zone),

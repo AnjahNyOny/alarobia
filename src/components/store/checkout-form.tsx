@@ -2,10 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { CreditCard, Info, Lock, Truck, Wallet } from "lucide-react";
+import { Lock, Smartphone, Truck, Wallet } from "lucide-react";
 import { placeOrder } from "@/actions/checkout";
 import { Field, Form, FormAlert, SubmitButton } from "@/components/form";
 import { formatPrice } from "@/lib/format";
+import { isMobileMoney, OPERATOR_NAME, type PaymentMethod } from "@/lib/payment";
 import { AddressFields, type AddressDefaults } from "./address-fields";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 export function CheckoutForm({
   defaults,
   zones,
+  paymentMethods,
   currency,
   baseCents,
   signedIn,
@@ -69,6 +71,8 @@ export function CheckoutForm({
   defaults: Defaults;
   /** Zones de livraison actives, dans l'ordre du back-office. Jamais vide : la page ne rend pas le formulaire sans zone. */
   zones: ZoneChoice[];
+  /** Moyens de paiement ouverts : les opérateurs dont le vendeur a renseigné le numéro, puis le paiement à la livraison. */
+  paymentMethods: PaymentMethod[];
   currency: string;
   /** Sous-total après réduction, hors livraison. */
   baseCents: number;
@@ -80,7 +84,8 @@ export function CheckoutForm({
   const t = useTranslations("delivery");
   const locale = useLocale();
   const [zoneId, setZoneId] = useState(zones[0].id);
-  const [payment, setPayment] = useState("CARD");
+  const tp = useTranslations("payment");
+  const [payment, setPayment] = useState<string>(paymentMethods[0]);
   const e = state.fieldErrors ?? {};
   const shippingCents = (zones.find((z) => z.id === zoneId) ?? zones[0]).costCents;
 
@@ -111,16 +116,20 @@ export function CheckoutForm({
           )}
         </Step>
 
-        <Step n={4} title="Paiement">
+        <Step n={4} title={tp("legend")}>
           <fieldset className="grid min-w-0 gap-3">
-            <legend className="sr-only">Moyen de paiement</legend>
-            <Choice name="paymentMethod" value="CARD" checked={payment === "CARD"} onChange={setPayment} icon={CreditCard} title="Carte bancaire" description="Visa, Mastercard, CB" />
-            <Choice name="paymentMethod" value="COD" checked={payment === "COD"} onChange={setPayment} icon={Wallet} title="Paiement à la livraison" description="Réglez en espèces ou par carte au livreur" />
+            <legend className="sr-only">{tp("legend")}</legend>
+            {paymentMethods.map((method) =>
+              isMobileMoney(method) ? (
+                <Choice key={method} name="paymentMethod" value={method} checked={payment === method} onChange={setPayment} icon={Smartphone} title={OPERATOR_NAME[method]} description={tp("mobileMoneyHint")} />
+              ) : (
+                <Choice key={method} name="paymentMethod" value={method} checked={payment === method} onChange={setPayment} icon={Wallet} title={tp("cod")} description={tp("codHint")} />
+              ),
+            )}
           </fieldset>
-          {payment === "CARD" && (
-            <p className="mt-3 flex gap-2.5 rounded-lg bg-muted px-3.5 py-3 text-[0.8125rem] leading-relaxed text-muted-foreground">
-              <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
-              Boutique de démonstration : aucune carte n'est demandée ni débitée. La commande est enregistrée comme payée.
+          {e.paymentMethod && (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              {e.paymentMethod}
             </p>
           )}
           <Field className="mt-5" as="textarea" label="Note pour la livraison" name="note" optional placeholder="Code d'entrée, étage, créneau préféré…" />
@@ -146,7 +155,7 @@ export function CheckoutForm({
         <div className="mt-5 grid gap-3">
           <FormAlert state={state} />
           <SubmitButton size="xl" className="w-full">
-            <Lock aria-hidden /> {payment === "CARD" ? "Payer et commander" : "Confirmer la commande"}
+            <Lock aria-hidden /> {tp("submit")}
           </SubmitButton>
           <p className="text-center text-[0.8125rem] text-muted-foreground">En commandant, vous acceptez nos conditions générales de vente.</p>
         </div>

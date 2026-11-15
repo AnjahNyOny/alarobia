@@ -1,6 +1,8 @@
 {
   "common": {
-    "language": "Fiteny"
+    "language": "Fiteny",
+    "copy": "Adikao",
+    "copied": "Voadika"
   },
   "errors": {
     "formInvalid": "Misy saha mila ahitsy.",
@@ -33,7 +35,10 @@
     "reviewMin": "Litera 10 farafahakeliny ny hevitrao.",
     "provinceRequired": "Safidio ny faritany.",
     "postalCodeInvalid": "Tarehimarika telo ny kaody paositra, ohatra 101.",
-    "zoneRequired": "Safidio ny faritra fanaterana."
+    "zoneRequired": "Safidio ny faritra fanaterana.",
+    "referenceInvalid": "Tsy mety ny référence : adikao araka ny hita ao amin'ny SMS (litera na tarehimarika 4 ka hatramin'ny 40, tsy misy elanelana).",
+    "paymentUnavailable": "Tsy azo ampiasaina io fomba fandoavam-bola io. Misafidiana hafa.",
+    "paymentClosed": "Tsy miandry fandoavam-bola intsony ity komandy ity."
   },
   "notices": {
     "addedToCart": "Tafiditra ao anaty harona ny {name}.",
@@ -44,7 +49,8 @@
     "wishlistAdded": "Tafiditra ao amin'ny tianko.",
     "wishlistRemoved": "Nesorina tao amin'ny tianko.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
-    "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona."
+    "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona.",
+    "referenceSaved": "Voatahiry ny référence. Hamarininay ny fandoavanao."
   },
   "address": {
     "fullName": "Anarana feno",
@@ -69,6 +75,30 @@
     "free": "Maimaim-poana",
     "none": "Tsy misy faritra fanaterana misokatra amin'izao. Manorata aminay amin'ny {email} raha hanao komandy.",
     "expected": "Ho tonga farafahatarany {date}"
+  },
+  "payment": {
+    "legend": "Fandoavam-bola",
+    "mobileMoneyHint": "Alefanao amin'ny findainao ny vola, raha vao voamarina ny komandy.",
+    "cod": "Fandoavana rehefa tonga ny entana",
+    "codHint": "Vola eny an-tanana, omena ny mpanatitra.",
+    "submit": "Hamarino ny komandy",
+    "title": "Fandoavana {operator}",
+    "awaitingLead": "Karakarainay ny komandinao raha vao voaray ny vola.",
+    "step1": "Alefaso amin'ny {operator} ity vola ity, any amin'ity laharana ity.",
+    "amount": "Vola",
+    "number": "Laharana {operator}",
+    "holder": "Amin'ny anaran'i {name} ny kaonty.",
+    "step2": "Raha anontaniana ny antony, soraty ny laharan'ny komandy {order}.",
+    "step3": "Adikao eto ny référence-n'ny fandefasana, voaray tamin'ny SMS.",
+    "referenceLabel": "Référence-n'ny fandefasana",
+    "referenceSubmit": "Alefaso ny référence",
+    "referenceUpdate": "Ahitsio ny référence",
+    "declared": "Voaray tamin'ny {date} ny référence {reference}. Hamarininay ny fandoavana ; mbola miandry ny komandy mandra-pahavitany.",
+    "received": "Voaray tamin'ny {date} ny vola. Misaotra.",
+    "receivedNoDate": "Voaray ny vola. Misaotra.",
+    "onDelivery": "Homenao ny mpanatitra ny {amount}, vola eny an-tanana.",
+    "confirmationMobile": "Mbola mila aloa amin'ny {operator} izy : jereo ny toromarika eto ambany.",
+    "confirmationCod": "Handoa vola ianao rehefa tonga ny entana."
   },
   "nav": {
     "skip": "Hiditra amin'ny votoatiny",
@@ -115,7 +145,7 @@
       "s1": "Misafidiana",
       "s1text": "Ampidiro ao anaty harona ny entanao, tsy mila mamorona kaonty.",
       "s2": "Mandoava",
-      "s2text": "Amin'ny Internet na rehefa tonga ny entana, araka izay tianao.",
+      "s2text": "Amin'ny Mobile Money na rehefa tonga ny entana.",
       "s3": "Raiso",
       "s3text": "Any an-trano na any am-piasana, azo arahina ny entana."
     }

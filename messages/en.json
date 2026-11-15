@@ -1,6 +1,8 @@
 {
   "common": {
-    "language": "Language"
+    "language": "Language",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "errors": {
     "formInvalid": "Some fields need fixing.",
@@ -33,7 +35,10 @@
     "reviewMin": "Your review must be at least 10 characters long.",
     "provinceRequired": "Choose a province.",
     "postalCodeInvalid": "The postcode has three digits, for example 101.",
-    "zoneRequired": "Choose a delivery zone."
+    "zoneRequired": "Choose a delivery zone.",
+    "referenceInvalid": "Invalid reference: copy it as it appears in the SMS (4 to 40 letters or digits, no spaces).",
+    "paymentUnavailable": "This payment method is not available. Choose another one.",
+    "paymentClosed": "This order is no longer waiting for a payment."
   },
   "notices": {
     "addedToCart": "{name} added to cart.",
@@ -44,7 +49,8 @@
     "wishlistAdded": "Added to favourites.",
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
-    "newsletterDone": "You're subscribed. See you soon."
+    "newsletterDone": "You're subscribed. See you soon.",
+    "referenceSaved": "Reference saved. We are checking your payment."
   },
   "address": {
     "fullName": "Full name",
@@ -69,6 +75,30 @@
     "free": "Free",
     "none": "No delivery zone is open at the moment. Write to us at {email} to order.",
     "expected": "Expected by {date} at the latest"
+  },
+  "payment": {
+    "legend": "Payment",
+    "mobileMoneyHint": "You send the amount from your phone, right after placing the order.",
+    "cod": "Cash on delivery",
+    "codHint": "In cash, to the courier.",
+    "submit": "Place order",
+    "title": "{operator} payment",
+    "awaitingLead": "We prepare your order as soon as the payment arrives.",
+    "step1": "Send this amount, with {operator}, to this number.",
+    "amount": "Amount",
+    "number": "{operator} number",
+    "holder": "The account is in the name of {name}.",
+    "step2": "If you are asked for a reason, enter the order number {order}.",
+    "step3": "Copy the transaction reference from the SMS here.",
+    "referenceLabel": "Transaction reference",
+    "referenceSubmit": "Send reference",
+    "referenceUpdate": "Correct the reference",
+    "declared": "Reference {reference} received on {date}. We are checking the payment; the order stays pending until then.",
+    "received": "Payment received on {date}. Thank you.",
+    "receivedNoDate": "Payment received. Thank you.",
+    "onDelivery": "You will pay {amount} in cash to the courier.",
+    "confirmationMobile": "It still has to be paid with {operator}: the instructions are below.",
+    "confirmationCod": "You will pay on delivery."
   },
   "nav": {
     "skip": "Skip to content",
@@ -115,7 +145,7 @@
       "s1": "Choose",
       "s1text": "Add items to your cart. No account needed.",
       "s2": "Pay",
-      "s2text": "Online or on delivery, whichever you prefer.",
+      "s2text": "By Mobile Money or on delivery.",
       "s3": "Receive",
       "s3text": "At home or at work, with parcel tracking."
     }

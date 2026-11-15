@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { parseAmountToCents } from "@/lib/format";
 import { invalid, type FormState } from "@/lib/form";
+import { checkMerchantNumber, OPERATOR_NAME } from "@/lib/payment";
 import { emailSchema } from "@/lib/schemas";
 
 const amount = (msg: string) =>
@@ -72,7 +73,17 @@ const settingsSchema = z.object({
   currency: z.enum(["EUR", "USD", "CHF", "CAD", "MGA"]),
   announcement: z.string().trim().max(120).default(""),
   freeShippingThreshold: amount("Montant invalide."),
+  mvolaNumber: z.string().default(""),
+  orangeMoneyNumber: z.string().default(""),
+  airtelMoneyNumber: z.string().default(""),
+  mobileMoneyName: z.string().trim().max(60).default(""),
 });
+
+const NUMBER_FIELDS = [
+  ["MVOLA", "mvolaNumber", "034 ou 038"],
+  ["ORANGE_MONEY", "orangeMoneyNumber", "032 ou 037"],
+  ["AIRTEL_MONEY", "airtelMoneyNumber", "033"],
+] as const;
 
 export async function saveSettings(_: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
@@ -80,6 +91,15 @@ export async function saveSettings(_: FormState, formData: FormData): Promise<Fo
   if (!parsed.success) return invalid(parsed.error);
   const { freeShippingThreshold, ...rest } = parsed.data;
   const data = { ...rest, freeShippingThresholdCents: freeShippingThreshold };
+
+  // Un numéro du mauvais réseau ferait envoyer l'argent du client à quelqu'un d'autre : on le refuse ici.
+  const fieldErrors: Record<string, string> = {};
+  for (const [method, field, prefixes] of NUMBER_FIELDS) {
+    const checked = checkMerchantNumber(method, data[field]);
+    if (checked.ok) data[field] = checked.value;
+    else fieldErrors[field] = checked.reason === "invalid" ? "Numéro invalide. Exemple : 034 12 345 67." : `Ce numéro n'est pas sur le réseau ${OPERATOR_NAME[method]} (il commence par ${prefixes}).`;
+  }
+  if (Object.keys(fieldErrors).length > 0) return { error: "Certains champs sont à corriger.", fieldErrors };
   await db.storeSettings.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
   revalidatePath("/", "layout");
   return { ok: true, message: "Réglages enregistrés." };

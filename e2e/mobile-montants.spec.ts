@@ -74,6 +74,24 @@ test("gros montants en ariary à 320 px : catalogue, fiche, panier et commande d
   }
   await page.goto("/fr/cart");
   await expect(page.getByText("5 700 000 Ar").first()).toBeVisible();
+
+  // Jusqu'au bout : sur la confirmation, le montant à envoyer par Mobile Money est écrit en grand.
+  await page.goto("/fr/checkout");
+  await page.getByLabel("Adresse e-mail").fill("gros.montant@example.com");
+  await page.getByLabel("Nom complet").fill("Lova Rabe");
+  await page.getByLabel("Téléphone", { exact: true }).fill("034 55 666 77");
+  await page.getByLabel("Adresse ou lot").fill("Lot 3");
+  await page.getByLabel("Quartier").fill("Analakely");
+  await page.getByLabel("Ville", { exact: true }).fill("Antananarivo");
+  await page.getByLabel("Province", { exact: true }).selectOption("Antananarivo");
+  await page.getByRole("button", { name: "Valider la commande" }).click();
+  await page.waitForURL(/\/order\/c/);
+  const confirmation = new URL(page.url()).pathname.replace(/^\/fr/, "");
+  for (const locale of ["fr", "en", "mg"]) {
+    await page.goto(`/${locale}${confirmation}`);
+    await expect(page.getByRole("region").getByText(/5[\s,]700[\s,]000/)).toBeVisible();
+    await expectAmountsFit(page, `/${locale}/order/…`);
+  }
   check();
 });
 

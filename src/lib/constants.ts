@@ -20,8 +20,11 @@ export const PRODUCT_STATUS_LABEL: Record<string, string> = {
   ARCHIVED: "Archivé",
 };
 
+/** Libellés français, pour le back-office. La boutique passe par les fichiers de messages. */
 export const PAYMENT_LABEL: Record<string, string> = {
-  CARD: "Carte bancaire",
+  MVOLA: "MVola",
+  ORANGE_MONEY: "Orange Money",
+  AIRTEL_MONEY: "Airtel Money",
   COD: "Paiement à la livraison",
 };
 

@@ -14,7 +14,7 @@ export default async function HelpPage() {
     ["Puis-je commander sans créer de compte ?", "Oui. Une adresse e-mail suffit pour recevoir la confirmation. Créer un compte permet en plus de suivre vos commandes et d'enregistrer votre adresse."],
     ["Comment utiliser un code promo ?", "Saisissez-le dans le panier, avant de passer la commande. La réduction s'affiche immédiatement dans le récapitulatif. Un seul code par commande."],
     ["Un article est épuisé, reviendra-t-il ?", "La plupart du temps, oui. Ajoutez-le à vos favoris pour le retrouver facilement lors de votre prochaine visite."],
-    ["Quels moyens de paiement acceptez-vous ?", "La carte bancaire et le paiement à la livraison."],
+    ["Quels moyens de paiement acceptez-vous ?", "MVola, Orange Money et Airtel Money : après la commande, vous envoyez le montant au numéro indiqué puis vous recopiez la référence de la transaction. Vous pouvez aussi payer en espèces à la livraison."],
     ["Comment vous contacter ?", `Écrivez-nous à ${s.contactEmail}. Nous répondons sous 24 h, du lundi au samedi.`],
   ];
   return (

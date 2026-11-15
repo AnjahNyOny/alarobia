@@ -105,7 +105,7 @@ export function PromoForm({ currency }: { currency: string }) {
   );
 }
 
-type Settings = { storeName: string; contactEmail: string; currency: string; announcement: string; freeShippingThresholdCents: number };
+type Settings = { storeName: string; contactEmail: string; currency: string; announcement: string; freeShippingThresholdCents: number; mvolaNumber: string; orangeMoneyNumber: string; airtelMoneyNumber: string; mobileMoneyName: string };
 
 export function SettingsForm({ settings }: { settings: Settings }) {
   const [state, action] = useActionState(saveSettings, {});
@@ -150,6 +150,18 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         </div>
         <div className="max-w-xl">
           <Field label={`Livraison offerte à partir de (${currencyLabel(settings.currency)})`} name="freeShippingThreshold" inputMode="decimal" defaultValue={centsToInput(settings.freeShippingThresholdCents)} error={e.freeShippingThreshold} hint="Vaut pour toutes les zones. Saisissez 0 pour ne jamais l'offrir." />
+        </div>
+      </section>
+      <section className={section}>
+        <div>
+          <h2 className="text-sm font-semibold">Mobile Money</h2>
+          <p className="mt-1 text-[0.8125rem] text-muted-foreground">Vos numéros, sur lesquels les clients envoient le paiement. Un opérateur sans numéro n'est pas proposé à la commande. Le paiement à la livraison reste toujours possible.</p>
+        </div>
+        <div className="grid max-w-xl gap-4 sm:grid-cols-2">
+          <Field label="Numéro MVola" name="mvolaNumber" type="tel" defaultValue={settings.mvolaNumber} error={e.mvolaNumber} optional placeholder="034 00 000 00" />
+          <Field label="Numéro Orange Money" name="orangeMoneyNumber" type="tel" defaultValue={settings.orangeMoneyNumber} error={e.orangeMoneyNumber} optional placeholder="032 00 000 00" />
+          <Field label="Numéro Airtel Money" name="airtelMoneyNumber" type="tel" defaultValue={settings.airtelMoneyNumber} error={e.airtelMoneyNumber} optional placeholder="033 00 000 00" />
+          <Field label="Nom du titulaire" name="mobileMoneyName" defaultValue={settings.mobileMoneyName} error={e.mobileMoneyName} optional hint="Affiché au client : il vérifie ce nom avant d'envoyer l'argent." />
         </div>
       </section>
       <div className="flex items-center justify-end gap-3 border-t pt-5">
