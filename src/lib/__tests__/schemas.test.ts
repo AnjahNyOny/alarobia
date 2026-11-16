@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeSchemas, zoneSchema } from "../schemas";
+import { makeSchemas, zoneSchema as makeZoneSchema } from "../schemas";
 
 // Le traducteur renvoie la clé : on vérifie quel message est choisi, pas sa formulation.
 const { address } = makeSchemas((key) => key);
@@ -36,6 +36,7 @@ describe("schéma d'adresse", () => {
 });
 
 describe("schéma d'une zone de livraison (back-office)", () => {
+  const zoneSchema = makeZoneSchema((key) => key);
   const zone = { name: "Nosy Be", nameEn: "", nameMg: "", price: "20 000", minDays: "4", maxDays: "7", position: "4", active: "on" };
   const zoneErrors = (input: Record<string, unknown>) => {
     const result = zoneSchema.safeParse(input);

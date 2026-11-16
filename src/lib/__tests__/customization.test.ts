@@ -9,7 +9,9 @@ import {
   describeDesign,
   inkFor,
   isPrinted,
+  parseCustomSettings,
   parseDesign,
+  readOrderDesign,
   sameDesign,
   textLength,
   type CustomizerOptions,
@@ -179,5 +181,105 @@ describe("describeDesign", () => {
     expect(describeDesign(JSON.stringify({ color: "indigo", text: "", image: null }))).toEqual({ color: "indigo", text: "", hasImage: false });
     expect(describeDesign("{pas du json")).toBeNull();
     expect(describeDesign(null)).toBeNull();
+  });
+});
+
+describe("readOrderDesign", () => {
+  // Copie figée telle que l'écrit la commande (`src/actions/checkout.ts`) : gabarit du produit, puis le dessin complet.
+  const frozen = { template: "mug", color: "laterite", text: "Miora", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 };
+
+  it("rend le gabarit et le dessin complet d'une copie valide", () => {
+    expect(readOrderDesign(JSON.stringify(frozen))).toEqual({
+      template: "mug",
+      design: { color: "laterite", text: "Miora", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 },
+    });
+  });
+  it("rend null pour une copie absente, vide ou au JSON cassé", () => {
+    expect(readOrderDesign(null)).toBeNull();
+    expect(readOrderDesign(undefined)).toBeNull();
+    expect(readOrderDesign("")).toBeNull();
+    expect(readOrderDesign('{"template":"mug","color":')).toBeNull();
+    expect(readOrderDesign("42")).toBeNull();
+  });
+  it("rend null pour une couleur d'objet inconnue", () => {
+    expect(readOrderDesign(JSON.stringify({ ...frozen, color: "fuchsia" }))).toBeNull();
+  });
+  it("rend null pour un gabarit inconnu ou manquant : sans gabarit, pas de zone imprimable", () => {
+    expect(readOrderDesign(JSON.stringify({ ...frozen, template: "voiture" }))).toBeNull();
+    expect(readOrderDesign(JSON.stringify({ ...frozen, template: undefined }))).toBeNull();
+  });
+  it("rend null pour un nom d'image qui n'est pas un fichier généré par le serveur", () => {
+    expect(readOrderDesign(JSON.stringify({ ...frozen, image: "../../.env" }))).toBeNull();
+  });
+  it("lit un simple choix de couleur : ni texte ni image, rien à imprimer", () => {
+    const read = readOrderDesign(JSON.stringify({ template: "gourde", color: "foret", text: "", image: null }));
+    expect(read).toMatchObject({ template: "gourde", design: { color: "foret", text: "", image: null } });
+    expect(read && isPrinted(read.design)).toBe(false);
+  });
+  it("garde un texte plus long que la limite actuelle du produit : la commande a été acceptée ainsi", () => {
+    const long = "Joyeux anniversaire à toute la famille Rakoto, de Fianarantsoa";
+    expect(readOrderDesign(JSON.stringify({ ...frozen, text: long }))?.design.text).toBe(long);
+  });
+});
+
+describe("parseCustomSettings", () => {
+  const input ={ template: "carnet", colors: ["indigo", "blanc"], textMax: "20", image: true, surcharge: "2 500" };
+  const price = 1_000_000;
+
+  it("rend les colonnes prêtes à enregistrer, couleurs dans l'ordre de la palette", () => {
+    expect(parseCustomSettings(input, price)).toEqual({
+      ok: true,
+      data: { customTemplate: "carnet", customColors: "blanc,indigo", customTextMax: 20, customImage: true, customSurchargeCents: 250_000 },
+    });
+  });
+  it("sans gabarit, n'écrit que le gabarit vide et ignore le reste, même invalide", () => {
+    expect(parseCustomSettings({ template: "", colors: [], textMax: "abc", image: true, surcharge: "-5" }, price)).toEqual({ ok: true, data: { customTemplate: "" } });
+  });
+  it("refuse un gabarit inconnu", () => {
+    expect(parseCustomSettings({ ...input, template: "voiture" }, price)).toEqual({ ok: false, errors: { customTemplate: "template" } });
+  });
+  it("exige au moins une couleur", () => {
+    expect(parseCustomSettings({ ...input, colors: [] }, price)).toEqual({ ok: false, errors: { customColors: "colorsMissing" } });
+  });
+  it("refuse une couleur inconnue", () => {
+    expect(parseCustomSettings({ ...input, colors: ["blanc", "fuchsia"] }, price)).toEqual({ ok: false, errors: { customColors: "colorUnknown" } });
+  });
+  it("ne compte qu'une fois une couleur cochée deux fois", () => {
+    const result = parseCustomSettings({ ...input, colors: ["blanc", "blanc"] }, price);
+    expect(result.ok && "customColors" in result.data && result.data.customColors).toBe("blanc");
+  });
+  it("accepte une longueur de texte de 0 à 40, entière", () => {
+    for (const [textMax, expected] of [["0", 0], ["40", 40], [" 12 ", 12]] as const) {
+      const result = parseCustomSettings({ ...input, textMax }, price);
+      expect(result.ok && "customTextMax" in result.data && result.data.customTextMax, textMax).toBe(expected);
+    }
+  });
+  it("refuse une longueur hors bornes, décimale ou vide", () => {
+    for (const textMax of ["-1", "41", "12.5", "", "douze"])
+      expect(parseCustomSettings({ ...input, textMax }, price), textMax).toEqual({ ok: false, errors: { customTextMax: "textMax" } });
+  });
+  it("lit un supplément vide comme 0", () => {
+    const result = parseCustomSettings({ ...input, surcharge: "  " }, price);
+    expect(result.ok && "customSurchargeCents" in result.data && result.data.customSurchargeCents).toBe(0);
+  });
+  it("refuse un supplément négatif ou illisible", () => {
+    for (const surcharge of ["-100", "deux mille"])
+      expect(parseCustomSettings({ ...input, surcharge }, price), surcharge).toEqual({ ok: false, errors: { customSurcharge: "surcharge" } });
+  });
+  it("refuse un supplément qui porte le prix au-delà du plafond d'une commande", () => {
+    expect(parseCustomSettings({ ...input, surcharge: "19 990 000" }, price)).toEqual({ ok: true, data: expect.objectContaining({ customSurchargeCents: 1_999_000_000 }) });
+    expect(parseCustomSettings({ ...input, surcharge: "19 990 001" }, price)).toEqual({ ok: false, errors: { customSurcharge: "surchargeTooHigh" } });
+  });
+  it("accepte un produit qui ne propose qu'un choix de couleur", () => {
+    expect(parseCustomSettings({ template: "mug", colors: ["laterite"], textMax: "0", image: false, surcharge: "" }, price)).toEqual({
+      ok: true,
+      data: { customTemplate: "mug", customColors: "laterite", customTextMax: 0, customImage: false, customSurchargeCents: 0 },
+    });
+  });
+  it("rend toutes les erreurs à la fois", () => {
+    expect(parseCustomSettings({ template: "tote", colors: [], textMax: "99", image: false, surcharge: "-1" }, price)).toEqual({
+      ok: false,
+      errors: { customColors: "colorsMissing", customTextMax: "textMax", customSurcharge: "surcharge" },
+    });
   });
 });

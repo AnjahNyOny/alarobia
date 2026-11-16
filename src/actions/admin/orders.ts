@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
@@ -12,16 +13,16 @@ const VOID = ["CANCELLED", "REFUNDED"];
 
 export async function updateOrder(id: string, _: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
+  const [t, n] = await Promise.all([getTranslations("admin.errors"), getTranslations("admin.notices")]);
   const parsed = z
     .object({ status: z.enum(ORDER_STATUSES), trackingNumber: z.string().trim().max(60).optional() })
     .safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: "Données invalides." };
+  if (!parsed.success) return { error: t("orderInvalid") };
   const { status, trackingNumber } = parsed.data;
 
   const order = await db.order.findUnique({ where: { id }, include: { items: true } });
-  if (!order) return { error: "Commande introuvable." };
-  if (VOID.includes(order.status) && !VOID.includes(status))
-    return { error: "Une commande annulée ou remboursée ne peut pas être réactivée : son stock a déjà été remis en vente." };
+  if (!order) return { error: t("orderNotFound") };
+  if (VOID.includes(order.status) && !VOID.includes(status)) return { error: t("orderClosed") };
 
   await db.$transaction(async (tx) => {
     // Annulation ou remboursement : les articles retournent en stock, une seule fois.
@@ -36,15 +37,16 @@ export async function updateOrder(id: string, _: FormState, formData: FormData):
     await tx.order.update({ where: { id }, data: { status, trackingNumber: trackingNumber || null, ...(collected && !order.paidAt && { paidAt: new Date() }) } });
   });
   revalidatePath("/admin", "layout");
-  return { ok: true, message: "Commande mise à jour." };
+  return { ok: true, message: n("orderUpdated") };
 }
 
 /** Le vendeur a vérifié sur son téléphone que l'argent est arrivé : la commande passe d'« en attente » à « payée ». */
 export async function markPaid(id: string): Promise<FormState> {
   await requireAdmin();
+  const [t, n] = await Promise.all([getTranslations("admin.errors"), getTranslations("admin.notices")]);
   // Condition sur le statut dans l'écriture : sans effet sur une commande déjà traitée ou annulée entre-temps.
   const { count } = await db.order.updateMany({ where: { id, status: "PENDING" }, data: { status: "PAID", paidAt: new Date() } });
-  if (count === 0) return { error: "Cette commande n'est plus en attente de paiement." };
+  if (count === 0) return { error: t("orderNotPending") };
   revalidatePath("/", "layout");
-  return { ok: true, message: "Paiement confirmé : la commande est à préparer." };
+  return { ok: true, message: n("paymentConfirmed") };
 }

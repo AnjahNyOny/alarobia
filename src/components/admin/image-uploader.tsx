@@ -2,11 +2,18 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+/** Codes renvoyés par /api/admin/upload, traduits dans `admin.photos.errors`. */
+const UPLOAD_ERRORS = ["forbidden", "missing", "type", "tooLarge"] as const;
+type UploadErrorCode = (typeof UPLOAD_ERRORS)[number];
+const isUploadError = (code: unknown): code is UploadErrorCode => (UPLOAD_ERRORS as readonly unknown[]).includes(code);
+
 export function ImageUploader({ initial }: { initial: string[] }) {
+  const t = useTranslations("admin.photos");
   const [images, setImages] = useState(initial);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -23,10 +30,10 @@ export function ImageUploader({ initial }: { initial: string[] }) {
       try {
         const res = await fetch("/api/admin/upload", { method: "POST", body });
         const json = await res.json();
-        if (!res.ok) toast.error(`${file.name} : ${json.error ?? "envoi impossible"}`);
+        if (!res.ok) toast.error(t("failed", { file: file.name, error: isUploadError(json.code) ? t(`errors.${json.code}`) : t("errors.unknown") }));
         else setImages((prev) => [...prev, json.url]);
       } catch {
-        toast.error(`${file.name} : envoi impossible. Vérifiez votre connexion.`);
+        toast.error(t("offline", { file: file.name }));
       }
     }
     setUploading(false);
@@ -46,18 +53,18 @@ export function ImageUploader({ initial }: { initial: string[] }) {
         <ul className="mb-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
           {images.map((src, i) => (
             <li key={src} className="group relative aspect-[4/5] overflow-hidden rounded-lg border bg-muted">
-              <Image src={src} alt={`Photo ${i + 1}`} fill sizes="160px" className="object-cover" />
-              {i === 0 && <span className="absolute top-1.5 left-1.5 rounded bg-background/90 px-1.5 py-0.5 text-[0.6875rem] font-medium">Principale</span>}
+              <Image src={src} alt={t("photo", { n: i + 1 })} fill sizes="160px" className="object-cover" />
+              {i === 0 && <span className="absolute top-1.5 left-1.5 rounded bg-background/90 px-1.5 py-0.5 text-[0.6875rem] font-medium">{t("main")}</span>}
               <div className="absolute inset-x-1.5 bottom-1.5 flex justify-between gap-1">
                 <div className="flex gap-1">
-                  <button type="button" disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Déplacer la photo ${i + 1} vers la gauche`} className="grid size-7 place-items-center rounded-md bg-background/90 hover:bg-background disabled:opacity-40">
+                  <button type="button" disabled={i === 0} onClick={() => move(i, -1)} aria-label={t("moveLeft", { n: i + 1 })} className="grid size-7 place-items-center rounded-md bg-background/90 hover:bg-background disabled:opacity-40">
                     <ArrowLeft className="size-3.5" aria-hidden />
                   </button>
-                  <button type="button" disabled={i === images.length - 1} onClick={() => move(i, 1)} aria-label={`Déplacer la photo ${i + 1} vers la droite`} className="grid size-7 place-items-center rounded-md bg-background/90 hover:bg-background disabled:opacity-40">
+                  <button type="button" disabled={i === images.length - 1} onClick={() => move(i, 1)} aria-label={t("moveRight", { n: i + 1 })} className="grid size-7 place-items-center rounded-md bg-background/90 hover:bg-background disabled:opacity-40">
                     <ArrowRight className="size-3.5" aria-hidden />
                   </button>
                 </div>
-                <button type="button" onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))} aria-label={`Retirer la photo ${i + 1}`} className="grid size-7 place-items-center rounded-md bg-background/90 text-destructive hover:bg-background">
+                <button type="button" onClick={() => setImages((prev) => prev.filter((_, j) => j !== i))} aria-label={t("remove", { n: i + 1 })} className="grid size-7 place-items-center rounded-md bg-background/90 text-destructive hover:bg-background">
                   <X className="size-3.5" aria-hidden />
                 </button>
               </div>
@@ -83,8 +90,8 @@ export function ImageUploader({ initial }: { initial: string[] }) {
           className={cn("flex w-full flex-col items-center gap-1.5 rounded-lg border border-dashed px-4 py-7 text-sm transition-colors hover:bg-muted/60", dragging && "border-brand bg-brand/5")}
         >
           {uploading ? <Loader2 className="size-5 animate-spin text-muted-foreground" aria-hidden /> : <ImagePlus className="size-5 text-muted-foreground" strokeWidth={1.6} aria-hidden />}
-          <span className="font-medium">{uploading ? "Envoi en cours…" : "Ajouter des photos"}</span>
-          <span className="text-[0.8125rem] text-muted-foreground">Glissez-les ici ou cliquez. JPG, PNG, WebP ou AVIF, 5 Mo max. Format portrait 4:5 conseillé.</span>
+          <span className="font-medium">{uploading ? t("uploading") : t("add")}</span>
+          <span className="text-[0.8125rem] text-muted-foreground">{t("hint")}</span>
         </button>
       )}
       <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple hidden onChange={(e) => e.target.files && upload(e.target.files).then(() => (e.target.value = ""))} />

@@ -56,3 +56,4 @@ Mois : Janoary, Febroary, Martsa, Aprily, Mey, Jona, Jolay, Aogositra, Septambra
 | `delivery` | zones de livraison, délais, date promise | non |
 | zones de démonstration (`prisma/catalog.mjs`) | noms des quatre zones de livraison | non |
 | catalogue de démonstration (`prisma/catalog.mjs`) | noms, accroches et descriptions des 27 produits et des 6 rayons, bandeau d'annonce | non |
+| `admin` | back-office : formulaires produit et catégorie, personnalisation, messages des actions | non |

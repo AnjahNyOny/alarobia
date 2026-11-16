@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { localize, missingLocales } from "../localize";
+import { localize, missingLocales, untranslatedFields } from "../localize";
 
 const product = {
   id: "p1",
@@ -40,5 +40,23 @@ describe("missingLocales", () => {
     expect(missingLocales(product, ["name", "description"])).toEqual(["mg"]);
     expect(missingLocales({ translations: [] }, ["name"])).toEqual(["en", "mg"]);
     expect(missingLocales(product, ["name"])).toEqual([]);
+  });
+});
+
+describe("untranslatedFields", () => {
+  const base = { name: "Panier en raphia", tagline: "Tressé à la main", description: "Un panier solide.", details: "" };
+  const fields = ["name", "tagline", "description", "details"] as const;
+
+  it("liste les champs remplis en français et vides dans la traduction, dans l'ordre demandé", () => {
+    expect(untranslatedFields(base, { name: "Raffia basket", tagline: "", description: "" }, fields)).toEqual(["tagline", "description"]);
+  });
+  it("ne réclame pas un champ vide en français", () => {
+    expect(untranslatedFields(base, { name: "Raffia basket", tagline: "Hand-woven", description: "A sturdy basket." }, fields)).toEqual([]);
+  });
+  it("compte comme vide un champ fait d'espaces, des deux côtés", () => {
+    expect(untranslatedFields({ ...base, details: "   " }, { name: "  ", tagline: "Hand-woven", description: "A sturdy basket." }, fields)).toEqual(["name"]);
+  });
+  it("réclame tous les champs remplis quand la traduction est absente", () => {
+    expect(untranslatedFields(base, undefined, fields)).toEqual(["name", "tagline", "description"]);
   });
 });

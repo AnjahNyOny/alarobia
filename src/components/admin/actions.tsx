@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -10,12 +11,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from "@/components/ui/switch";
 import type { FormState } from "@/lib/form";
 
-/** Bouton d'action irréversible : demande toujours confirmation et annonce le résultat. */
+/**
+ * Bouton d'action irréversible : demande toujours confirmation et annonce le résultat.
+ * Sans `confirmLabel` ni `cancelLabel`, les boutons disent « Supprimer » et « Annuler » dans la langue de l'interface (`admin.common`).
+ */
 export function ConfirmAction({
   action,
   title,
   description,
-  confirmLabel = "Supprimer",
+  confirmLabel,
+  cancelLabel,
   children,
   variant = "ghost",
   size = "sm",
@@ -25,7 +30,10 @@ export function ConfirmAction({
   action: () => Promise<FormState>;
   title: string;
   description: string;
+  /** Bouton qui exécute l'action ; « Supprimer » par défaut. */
   confirmLabel?: string;
+  /** Bouton qui referme la fenêtre sans rien faire ; « Annuler » par défaut. */
+  cancelLabel?: string;
   children: React.ReactNode;
   variant?: React.ComponentProps<typeof Button>["variant"];
   size?: React.ComponentProps<typeof Button>["size"];
@@ -36,6 +44,7 @@ export function ConfirmAction({
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
+  const t = useTranslations("admin.common");
   return (
     <>
       <Button type="button" variant={variant} size={size} onClick={() => setOpen(true)}>
@@ -49,7 +58,7 @@ export function ConfirmAction({
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant="outline" size="lg" onClick={() => setOpen(false)} disabled={pending}>
-              Annuler
+              {cancelLabel ?? t("cancel")}
             </Button>
             <Button
               type="button"
@@ -61,7 +70,7 @@ export function ConfirmAction({
                   const res = await action();
                   if (res.error) toast.error(res.error);
                   else {
-                    toast.success(res.message ?? "Action effectuée.");
+                    toast.success(res.message ?? t("done"));
                     if (redirectTo) router.push(redirectTo);
                   }
                   setOpen(false);
@@ -69,7 +78,7 @@ export function ConfirmAction({
               }
             >
               {pending && <Loader2 className="animate-spin" aria-hidden />}
-              {confirmLabel}
+              {confirmLabel ?? t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -83,7 +92,7 @@ export function ToggleAction({ checked, action, label }: { checked: boolean; act
   return <Switch checked={checked} disabled={pending} aria-label={label} onCheckedChange={(next) => start(() => action(next))} />;
 }
 
-/** Affiche une confirmation après une redirection (?ok=…), puis nettoie l'URL. */
+/** Affiche une confirmation après une redirection (?ok=…), puis nettoie l'URL. `messages` : clé de `ok` → texte déjà traduit. */
 export function FlashToast({ messages }: { messages: Record<string, string> }) {
   const params = useSearchParams();
   const pathname = usePathname();
@@ -99,6 +108,7 @@ export function FlashToast({ messages }: { messages: Record<string, string> }) {
   return null;
 }
 
+/** Liste qui change un paramètre de l'adresse dès qu'on choisit. `label` et les libellés des options arrivent traduits. */
 export function AutoSubmitSelect({ name, value, options, label, params = {} }: { name: string; value: string; options: { value: string; label: string }[]; label: string; params?: Record<string, string | undefined> }) {
   const router = useRouter();
   const pathname = usePathname();

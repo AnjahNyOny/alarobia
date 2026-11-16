@@ -1,3 +1,4 @@
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -49,10 +50,15 @@ export function EmptyState({ title, text, children }: { title: string; text: str
   );
 }
 
-/** Recherche par formulaire GET : l'état vit dans l'URL, donc partageable et compatible avec le bouton Retour. */
+/**
+ * Recherche par formulaire GET : l'état vit dans l'URL, donc partageable et compatible avec le bouton Retour.
+ * `action` s'écrit sans préfixe de langue (« /admin/products ») ; `placeholder`, déjà traduit, sert aussi de nom accessible.
+ */
 export function SearchForm({ action, placeholder, defaultValue, hidden = {} }: { action: string; placeholder: string; defaultValue?: string; hidden?: Record<string, string | undefined> }) {
+  // Formulaire HTML ordinaire : il ne passe pas par la navigation localisée, la langue est ajoutée ici.
+  const locale = useLocale();
   return (
-    <form action={action} role="search" className="relative w-full max-w-xs">
+    <form action={`/${locale}${action}`} role="search" className="relative w-full max-w-xs">
       {Object.entries(hidden).map(([k, v]) => v && <input key={k} type="hidden" name={k} value={v} />)}
       <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <input name="q" type="search" defaultValue={defaultValue} placeholder={placeholder} aria-label={placeholder} className="h-9 w-full rounded-lg border border-input bg-card pr-3 pl-9 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30" />
@@ -60,9 +66,11 @@ export function SearchForm({ action, placeholder, defaultValue, hidden = {} }: {
   );
 }
 
+/** Onglets de filtre (liens) ; `label` est déjà traduit, le nom accessible de la barre vient de `admin.common.filter`. */
 export function Tabs({ tabs, current }: { tabs: { href: string; label: string; value: string; count?: number }[]; current: string }) {
+  const t = useTranslations("admin.common");
   return (
-    <nav aria-label="Filtrer" className="-mb-px flex gap-5 overflow-x-auto border-b">
+    <nav aria-label={t("filter")} className="-mb-px flex gap-5 overflow-x-auto border-b">
       {tabs.map((t) => {
         const active = t.value === current;
         return (
@@ -76,22 +84,24 @@ export function Tabs({ tabs, current }: { tabs: { href: string; label: string; v
   );
 }
 
+/** Nombre de résultats à gauche ; à droite, la page courante entre les boutons qui la font changer. Textes dans `admin.common`. */
 export function Pagination({ page, pages, total, href }: { page: number; pages: number; total: number; href: (page: number) => string }) {
-  if (pages <= 1) return <p className="px-5 py-3 text-[0.8125rem] text-muted-foreground">{total} résultat{total > 1 ? "s" : ""}</p>;
+  const t = useTranslations("admin.common");
+  const results = <p className="text-[0.8125rem] text-muted-foreground">{t("results", { count: total })}</p>;
+  if (pages <= 1) return <div className="px-5 py-3">{results}</div>;
   return (
-    <div className="flex items-center justify-between gap-3 px-5 py-2.5">
-      <p className="text-[0.8125rem] text-muted-foreground">
-        Page {page} sur {pages} · {total} résultats
-      </p>
-      <div className="flex gap-1">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-2.5">
+      {results}
+      <div className="flex items-center gap-1">
         {page > 1 ? (
           <Link href={href(page - 1)} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            <ChevronLeft aria-hidden /> Précédent
+            <ChevronLeft aria-hidden /> {t("previous")}
           </Link>
         ) : null}
+        <p className="px-2 text-[0.8125rem] whitespace-nowrap text-muted-foreground tabular-nums">{t("page", { page, pages })}</p>
         {page < pages ? (
           <Link href={href(page + 1)} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            Suivant <ChevronRight aria-hidden />
+            {t("next")} <ChevronRight aria-hidden />
           </Link>
         ) : null}
       </div>

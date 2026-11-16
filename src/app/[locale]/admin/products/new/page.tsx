@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ProductForm } from "@/components/admin/product-form";
 import { PageHeader } from "@/components/admin/ui";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 
-export const metadata: Metadata = { title: "Nouveau produit" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("admin.products");
+  return { title: t("newTitle") };
+}
 
 export default async function NewProductPage() {
-  const [categories, { currency }] = await Promise.all([db.category.findMany({ orderBy: { position: "asc" } }), getSettings()]);
+  const [categories, { currency }, t] = await Promise.all([db.category.findMany({ orderBy: { position: "asc" } }), getSettings(), getTranslations("admin.products")]);
   return (
     <>
-      <PageHeader title="Nouveau produit" back={{ href: "/admin/products", label: "Produits" }} />
+      <PageHeader title={t("newTitle")} back={{ href: "/admin/products", label: t("title") }} />
       <ProductForm categories={categories} currency={currency} />
     </>
   );

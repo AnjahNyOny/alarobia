@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import Image from "next/image";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { RevenueChart } from "@/components/admin/revenue-chart";
@@ -13,7 +15,14 @@ import { cn } from "@/lib/utils";
 const PERIODS = [7, 30, 90];
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
-function Kpi({ label, value, current, previous, days }: { label: string; value: string; current: number; previous: number; days: number }) {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("admin.dashboard");
+  return { title: t("metaTitle") };
+}
+
+type Translate = Awaited<ReturnType<typeof getTranslations<"admin.dashboard">>>;
+
+function Kpi({ label, value, current, previous, days, t }: { label: string; value: string; current: number; previous: number; days: number; t: Translate }) {
   const delta = previous === 0 ? null : ((current - previous) / previous) * 100;
   const flat = delta != null && Math.abs(delta) < 0.5;
   const Icon = delta == null || flat ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight;
@@ -21,12 +30,12 @@ function Kpi({ label, value, current, previous, days }: { label: string; value: 
     <div className="rounded-lg border bg-card p-5">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-2 text-[1.75rem] leading-none font-semibold tracking-tight tabular-nums">{value}</p>
-      <p className="mt-3 flex items-center gap-1 text-[0.8125rem] text-muted-foreground">
-        <span className={cn("inline-flex items-center gap-0.5 font-medium tabular-nums", delta == null || flat ? "" : delta > 0 ? "text-success" : "text-destructive")}>
+      <p className="mt-3 flex flex-wrap items-center gap-x-1 text-[0.8125rem] text-muted-foreground">
+        <span className={cn("inline-flex shrink-0 items-center gap-0.5 font-medium whitespace-nowrap tabular-nums", delta == null || flat ? "" : delta > 0 ? "text-success" : "text-destructive")}>
           <Icon className="size-3.5" aria-hidden />
-          {delta == null ? "n. d." : `${delta > 0 ? "+" : ""}${delta.toFixed(0)} %`}
+          {delta == null ? t("notAvailable") : t("delta", { value: `${delta > 0 ? "+" : ""}${delta.toFixed(0)}` })}
         </span>
-        vs {days} jours précédents
+        {t("versus", { days })}
       </p>
     </div>
   );
@@ -34,7 +43,8 @@ function Kpi({ label, value, current, previous, days }: { label: string; value: 
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const days = PERIODS.includes(Number((await searchParams).p)) ? Number((await searchParams).p) : 30;
-  const { currency } = await getSettings();
+  const [{ currency }, locale, t, tc] = await Promise.all([getSettings(), getLocale(), getTranslations("admin.dashboard"), getTranslations("admin.common")]);
+  const price = (cents: number) => formatPrice(cents, currency, locale);
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
   const prevStart = new Date(start.getTime() - days * 864e5);
@@ -66,7 +76,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   }
   const series = Array.from({ length: days }, (_, i) => {
     const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    return { date: d.toISOString(), label: formatDate(d, "fr", "short"), ...(byDay.get(dayKey(d)) ?? { revenueCents: 0, orders: 0 }) };
+    return { date: d.toISOString(), label: formatDate(d, locale, "short"), ...(byDay.get(dayKey(d)) ?? { revenueCents: 0, orders: 0 }) };
   });
 
   const top = new Map<string, { name: string; imageUrl: string | null; quantity: number; revenueCents: number }>();
@@ -83,11 +93,11 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title="Tableau de bord" description={`Du ${formatDate(start)} au ${formatDate(now)}`}>
-        <div className="inline-flex rounded-lg border bg-card p-0.5" role="group" aria-label="Période">
+      <PageHeader title={t("title")} description={t("range", { start: formatDate(start, locale), end: formatDate(now, locale) })}>
+        <div className="inline-flex rounded-lg border bg-card p-0.5" role="group" aria-label={t("period")}>
           {PERIODS.map((p) => (
             <Link key={p} href={p === 30 ? "/admin" : `/admin?p=${p}`} aria-current={p === days ? "true" : undefined} className={cn("rounded-md px-3 py-1.5 text-sm transition-colors", p === days ? "bg-primary font-medium text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>
-              {p} jours
+              {t("days", { count: p })}
             </Link>
           ))}
         </div>
@@ -95,47 +105,47 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       {(toShip > 0 || pending > 0) && (
         <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-brand/25 bg-brand/5 px-5 py-3.5 text-sm">
-          <p className="font-medium">À traiter aujourd'hui</p>
+          <p className="font-medium">{t("todo")}</p>
           {toShip > 0 && (
             <Link href="/admin/orders?status=PAID" className="underline underline-offset-4">
-              {toShip} commande{toShip > 1 ? "s" : ""} à expédier
+              {t("toShip", { count: toShip })}
             </Link>
           )}
           {pending > 0 && (
             <Link href="/admin/orders?status=PENDING" className="underline underline-offset-4">
-              {pending} paiement{pending > 1 ? "s" : ""} en attente
+              {t("pending", { count: pending })}
             </Link>
           )}
         </div>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Chiffre d'affaires" value={formatPrice(revenue, currency)} current={revenue} previous={prevRevenue} days={days} />
-        <Kpi label="Commandes" value={String(cur.length)} current={cur.length} previous={prev.length} days={days} />
-        <Kpi label="Panier moyen" value={formatPrice(aov, currency)} current={aov} previous={prevAov} days={days} />
-        <Kpi label="Nouveaux clients" value={String(newCustomers)} current={newCustomers} previous={prevCustomers} days={days} />
+        <Kpi t={t} label={t("revenue")} value={price(revenue)} current={revenue} previous={prevRevenue} days={days} />
+        <Kpi t={t} label={t("orders")} value={String(cur.length)} current={cur.length} previous={prev.length} days={days} />
+        <Kpi t={t} label={t("averageOrder")} value={price(aov)} current={aov} previous={prevAov} days={days} />
+        <Kpi t={t} label={t("newCustomers")} value={String(newCustomers)} current={newCustomers} previous={prevCustomers} days={days} />
       </div>
 
       <div className="mt-4 grid gap-4 *:min-w-0 xl:grid-cols-[1.7fr_1fr]">
-        <Card title="Chiffre d'affaires par jour" description="Commandes payées, expédiées ou livrées">
+        <Card title={t("revenueByDay")} description={t("revenueByDayHint")}>
           <RevenueChart data={series} currency={currency} />
         </Card>
-        <Card title="Meilleures ventes" description="Par chiffre d'affaires sur la période">
+        <Card title={t("topSales")} description={t("topSalesHint")}>
           {topProducts.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Aucune vente sur la période.</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("noSales")}</p>
           ) : (
             <ol className="grid gap-3.5">
               {topProducts.map((p) => (
                 <li key={p.name}>
                   <div className="flex items-baseline justify-between gap-3 text-sm">
                     <span className="truncate">{p.name}</span>
-                    <span className="shrink-0 font-medium tabular-nums">{formatPrice(p.revenueCents, currency)}</span>
+                    <span className="shrink-0 font-medium whitespace-nowrap tabular-nums">{price(p.revenueCents)}</span>
                   </div>
                   <div className="mt-1.5 flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
                       <div className="h-full rounded-full bg-brand" style={{ width: `${Math.max(4, (p.revenueCents / topMax) * 100)}%` }} />
                     </div>
-                    <span className="w-14 text-right text-xs text-muted-foreground tabular-nums">{p.quantity} vendu{p.quantity > 1 ? "s" : ""}</span>
+                    <span className="min-w-14 shrink-0 text-right text-xs whitespace-nowrap text-muted-foreground tabular-nums">{t("sold", { count: p.quantity })}</span>
                   </div>
                 </li>
               ))}
@@ -145,15 +155,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mt-4 grid gap-4 *:min-w-0 xl:grid-cols-[1.7fr_1fr]">
-        <Card title="Dernières commandes" flush action={<Link href="/admin/orders" className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">Tout voir</Link>}>
+        <Card title={t("recentOrders")} flush action={<Link href="/admin/orders" className="shrink-0 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{tc("viewAll")}</Link>}>
           <div className="relative overflow-x-auto">
             <table className="w-full">
               <thead className="border-y bg-muted/40">
                 <tr>
-                  <th className={th}>Commande</th>
-                  <th className={th}>Client</th>
-                  <th className={th}>Statut</th>
-                  <th className={cn(th, "text-right")}>Total</th>
+                  <th className={th}>{t("colOrder")}</th>
+                  <th className={th}>{t("colCustomer")}</th>
+                  <th className={th}>{t("colStatus")}</th>
+                  <th className={cn(th, "text-right")}>{t("colTotal")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -161,20 +171,20 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   <tr key={o.id} className="hover:bg-muted/40">
                     <td className={td}>
                       <Link href={`/admin/orders/${o.id}`} className="font-medium underline-offset-4 hover:underline">{o.number}</Link>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(o.createdAt)}</p>
+                      <p className="text-xs text-muted-foreground">{formatDateTime(o.createdAt, locale)}</p>
                     </td>
                     <td className={td}>{o.fullName}</td>
                     <td className={td}><OrderStatus status={o.status} /></td>
-                    <td className={cn(td, "text-right tabular-nums")}>{formatPrice(o.totalCents, currency)}</td>
+                    <td className={cn(td, "text-right whitespace-nowrap tabular-nums")}>{price(o.totalCents)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </Card>
-        <Card title="Stock faible" description={`${LOW_STOCK_THRESHOLD} unités ou moins`} flush>
+        <Card title={t("lowStock")} description={t("lowStockHint", { count: LOW_STOCK_THRESHOLD })} flush>
           {lowStock.length === 0 ? (
-            <EmptyState title="Tout est en stock" text="Aucun produit en ligne n'est sous le seuil d'alerte." />
+            <EmptyState title={t("allInStock")} text={t("allInStockText")} />
           ) : (
             <ul className="divide-y border-t">
               {lowStock.map((p) => (
@@ -182,7 +192,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                   <Link href={`/admin/products/${p.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-muted/40">
                     <div className="relative size-9 shrink-0 overflow-hidden rounded-md bg-muted">{p.images[0] && <Image src={p.images[0].url} alt="" fill sizes="36px" className="object-cover" />}</div>
                     <span className="min-w-0 flex-1 truncate text-sm">{p.name}</span>
-                    <span className={cn("text-sm font-medium tabular-nums", p.stock === 0 ? "text-destructive" : "text-warning")}>{p.stock === 0 ? "Rupture" : `${p.stock} restant${p.stock > 1 ? "s" : ""}`}</span>
+                    <span className={cn("text-sm font-medium tabular-nums", p.stock === 0 ? "text-destructive" : "text-warning")}>{p.stock === 0 ? t("outOfStock") : t("left", { count: p.stock })}</span>
                   </Link>
                 </li>
               ))}

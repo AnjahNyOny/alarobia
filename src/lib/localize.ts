@@ -27,5 +27,15 @@ export function missingLocales(record: { translations?: Translation[] }, require
   });
 }
 
+const filled = (value: unknown) => typeof value === "string" && value.trim() !== "";
+
+/**
+ * Champs à traduire : remplis en français, vides (absents ou faits d'espaces) dans la traduction.
+ * Un champ vide en français n'est jamais réclamé. Sert au compteur des onglets de langue du back-office.
+ */
+export function untranslatedFields<K extends string>(base: Partial<Record<K, unknown>>, translation: Partial<Record<K, unknown>> | undefined, fields: readonly K[]): K[] {
+  return fields.filter((field) => filled(base[field]) && !filled(translation?.[field]));
+}
+
 export const PRODUCT_FIELDS = ["name", "tagline", "description", "details"] as const;
 export const CATEGORY_FIELDS = ["name", "description"] as const;

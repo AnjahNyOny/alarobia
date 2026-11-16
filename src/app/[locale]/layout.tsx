@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Archivo } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { storeMessages } from "@/i18n/messages";
 import { isLocale } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/sonner";
 import { getSettings } from "@/lib/settings";
@@ -29,10 +30,12 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
+  // Les textes du back-office restent sur le serveur : le layout de /admin les transmet lui-même.
+  const messages = storeMessages(await getMessages());
   return (
     <html lang={locale} className={archivo.variable}>
       <body className="antialiased">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
         <Toaster />
       </body>
     </html>

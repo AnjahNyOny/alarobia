@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import type { Prisma } from "@prisma/client";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Card, EmptyState, PageHeader, Pagination, SearchForm, td, th } from "@/components/admin/ui";
 import { REVENUE_STATUSES } from "@/lib/constants";
 import { db } from "@/lib/db";
@@ -8,7 +9,10 @@ import { formatDate, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Clients" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("admin.customers");
+  return { title: t("metaTitle") };
+}
 const PER_PAGE = 15;
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
@@ -16,31 +20,33 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
   const where: Prisma.UserWhereInput = { role: "CUSTOMER", ...(q && { OR: [{ name: { contains: q } }, { email: { contains: q } }] }) };
-  const [{ currency }, users, total] = await Promise.all([
+  const [{ currency }, users, total, t, locale] = await Promise.all([
     getSettings(),
     db.user.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * PER_PAGE, take: PER_PAGE, include: { address: { select: { city: true } }, orders: { where: { status: { in: REVENUE_STATUSES } }, select: { totalCents: true } } } }),
     db.user.count({ where }),
+    getTranslations("admin.customers"),
+    getLocale(),
   ]);
   return (
     <>
-      <PageHeader title="Clients" description="Les comptes créés sur la boutique et leurs achats." />
+      <PageHeader title={t("title")} description={t("description")} />
       <Card flush>
         <div className="p-3">
-          <SearchForm action="/admin/customers" placeholder="Nom ou e-mail" defaultValue={q} />
+          <SearchForm action="/admin/customers" placeholder={t("searchPlaceholder")} defaultValue={q} />
         </div>
         {users.length === 0 ? (
-          <div className="border-t"><EmptyState title="Aucun client" text={q ? "Aucun client ne correspond à cette recherche." : "Les clients apparaîtront ici dès leur inscription."} /></div>
+          <div className="border-t"><EmptyState title={t("emptyTitle")} text={q ? t("emptyFiltered") : t("emptyText")} /></div>
         ) : (
           <>
             <div className="relative overflow-x-auto">
               <table className="w-full min-w-[640px]">
                 <thead className="border-y bg-muted/40">
                   <tr>
-                    <th className={th}>Client</th>
-                    <th className={th}>Ville</th>
-                    <th className={th}>Inscrit le</th>
-                    <th className={cn(th, "text-right")}>Commandes</th>
-                    <th className={cn(th, "text-right")}>Total dépensé</th>
+                    <th className={th}>{t("colCustomer")}</th>
+                    <th className={th}>{t("colCity")}</th>
+                    <th className={th}>{t("colJoined")}</th>
+                    <th className={cn(th, "text-right")}>{t("colOrders")}</th>
+                    <th className={cn(th, "text-right")}>{t("colSpent")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -51,9 +57,9 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                         <p className="text-xs text-muted-foreground">{u.email}</p>
                       </td>
                       <td className={cn(td, "text-muted-foreground")}>{u.address?.city ?? "—"}</td>
-                      <td className={cn(td, "text-muted-foreground")}>{formatDate(u.createdAt, "fr", "medium")}</td>
+                      <td className={cn(td, "text-muted-foreground")}>{formatDate(u.createdAt, locale, "medium")}</td>
                       <td className={cn(td, "text-right tabular-nums")}>{u.orders.length}</td>
-                      <td className={cn(td, "text-right font-medium tabular-nums")}>{formatPrice(u.orders.reduce((s, o) => s + o.totalCents, 0), currency)}</td>
+                      <td className={cn(td, "text-right font-medium tabular-nums")}>{formatPrice(u.orders.reduce((s, o) => s + o.totalCents, 0), currency, locale)}</td>
                     </tr>
                   ))}
                 </tbody>

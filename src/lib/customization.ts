@@ -4,6 +4,9 @@
  * le serveur revalide toujours un dessin avec `parseDesign` avant de l'enregistrer.
  */
 
+import { MAX_ORDER_CENTS } from "./constants";
+import { parseAmountToCents } from "./format";
+
 export const TEMPLATES = ["mug", "gourde", "carnet", "tote"] as const;
 export type Template = (typeof TEMPLATES)[number];
 
@@ -58,6 +61,50 @@ export function customizerOptions(product: ProductCustomFields): CustomizerOptio
     textMax: Math.min(Math.max(Math.trunc(product.customTextMax) || 0, 0), MAX_TEXT),
     allowImage: product.customImage,
     surchargeCents: Math.max(product.customSurchargeCents, 0),
+  };
+}
+
+export type CustomSettingsField = "customTemplate" | "customColors" | "customTextMax" | "customSurcharge";
+export type CustomSettingsError = "template" | "colorsMissing" | "colorUnknown" | "textMax" | "surcharge" | "surchargeTooHigh";
+export type CustomSettings = { customTemplate: "" } | ({ customTemplate: Template } & Omit<ProductCustomFields, "customTemplate">);
+
+/**
+ * Valide les réglages saisis par le vendeur dans le back-office (champs bruts du formulaire).
+ * Sans gabarit, seul le gabarit vide est rendu : les autres colonnes restent telles quelles en base,
+ * et le vendeur retrouve ses réglages s'il réactive la personnalisation. Les erreurs sont des codes
+ * par champ, traduits par l'action.
+ */
+export function parseCustomSettings(
+  input: { template: string; colors: string[]; textMax: string; image: boolean; surcharge: string },
+  priceCents: number,
+): { ok: true; data: CustomSettings } | { ok: false; errors: Partial<Record<CustomSettingsField, CustomSettingsError>> } {
+  if (input.template === "") return { ok: true, data: { customTemplate: "" } };
+  const errors: Partial<Record<CustomSettingsField, CustomSettingsError>> = {};
+
+  const template = TEMPLATES.find((t) => t === input.template);
+  if (!template) errors.customTemplate = "template";
+
+  if (input.colors.length === 0) errors.customColors = "colorsMissing";
+  else if (!input.colors.every(isColor)) errors.customColors = "colorUnknown";
+
+  const textRaw = input.textMax.trim();
+  const textMax = /^\d+$/.test(textRaw) ? Number(textRaw) : NaN;
+  if (!(textMax >= 0 && textMax <= MAX_TEXT)) errors.customTextMax = "textMax";
+
+  const surcharge = input.surcharge.trim() === "" ? 0 : parseAmountToCents(input.surcharge);
+  if (!Number.isInteger(surcharge) || surcharge < 0) errors.customSurcharge = "surcharge";
+  else if ((Number.isFinite(priceCents) ? priceCents : 0) + surcharge > MAX_ORDER_CENTS) errors.customSurcharge = "surchargeTooHigh";
+
+  if (!template || Object.keys(errors).length > 0) return { ok: false, errors };
+  return {
+    ok: true,
+    data: {
+      customTemplate: template,
+      customColors: COLOR_KEYS.filter((c) => input.colors.includes(c)).join(","),
+      customTextMax: textMax,
+      customImage: input.image,
+      customSurchargeCents: surcharge,
+    },
   };
 }
 
@@ -185,6 +232,29 @@ export function sameDesign(a: Design, b: Design) {
   if (a.text && (a.font !== b.font || a.ink !== b.ink || a.textSize !== b.textSize || a.textY !== b.textY)) return false;
   if (a.image && (a.imageSize !== b.imageSize || a.imageX !== b.imageX || a.imageY !== b.imageY)) return false;
   return true;
+}
+
+/** Toutes les couleurs, aucune limite de texte : une commande relue n'est pas revalidée contre les réglages actuels du produit. */
+const ANY_PRODUCT: Omit<CustomizerOptions, "template"> = { colors: COLOR_KEYS, textMax: Number.POSITIVE_INFINITY, allowImage: true, surchargeCents: 0 };
+
+/**
+ * Copie figée d'une ligne de commande (JSON écrit par `placeOrder`), relue pour le vendeur : gabarit
+ * et dessin complet, ou null si elle est absente ou illisible (JSON cassé, gabarit ou couleur inconnus,
+ * nom d'image qui n'est pas un fichier généré par le serveur). La ligne s'affiche alors comme un article ordinaire.
+ */
+export function readOrderDesign(raw: string | null | undefined): { template: Template; design: Design } | null {
+  if (!raw) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (typeof value !== "object" || value === null) return null;
+  const template = TEMPLATES.find((t) => t === (value as Record<string, unknown>).template);
+  if (!template) return null;
+  const parsed = parseDesign(value, { template, ...ANY_PRODUCT });
+  return parsed.ok ? { template, design: parsed.design } : null;
 }
 
 export type DesignSummary = { color: ColorKey; text: string; hasImage: boolean };

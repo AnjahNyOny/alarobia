@@ -24,3 +24,13 @@ export function flattenMessages(messages: Messages, prefix = ""): Record<string,
   }
   return out;
 }
+
+/**
+ * Messages transmis au navigateur sur les pages de la boutique : tout sauf l'espace `admin`, qui ne
+ * part vers le client que depuis le layout du back-office. Le serveur, lui, garde tous les messages.
+ */
+export function storeMessages<M extends Messages>(messages: M): Omit<M, "admin"> {
+  const out: Messages = { ...messages };
+  delete out.admin;
+  return out as Omit<M, "admin">;
+}

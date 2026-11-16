@@ -1,28 +1,33 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatPrice } from "@/lib/format";
 
+/** `label` arrive déjà formaté dans la langue de l'interface (jour et mois courts). */
 type Point = { date: string; label: string; revenueCents: number; orders: number };
 
 function ChartTooltip({ active, payload, currency }: { active?: boolean; payload?: { payload: Point }[]; currency: string }) {
+  const t = useTranslations("admin.dashboard");
+  const locale = useLocale();
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
     <div className="rounded-lg border bg-popover px-3 py-2 text-sm shadow-md">
       <p className="text-xs text-muted-foreground">{p.label}</p>
-      <p className="mt-0.5 font-semibold tabular-nums">{formatPrice(p.revenueCents, currency)}</p>
-      <p className="text-xs text-muted-foreground tabular-nums">
-        {p.orders} commande{p.orders > 1 ? "s" : ""}
-      </p>
+      <p className="mt-0.5 font-semibold tabular-nums">{formatPrice(p.revenueCents, currency, locale)}</p>
+      <p className="text-xs text-muted-foreground tabular-nums">{t("chartOrders", { count: p.orders })}</p>
     </div>
   );
 }
 
 export function RevenueChart({ data, currency }: { data: Point[]; currency: string }) {
-  const compact = new Intl.NumberFormat("fr-FR", { notation: "compact", maximumFractionDigits: 1 });
+  const t = useTranslations("admin.dashboard");
+  const locale = useLocale();
+  // Même règle que formatPrice : le malgache suit l'écriture française des nombres.
+  const compact = new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR", { notation: "compact", maximumFractionDigits: 1 });
   return (
-    <div className="h-64 w-full" role="img" aria-label="Courbe du chiffre d'affaires par jour sur la période. Le détail figure dans le tableau des commandes.">
+    <div className="h-64 w-full" role="img" aria-label={t("chartLabel")}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <defs>
