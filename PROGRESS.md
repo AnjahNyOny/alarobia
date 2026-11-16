@@ -2,16 +2,21 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 15/11/2026** : phases 0 à 4 faites. Restent en attente du propriétaire : la relecture du malgache (D2), la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 15/11/2026** : phases 0 à 5 faites et committées. Phase 6 commencée puis interrompue à la demande du propriétaire (quota atteint) : la 6.1 est à moitié faite, la revue de sécurité de la 6.3 est faite mais rien n'est corrigé. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : phase 5, tâche 5.1 (produits : traductions et personnalisation dans le back-office).
+**Prochaine action** : reprendre la 6.1 là où elle s'est arrêtée (liste « Pour finir la 6.1 » au journal du 15/11/2026), puis la 6.3 avec les constats de la revue (même journal). **Attention : `npm run test:e2e` est rouge tant que la 6.1 n'est pas finie** (les trois nouveaux fichiers de tests trouvent des défauts pas encore corrigés ; les 56 parcours d'avant ne sont pas touchés). Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
+
+- **Pousser vers GitHub** : les commits de la phase 5 et de la 6.1 en cours sont locaux. À pousser quand le propriétaire le demande (un envoi déclenche un déploiement Vercel).
+- **Heures du back-office** : les heures affichées (liste et détail des commandes, tableau de bord) et le découpage par jour du tableau de bord suivent le fuseau du serveur, pas celui de Madagascar. Sur un serveur en UTC (Vercel), elles ont 3 h de retard, et entre minuit et 3 h « aujourd'hui » est encore la veille. Défaut antérieur à la phase 5, non corrigé : la correction touche `src/lib/format.ts`, utilisé aussi par la boutique. Les dates de livraison promises ne sont pas concernées. À faire en tâche à part.
+- **Malgache du back-office** : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
+- **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
 
 - **Texte « Qui sommes-nous »** (D3) : proposé par Claude dans `messages/*.json`, espace `about`. À corriger ou valider.
 - **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer.
 - **Préfixe « AL- »** des numéros de commande et des références : à confirmer.
-- **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. À ajouter avec les photos du propriétaire, ou depuis le back-office une fois 5.1 faite.
+- **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. Le propriétaire peut maintenant les ajouter lui-même depuis le back-office (fiche produit, carte « Personnalisation »).
 - **« Taille » dans la tâche 4.5** : compris comme la taille du texte et de l'image sur l'objet (curseurs). Si le propriétaire pensait à des tailles de produit (S, M, L, contenance), c'est un autre chantier : il n'y a pas de variantes de produit dans le modèle de données.
 - **Polices proposées au client** : Archivo étroite (« Enseigne »), Baloo 2 (« Ronde »), Lora (« Classique »), Caveat (« Manuscrite »). Choix de Claude, à changer librement.
 - **Mise en ligne** : choix de la base hébergée (Turso ou PostgreSQL) et du stockage des fichiers envoyés, nécessaires pour que le site fonctionne sur Vercel.
@@ -57,7 +62,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 1.3 Formats selon la langue : « 25 000 Ar », dates et jours en fr, en, mg (malgache écrit à la main, indépendant du navigateur). Les appels existants passent encore `"fr"` ; ils reçoivent la langue du visiteur quand leur page est réécrite.
 - [x] 1.4 Contenu du catalogue traduit : tables de traduction et `localize()` avec repli champ par champ. Branchement dans les pages en phase 2, saisie dans le back-office en 5.1.
 - [x] 1.5 Sélecteur de langue (en-tête, menu mobile, pied de page) ; erreurs et confirmations des actions de la boutique dans la langue du visiteur
-- [ ] Relecture du malgache par le propriétaire (D2)
+- [x] Relecture du malgache par le propriétaire (D2)
 
 ### Phase 2 — Identité Alarobia
 - [x] 2.1 Jetons de design et typographie : blanc, indigo, latérite, raphia ; Archivo seule, titres resserrés
@@ -84,15 +89,15 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 4.7 Démonstration sur l'accueil : « Écrivez votre prénom » et une tasse qui le porte ; photo fixe au repos, objet en direct au premier contact avec le champ ; le prénom suit jusqu'à la fiche (`?perso=`). Vérifié : 1 parcours, captures en fr et mg à 320, 412 et 1440 px
 
 ### Phase 5 — Back-office
-- [ ] 5.1 Produits : traductions et personnalisation
-- [ ] 5.2 Commandes personnalisées et paiements
-- [ ] 5.3 Réglages : zones, Mobile Money, annonce par langue
-- [ ] 5.4 Interface en trois langues, aux couleurs d'Alarobia
+- [x] 5.1 Produits : traductions et personnalisation. Onglets Français / English / Malagasy dans le formulaire produit et celui des catégories, texte français sous chaque champ à traduire, compteur « à traduire » sur l'onglet et dans la liste des produits ; carte « Personnalisation » (gabarit, couleurs, longueur du texte, image, supplément). Textes du back-office dans l'espace `admin` des messages, jamais envoyés aux pages publiques. Vérifié : 242 tests unitaires, 44 parcours navigateur (dont 5 nouveaux), lint, types et compilation propres, captures à 320 px (mg) et 1440 px (fr)
+- [x] 5.2 Commandes personnalisées et paiements. Détail de commande : pour chaque article personnalisé, aperçu en grand, objet, couleur, texte exact, écriture, zone imprimable en mm, taille du fichier en px, téléchargement du fichier d'impression et de l'image du client par une route réservée à l'admin (`/api/admin/orders/…`) ; mention « à imprimer » dans la liste des commandes ; page, formulaire de traitement et paiement traduits en fr, en, mg. Vérifié : 258 tests unitaires, 49 parcours navigateur (dont 5 nouveaux), lint, types et compilation propres, captures à 320 px (mg) et 1440 px (fr)
+- [x] 5.3 Réglages : zones, Mobile Money, annonce par langue. Annonce en anglais et en malgache dans les réglages (vide : le français s'affiche) ; écrans Réglages et Livraison, leurs formulaires et leurs actions traduits en fr, en, mg. Les zones et les numéros Mobile Money étaient gérés depuis les tâches 3.2 et 3.3. Vérifié : 258 tests unitaires, 51 parcours navigateur (dont 2 nouveaux), lint, types et compilation propres
+- [x] 5.4 Interface en trois langues, aux couleurs d'Alarobia. Sélecteur de langue dans la barre latérale et le menu mobile, logo « Ar », tableau de bord, listes (produits, commandes, clients, catégories, codes promo, avis), composants partagés et actions traduits en fr, en, mg : plus aucun texte visible en dur dans le back-office. Vérifié : 258 tests unitaires, 56 parcours navigateur, lint, types et compilation propres ; les 10 pages du back-office dans les 3 langues à 320 px sans débordement ni erreur ; captures à 320 et 1440 px relues
 
 ### Phase 6 — Qualité
-- [ ] 6.1 Accessibilité
+- [ ] 6.1 Accessibilité — **en cours** : tests écrits (`e2e/accessibilite.spec.ts`, `e2e/mobile-accessibilite.spec.ts`, `e2e/clavier.spec.ts`, aides dans `e2e/helpers.ts`), un seul lancé, aucun correctif appliqué. Voir le journal du 15/11/2026.
 - [ ] 6.2 Performance sur téléphone modeste
-- [ ] 6.3 Sécurité et limitation de débit
+- [ ] 6.3 Sécurité et limitation de débit — revue faite (journal du 15/11/2026), corrections et limitation de débit à faire
 - [ ] 6.4 Référencement multilingue
 - [ ] 6.5 Parcours complets dans les trois langues
 - [ ] 6.6 Documentation à jour
@@ -220,3 +225,65 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Un parcours du back-office (« création d'un produit avec photo ») a échoué une fois dans une suite complète lancée machine très chargée (13 minutes au lieu de 2), puis est repassé seul et dans deux suites complètes. Même profil que l'échec noté en 3.3.
 - Malgache : textes de la personnalisation et de la démonstration rédigés par Claude, à relire (D2).
 - État des vérifications : 223 tests unitaires, 39 parcours navigateur (dont 13 pour la personnalisation), lint, types et compilation propres, aucun avertissement de compilation.
+- Phase 5 commencée, avec les sous-agents de `.claude/agents/` : l'architecte cadre et relit, `developpeur` écrit, `verificateur` contrôle.
+- Tâche 5.1 faite. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Les textes du back-office vivent dans l'espace `admin` des fichiers de messages et ne partent vers le navigateur que depuis `/admin`** (`storeMessages` dans `src/i18n/messages.ts`, second fournisseur dans le layout du back-office). Un parcours navigateur le contrôle. Poids mesuré après la tâche : accueil 358,1 ko dont 214,5 de JavaScript (référence 358,4 / 214,6) ; catalogue 423,1 ko dont 212,0 (référence 422,5 / 212,1).
+  - **Les fichiers réécrits pendant la phase 5 sont traduits tout de suite** (formulaire produit, formulaire catégorie, messages de leurs actions), pour ne pas les rouvrir en 5.4. Restent en français en dur pour la 5.4 : le composant d'envoi de photos, les listes, la barre latérale, le tableau de bord.
+  - **Une traduction est toujours facultative** : un champ vide s'affiche en français dans la boutique, et le formulaire le dit. « À traduire » compte les champs remplis en français et vides dans la langue (`untranslatedFields`). Une langue dont tous les champs sont vides n'a pas de ligne en base.
+  - **Sans gabarit, les réglages de personnalisation sont conservés en base** : le vendeur les retrouve s'il réactive la personnalisation. Avec un gabarit : au moins une couleur, texte de 0 à 40 caractères (0 : pas de texte), prix + supplément sous le plafond de 20 000 000 Ar. Un produit avec seulement un choix de couleur est valide. Pas d'aperçu 3D dans le back-office.
+  - Une erreur dans un onglet de langue fermé ouvre cet onglet, que le refus vienne du serveur ou du navigateur (champ requis vide).
+  - L'aide de « Mettre en avant » citait « La sélection du moment », titre disparu de l'accueil : elle dit « Les plus demandés ».
+- Carnet et sac en toile (D5) peuvent maintenant être ajoutés par le propriétaire depuis le back-office.
+- Malgache : une centaine de textes du back-office rédigés par Claude, **à relire** (ligne `admin` de `docs/glossaire.md`). Les plus incertains : « Voatahiry » (archivé), « Drafitra » (brouillon), « Endrika » (gabarit), « Fikarohana » (référencement), « Saran'ny fanontana » (supplément d'impression), « Kahie » (carnet).
+- Relevé, à traiter en 5.4 : sur téléphone, la barre « Annuler / Enregistrer » de la fiche produit se place au milieu de la page et recouvre le haut de la carte « Publication » (défaut antérieur à la 5.1). La liste des catégories n'a pas d'indicateur « à traduire ».
+- La session a été coupée une fois par la limite d'usage du forfait pendant la 5.1 ; le sous-agent a repris de son propre historique, sans perte.
+- État des vérifications : 242 tests unitaires, 44 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.
+- Tâche 5.2 faite. Le bouton « Paiement reçu » et la référence déclarée par le client existaient depuis la 3.3 : ils sont seulement traduits. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Les fichiers d'un article se téléchargent par une route réservée à l'admin**, qui ne sert que le fichier désigné par la base pour cet article de cette commande, sous un nom lisible (`<numéro>-<rang>-impression.png`, `<numéro>-<rang>-image.jpg`). Sans session admin, article d'une autre commande ou fichier absent : 404, sans redirection. Les aperçus restent servis publiquement par leur nom imprévisible (`/uploads/…`), la boutique et l'espace client en ont besoin ; il en va donc de même du fichier d'impression pour qui en connaîtrait le nom. À revoir avec le stockage externe (phase 7).
+  - **Une commande relue n'est pas revalidée contre les réglages actuels du produit** (`readOrderDesign`) : si le vendeur retire une couleur ou raccourcit le texte autorisé, les commandes déjà passées s'affichent telles qu'elles ont été payées. Une copie figée illisible affiche l'article comme un article ordinaire, sans faire planter la page.
+  - **Un article dont le client n'a choisi que la couleur** affiche « Couleur seule : rien à imprimer » et n'a pas de téléchargement.
+  - **« N articles à imprimer »** dans la liste compte les objets (trois tasses identiques : 3), et seulement ceux qui portent un texte ou une image.
+  - Les articles d'une commande sont triés par identifiant, sur la page comme dans la route : le rang du nom de fichier est celui que voit le vendeur.
+- Sur la page en malgache ou en anglais, le nom du produit reste en français : c'est la copie figée de la commande (décision de la 2.6).
+- Malgache à relire, termes nouveaux : « faritra azo anontana » (zone imprimable), « rakitra » (fichier), « endri-tsoratra » (écriture), « laharana fanarahana » (numéro de suivi), « komandy voakatona » (commande clôturée), « tsy misy loko ambadika » (fond transparent).
+- État des vérifications : 258 tests unitaires, 49 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.
+- Tâche 5.3 faite, confiée à l'`executant` (changement entièrement spécifié). Plus petite que prévu au plan : il ne restait que l'annonce par langue et la traduction des deux écrans.
+  - L'annonce anglaise et l'annonce malgache sont deux champs côte à côte sous le français, comme les noms de zone : un seul texte court, des onglets le cacheraient.
+  - `zoneSchema(t)` et le schéma des réglages reçoivent le traducteur ; `emailSchema` (version française provisoire de `src/lib/schemas.ts`) est supprimé, il n'avait plus d'appelant.
+  - Les préfixes des opérateurs (« 034 ou 038 ») sont dans les messages, pour que « ou » se traduise.
+  - À savoir pour les tests : après une visite de `/en`, une adresse sans préfixe (`/admin/settings`) redirige vers `/en/…` (cookie de langue). Un test qui change de langue écrit ensuite `/fr/…` en toutes lettres.
+- Malgache à relire, termes nouveaux : « Fandrindrana » (réglages), « Fanairana eo an-tampony » (bandeau d'annonce), « Vola ampiasaina » (devise), « tamba-jotra » (réseau), « Toe-javatra » (état), « Hetsika » (actions), « Saran'ny fanaterana » (tarif).
+- État des vérifications : 258 tests unitaires, 51 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.
+- Tâche 5.4 faite, en deux temps : l'ossature par `developpeur` (barre latérale, sélecteur de langue, tableau de bord, composants partagés), puis la traduction mécanique des listes par `executant`. Choix retenus, à corriger si le propriétaire voit les choses autrement :
+  - **Le vendeur change de langue depuis le back-office** : sélecteur au pied de la barre latérale et dans le menu mobile, qui garde la page et ses filtres. Il n'y en avait pas.
+  - **Le logo « Ar » remplace la pastille à initiale** dans la barre latérale. Aucun autre changement visuel : le back-office reste un outil de travail.
+  - **La pagination perd son point médian** : nombre de résultats à gauche, « Page X sur Y » entre les boutons à droite.
+  - **Sur téléphone, « Annuler / Enregistrer » de la fiche produit est en fin de formulaire** au lieu d'être collée en bas : collée, elle recouvrait la carte « Publication ».
+  - `ORDER_STATUS_LABEL`, `PRODUCT_STATUS_LABEL` et `PAYMENT_LABEL` (libellés français de `src/lib/constants.ts`) sont supprimés : plus aucun appelant.
+  - La route d'envoi des photos renvoie un code d'erreur que l'interface traduit ; son texte français d'accompagnement reste pour qui appellerait la route directement.
+- Critique sur captures (architecte), deux défauts trouvés en malgache à 320 px et corrigés : « Nouveau produit » débordait de 13 px (rangée de boutons qui ne passait pas à la ligne), et le champ de date des codes promo sortait de sa carte (grille à deux colonnes sans `min-w-0`, piège déjà connu). La mesure du débordement de la page ne voyait pas le second : un test contrôle maintenant, sur les dix pages en malgache, que la page ne déborde pas **et** qu'aucun champ ne sort de son formulaire. Il a été vu en échec sur les deux cas avant correctif.
+- Relevé, non traité : à 320 px, la colonne du nom dans la liste des produits est étroite (noms sur deux ou trois lignes ; le tableau défile, rien ne déborde, antérieur à la phase 5).
+- Poids des pages publiques après toute la phase 5 : accueil 358,7 ko dont 214,7 de JavaScript, catalogue 423,0 ko dont 212,1 (avant la phase : 358,4 / 214,6 et 422,5 / 212,1). Les quelque 400 textes du back-office n'alourdissent pas la boutique.
+- Malgache à relire, termes nouveaux : « Topimaso » (tableau de bord), « Raharaha » (activité), « Totalin'ny varotra » (chiffre d'affaires), « Salan'isan'ny komandy » (panier moyen), « Tahiry efa ho lany » (stock faible), « Ovaina » (modifier), « Fafana » (supprimer), « Hanasivana » (filtrer), « Hojerena ny référence » (référence à vérifier), « Isan-jato » (pourcentage).
+- Phase 5 terminée. Bilan de la délégation : trois tâches confiées à `developpeur` (5.1, 5.2, 5.4a), trois à `executant` (5.3, 5.4b, correctif de débordement), six passages de `verificateur`. Un passage de `verificateur` a rendu la main avant la fin de la suite navigateur ; ses résultats ont été lus dans ses journaux.
+- État des vérifications : 258 tests unitaires, 56 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.
+- Phase 6 commencée, puis interrompue à la demande du propriétaire (quota atteint). Phase 5 committée à sa demande.
+- Tâche 6.1 en cours (`developpeur`). Dépendance ajoutée : `@axe-core/playwright` (contrôle d'accessibilité dans les tests navigateur, prévue au plan). Trois fichiers de tests écrits ; seul `e2e/accessibilite.spec.ts` a été lancé : 7 rouges sur 7. `mobile-accessibilite.spec.ts` et `clavier.spec.ts` n'ont jamais tourné. Lint, types et 258 tests unitaires verts.
+  - **Violations axe trouvées, aucune corrigée** :
+    - `label-content-name-mismatch` sur presque toute la boutique : le sélecteur de langue compact affiche « fr » mais s'annonce « Français » ; même règle sur un élément `.text-foreground` de `/account`, pas encore identifié.
+    - `color-contrast` sur l'accueil : nom du dimanche dans `week-strip.tsx` (`opacity-75` sur `text-muted-foreground`, 3,64:1) ; corrigeable sans toucher à la palette.
+    - `color-contrast` sur le tableau de bord et la liste des commandes : badge « Payée » (`bg-chart-3/12` sous `text-chart-3`, 4,43:1 ; environ 4,56 avec `/10`, à vérifier dans axe).
+    - `label` sur le catalogue : la case `#filtres` reste focalisable sur grand écran alors que son libellé y est masqué (`lg:hidden`).
+    - `link-name` : lien image sans nom accessible dans le tiroir du panier et la page panier.
+    - `definition-list` : un `<p>` directement dans le `<dl>` de `TotalsRows` (`summary.tsx`) ; `definition-list` et `dlitem` dans `KeyValue` de `payment-panel.tsx`.
+    - Non analysées (délai de 60 s dépassé par le test) : clients, catégories, codes promo, avis, réglages, livraison, détail de commande, fiche client, fiche produit du back-office.
+  - **Défauts clavier soupçonnés à la lecture du code, non mesurés** : pas de lien d'évitement dans le back-office ; focus perdu après un refus de formulaire, après « Paiement reçu » et après un ajout au panier ; « Close » en dur dans `sheet.tsx` et étiquette anglaise du conteneur de Sonner.
+  - **Pour finir la 6.1**, dans l'ordre : 1. allonger le délai des longs tests d'`accessibilite.spec.ts` ou les découper ; 2. corriger les violations ci-dessus (sélecteur de langue : texte `sr-only` plutôt qu'`aria-label`, puis vérifier qu'aucun test existant ne cherche ce lien par `exact: true`) ; 3. lancer les trois fichiers et noter ce qu'ils trouvent dans le back-office, sur mobile et au clavier ; 4. corriger ; 5. suite complète, les 56 parcours d'avant doivent rester verts ; 6. `verificateur`, puis critique de l'architecte.
+- Tâche 6.3, revue de sécurité faite (skill `/security-review` puis lecture de toute la surface serveur par un sous-agent, constats vérifiés dans le code par l'architecte). Rien de grave, rien dans la phase 5. **À corriger en 6.3** :
+  - **Code promo à usage limité contournable** (gravité moyenne) : la limite est vérifiée avant la transaction (`evaluatePromo`, `src/lib/pricing.ts`) et le compteur incrémenté sans condition (`src/actions/checkout.ts`). Des commandes simultanées obtiennent toutes la remise. Correctif : incrément conditionnel dans la transaction (`updateMany` avec `usedCount < maxUses`, code actif, non expiré), comme pour le stock ; test d'abord.
+  - Les 13 pages du back-office ne revérifient pas la session elles-mêmes : seul le layout appelle `requireAdmin()`. Non exploitable aujourd'hui ; ajouter l'appel en tête de chaque page.
+  - L'envoi de photos du back-office se fie au type annoncé par le navigateur (`src/app/api/admin/upload/route.ts`) : passer par `checkUpload` comme l'envoi du client.
+  - **Limitation de débit** : seuls `addCustomized` et `/api/customizer/upload` sont limités. À limiter : `login`, `register` (demandés au plan), puis `applyPromo`, `placeOrder` sans compte, `declarePayment`, `changePassword`. Défaut de `clientIp` (`src/lib/upload.ts`) : sans en-tête d'adresse, tous les visiteurs partagent le compteur « inconnue », un seul client peut bloquer tous les autres ; et l'en-tête `x-forwarded-for` se forge sans proxy de confiance (dépend de l'hébergement).
+  - Rappel : `npm run db:seed` crée `admin@alarobia.example` / `admin1234` ; ne jamais le lancer sur la base de production.
+- Relevé pour la 6.4 : le plan du site déclare déjà les trois langues et la fiche produit a ses données structurées ; manquent `alternates` (adresse canonique et `hreflang`) dans les métadonnées des pages, l'image de partage et l'icône Apple (restées de la 2.2).
+- `git remote set-head origin main` lancé une fois : la référence locale `origin/HEAD` manquait et le skill `/security-review` en a besoin.
