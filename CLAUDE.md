@@ -13,13 +13,15 @@ Plateforme e-commerce pour Madagascar : objets du quotidien, catalogue libre (le
 3. Écrire le test d'abord quand la tâche porte sur de la logique (prix, panier, traductions, validation).
 4. Vérifier pour de bon avant de dire que c'est fait : `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`, puis le parcours navigateur et des captures d'écran pour tout changement visible.
 5. Mettre à jour `PROGRESS.md` : cocher la tâche, noter ce qui a été vérifié et toute décision prise.
-6. Ne committer que si le propriétaire l'a demandé (voir « Décisions en attente » dans `PROGRESS.md`).
+6. Committer chaque tâche finie et vérifiée, un commit par tâche (autorisé par le propriétaire le 16/11/2026). Ne pas pousser vers GitHub sans sa demande : un envoi déclenche un déploiement Vercel.
 
 Le propriétaire a rejeté une première version jugée « comme tous les sites e-commerce ». Une demande explicite d'outil ou de méthode (un skill, une bibliothèque) se suit telle quelle ; si c'est impossible, le dire tout de suite plutôt que de substituer autre chose.
 
 ## Délégation aux sous-agents
 
-La session principale (Fable ou Opus) est l'architecte. Elle lit le plan, découpe la tâche, rédige les consignes, relit les résultats et tient `PROGRESS.md`. Elle n'écrit pas elle-même le code de l'application : chaque tâche part chez le sous-agent du niveau qui convient. Cette section vaut demande explicite du propriétaire de lancer des sous-agents.
+La session principale (Fable ou Opus) est l'architecte. Elle lit le plan, découpe la tâche, rédige les consignes, relit les résultats et tient `PROGRESS.md`. Les tâches de développement partent chez le sous-agent du niveau qui convient, et toutes les vérifications chez `verificateur`. Cette section vaut demande explicite du propriétaire de lancer des sous-agents.
+
+L'architecte peut modifier le code lui-même (autorisé par le propriétaire le 16/11/2026) quand c'est plus court que de rédiger une consigne : correctif de quelques lignes déjà diagnostiqué, retouche après relecture d'un diff ou d'une capture, fichier qu'il vient de lire. Une tâche entière du plan, ou un bug dont la cause reste à trouver, part toujours chez `developpeur`. Ses modifications passent par `verificateur` comme celles d'un sous-agent, et il ne modifie pas des fichiers qu'un sous-agent est en train d'écrire.
 
 | Sous-agent (`.claude/agents/`) | Modèle | Ce qu'on lui confie |
 | --- | --- | --- |
@@ -28,7 +30,7 @@ La session principale (Fable ou Opus) est l'architecte. Elle lit le plan, décou
 | `verificateur` | Haiku | Lancer lint, types, tests, build, tests navigateur, captures d'écran, et rapporter. Ne modifie rien. |
 | `Explore` (intégré) | — | Chercher dans le code quand la réponse demande de parcourir beaucoup de fichiers. |
 
-Ce qui reste chez l'architecte : le découpage, les choix d'architecture et de schéma, la direction visuelle et la critique sur capture d'écran, la relecture des diffs, `PROGRESS.md`.
+Ce qui reste chez l'architecte : le découpage, les choix d'architecture et de schéma, la direction visuelle et la critique sur capture d'écran, la relecture des diffs, `PROGRESS.md`, les commits.
 
 - **Consigne complète.** Un sous-agent part de zéro et ne voit pas la conversation. Lui donner le but et à quoi il sert, les fichiers concernés, ce qui est déjà décidé ou écarté, le critère de fin, ce qu'il ne doit pas toucher, et la forme du rapport attendu.
 - **Un seul sous-agent qui écrit à la fois**, sauf si les fichiers sont clairement disjoints. Un seul `build` ou `test:e2e` à la fois (port 3100, `prisma/test.db`).
