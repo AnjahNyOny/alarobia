@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -26,6 +26,7 @@ export function ConfirmAction({
   size = "sm",
   danger = true,
   redirectTo,
+  focusAfter,
 }: {
   action: () => Promise<FormState>;
   title: string;
@@ -40,18 +41,36 @@ export function ConfirmAction({
   /** Faux pour une confirmation qui ne détruit rien (« Paiement reçu ») : le bouton n'est pas rouge. */
   danger?: boolean;
   redirectTo?: string;
+  /**
+   * `id` de l'élément qui confirme le nouvel état, focalisé après une réussite. Pour une action qui fait disparaître
+   * son propre bouton (« Paiement reçu ») : sans lui, le focus retomberait sur la page.
+   */
+  focusAfter?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
   const t = useTranslations("admin.common");
+  const succeeded = useRef(false);
+  const focusTarget = () => (succeeded.current && focusAfter ? document.getElementById(focusAfter) : null);
+
+  // Le bouton disparaît avec la commande qui change d'état : ce composant est démonté avec sa fenêtre,
+  // qui ne peut plus rendre le focus. On le place sur la confirmation, une fois la nouvelle page affichée.
+  useEffect(() => {
+    if (!focusAfter) return;
+    return () => {
+      if (succeeded.current) requestAnimationFrame(() => document.getElementById(focusAfter)?.focus());
+    };
+  }, [focusAfter]);
+
   return (
     <>
       <Button type="button" variant={variant} size={size} onClick={() => setOpen(true)}>
         {children}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false}>
+        {/* Si le bouton reste en place, la fenêtre rend le focus à la confirmation (ou, par défaut, au bouton). */}
+        <DialogContent showCloseButton={false} finalFocus={() => focusTarget() ?? true}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
@@ -65,11 +84,13 @@ export function ConfirmAction({
               size="lg"
               className={danger ? "bg-destructive text-white hover:bg-destructive/90" : undefined}
               disabled={pending}
+              focusableWhenDisabled
               onClick={() =>
                 start(async () => {
                   const res = await action();
                   if (res.error) toast.error(res.error);
                   else {
+                    succeeded.current = true;
                     toast.success(res.message ?? t("done"));
                     if (redirectTo) router.push(redirectTo);
                   }

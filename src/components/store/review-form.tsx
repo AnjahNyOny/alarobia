@@ -16,7 +16,7 @@ export function ReviewForm({ productId, initial }: { productId: string; initial?
     <Form action={action} className="grid gap-4">
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="rating" value={rating} />
-      <fieldset>
+      <fieldset aria-describedby={state.fieldErrors?.rating ? "note-erreur" : undefined}>
         <legend className="text-sm font-medium">{t("yourRating")}</legend>
         <div className="mt-2 flex gap-1" onMouseLeave={() => setHover(0)}>
           {[1, 2, 3, 4, 5].map((n) => (
@@ -25,7 +25,7 @@ export function ReviewForm({ productId, initial }: { productId: string; initial?
             </button>
           ))}
         </div>
-        {state.fieldErrors?.rating && <p className="mt-1.5 text-sm text-destructive">{state.fieldErrors.rating}</p>}
+        {state.fieldErrors?.rating && <p id="note-erreur" className="mt-1.5 text-sm text-destructive">{state.fieldErrors.rating}</p>}
       </fieldset>
       <Field as="textarea" label={t("yourReview")} name="comment" defaultValue={initial?.comment} error={state.fieldErrors?.comment} placeholder={t("placeholder")} required />
       <FormAlert state={state} />

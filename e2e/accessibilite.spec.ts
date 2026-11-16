@@ -89,6 +89,8 @@ test("personnalisation de la tasse : 3D puis à plat", async ({ page }) => {
   await page.goto(TASSE);
   await page.getByRole("tab", { name: "Personnaliser" }).click();
   // Le cadre « 3d » existe avant la scène : on attend le canevas lui-même (CLAUDE.md, « Pièges connus »).
+  // Aucune exclusion : axe ne voit du canevas que son élément, et le cadre doit porter un nom.
+  await expect(page.locator('[data-view="3d"]')).toHaveAccessibleName(/.+/);
   // Le contenu d'un canevas WebGL échappe à axe ; son cadre porte un nom (role="img") et la vue à plat sert d'alternative.
   await expect(page.locator('[data-view="3d"] canvas')).toBeVisible();
   await page.getByLabel("Votre texte").fill("Miora");
@@ -112,42 +114,65 @@ test("espace client", async ({ page }) => {
   await expectAccessible(page, "favoris");
 });
 
-test("back-office : chaque page, et un onglet de langue ouvert", async ({ page }) => {
-  await login(page, ADMIN.email, ADMIN.password);
-  await page.waitForURL("**/admin");
-  const pages: [string, string][] = [
-    ["tableau de bord", "/fr/admin"],
-    ["produits", "/fr/admin/products"],
-    ["nouveau produit", "/fr/admin/products/new"],
-    ["commandes", "/fr/admin/orders"],
-    ["clients", "/fr/admin/customers"],
-    ["catégories", "/fr/admin/categories"],
-    ["codes promo", "/fr/admin/promotions"],
-    ["avis", "/fr/admin/reviews"],
-    ["réglages", "/fr/admin/settings"],
-    ["livraison", "/fr/admin/shipping"],
-  ];
-  for (const [name, path] of pages) {
-    await page.goto(path);
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expectAccessible(page, `admin ${name}`);
+// Back-office : un test par groupe de pages, pour que le nom du test en échec dise où chercher
+// (et qu'aucun ne frôle le délai de 60 s quand la machine est chargée).
+test.describe("back-office", () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page, ADMIN.email, ADMIN.password);
+    await page.waitForURL("**/admin");
+  });
+
+  async function checkPages(page: Page, pages: [string, string][]) {
+    for (const [name, path] of pages) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expectAccessible(page, `admin ${name}`);
+    }
   }
 
-  await page.goto("/fr/admin/orders");
-  await page.goto((await page.locator('a[href*="/admin/orders/c"]').first().getAttribute("href"))!);
-  await expectAccessible(page, "admin détail d'une commande");
+  test("activité : tableau de bord, commandes et détail, clients et fiche", async ({ page }) => {
+    await checkPages(page, [
+      ["tableau de bord", "/fr/admin"],
+      ["commandes", "/fr/admin/orders"],
+      ["clients", "/fr/admin/customers"],
+    ]);
+    await page.goto("/fr/admin/orders");
+    await page.goto((await page.locator('a[href*="/admin/orders/c"]').first().getAttribute("href"))!);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectAccessible(page, "admin détail d'une commande");
 
-  await page.goto("/fr/admin/customers");
-  await page.goto((await page.locator('a[href*="/admin/customers/c"]').first().getAttribute("href"))!);
-  await expectAccessible(page, "admin fiche client");
+    await page.goto("/fr/admin/customers");
+    await page.goto((await page.locator('a[href*="/admin/customers/c"]').first().getAttribute("href"))!);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectAccessible(page, "admin fiche client");
+  });
 
-  await page.goto("/fr/admin/products?q=Tasse en grès Vato");
-  await page.getByRole("link", { name: "Tasse en grès Vato", exact: true }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Tasse en grès Vato" })).toBeVisible();
-  await expectAccessible(page, "admin fiche produit");
-  await page.getByRole("tab", { name: /Malagasy/ }).click();
-  await expect(page.getByRole("tab", { name: /Malagasy/ })).toHaveAttribute("aria-selected", "true");
-  await expectAccessible(page, "admin fiche produit, onglet malgache");
+  test("catalogue : produits, nouveau produit, catégories, avis", async ({ page }) => {
+    await checkPages(page, [
+      ["produits", "/fr/admin/products"],
+      ["nouveau produit", "/fr/admin/products/new"],
+      ["catégories", "/fr/admin/categories"],
+      ["avis", "/fr/admin/reviews"],
+    ]);
+  });
+
+  test("fiche produit, puis son onglet malgache", async ({ page }) => {
+    await page.goto("/fr/admin/products?q=Tasse en grès Vato");
+    await page.getByRole("link", { name: "Tasse en grès Vato", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Tasse en grès Vato" })).toBeVisible();
+    await expectAccessible(page, "admin fiche produit");
+    await page.getByRole("tab", { name: /Malagasy/ }).click();
+    await expect(page.getByRole("tab", { name: /Malagasy/ })).toHaveAttribute("aria-selected", "true");
+    await expectAccessible(page, "admin fiche produit, onglet malgache");
+  });
+
+  test("boutique : livraison, codes promo, réglages", async ({ page }) => {
+    await checkPages(page, [
+      ["livraison", "/fr/admin/shipping"],
+      ["codes promo", "/fr/admin/promotions"],
+      ["réglages", "/fr/admin/settings"],
+    ]);
+  });
 });
 
 test("anglais et malgache : accueil, fiche personnalisable, commande", async ({ page }) => {

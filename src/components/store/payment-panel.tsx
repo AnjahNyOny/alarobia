@@ -9,12 +9,13 @@ type PanelOrder = { id: string; number: string; status: string; paymentMethod: s
 /** Une donnée à recopier sans faute : en grand, avec son bouton de copie. */
 function KeyValue({ label, value, copy }: { label: string; value: string; copy: string }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 border-t border-highlight-foreground/20 py-3 first:border-t-0 first:pt-0 last:pb-0">
-      <div>
-        <dt className="text-[0.8125rem]">{label}</dt>
-        <dd className="display text-3xl whitespace-nowrap tabular-nums sm:text-4xl">{value}</dd>
-      </div>
-      <CopyButton value={copy} label={label} />
+    // dl > div > dt + dd, rien d'autre : le bouton de copie va dans le dd, à côté de la valeur.
+    <div className="border-t border-highlight-foreground/20 py-3 first:border-t-0 first:pt-0 last:pb-0">
+      <dt className="text-[0.8125rem]">{label}</dt>
+      <dd className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <span className="display text-3xl whitespace-nowrap tabular-nums sm:text-4xl">{value}</span>
+        <CopyButton value={copy} label={label} />
+      </dd>
     </div>
   );
 }

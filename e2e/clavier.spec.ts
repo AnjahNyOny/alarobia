@@ -12,11 +12,37 @@ const focused = (locator: Locator) => expect(locator).toBeFocused();
 /** Le focus est-il à l'intérieur de `container` ? */
 const focusInside = (container: Locator) => container.evaluate((el) => el.contains(document.activeElement));
 
-/** Tabule `n` fois en vérifiant que le focus reste dans `container` (piège de focus d'un tiroir ou d'un menu). */
+/** Attend (au plus 1 s) que le focus soit entré dans `container` : Base UI le déplace à l'image suivante. */
+const expectFocusInside = (container: Locator, message = "le focus entre dans la fenêtre") =>
+  expect.poll(() => focusInside(container), { message, timeout: 2000 }).toBe(true);
+
+/**
+ * Retient le texte de la fenêtre au moment où elle entre dans la page. Après un ajout, le tiroir doit s'ouvrir sur le panier
+ * à jour : s'il s'ouvrait d'abord sur l'état d'avant (panier vide), Base UI viserait pour le focus un lien aussitôt remplacé,
+ * et le focus resterait derrière le tiroir.
+ */
+const recordDialogOpening = (page: Page) =>
+  page.addInitScript(() => {
+    new MutationObserver((mutations) => {
+      for (const mutation of mutations)
+        for (const node of mutation.addedNodes) {
+          const dialog = node instanceof Element ? (node.matches('[role="dialog"]') ? node : node.querySelector('[role="dialog"]')) : null;
+          if (dialog) document.documentElement.dataset.dialogOnOpen = dialog.textContent ?? "";
+        }
+    }).observe(document, { childList: true, subtree: true });
+  });
+const dialogOnOpen = (page: Page) => page.evaluate(() => document.documentElement.dataset.dialogOnOpen ?? null);
+
+/**
+ * Tabule `n` fois en vérifiant que le focus reste dans `container` (piège de focus d'un tiroir ou d'un menu).
+ * Aux deux bouts, Base UI fait passer le focus par une sentinelle placée hors de la fenêtre, qui le renvoie
+ * à l'autre bout à l'image suivante : on attend donc qu'il soit revenu. La limite est large (2 s) parce que, machine chargée, c'est la lecture du focus
+ * par Playwright qui tarde, pas le focus : un focus réellement sorti le reste et fait échouer le test quand même.
+ */
 async function expectTrapped(page: Page, container: Locator, n = 25) {
   for (let i = 0; i < n; i++) {
     await page.keyboard.press(i % 3 === 2 ? "Shift+Tab" : "Tab");
-    expect(await focusInside(container), `tabulation ${i + 1} : le focus est sorti`).toBe(true);
+    await expect.poll(() => focusInside(container), { message: `tabulation ${i + 1} : le focus est sorti`, timeout: 2000 }).toBe(true);
   }
 }
 
@@ -72,7 +98,7 @@ test("achat complet au clavier : recherche, fiche, panier, commande, confirmatio
   await page.keyboard.press("Enter");
   const drawer = page.getByRole("dialog");
   await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible();
-  expect(await focusInside(drawer), "le focus entre dans le tiroir").toBe(true);
+  await expectFocusInside(drawer, "le focus entre dans le tiroir");
   await tabTo(page, drawer.getByRole("link", { name: "Voir le panier" }), { step: "tiroir" });
   await page.keyboard.press("Enter");
   await page.waitForURL("**/fr/cart");
@@ -97,12 +123,18 @@ test("achat complet au clavier : recherche, fiche, panier, commande, confirmatio
   await expect(page.getByLabel("Province", { exact: true })).toHaveValue("Antananarivo");
 
   // Zones et moyens de paiement : un groupe de boutons radio, on entre par Tab et on choisit aux flèches.
-  await tabTo(page, page.getByRole("radio", { name: /Antananarivo ville/ }), { step: "zone de livraison" });
-  await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("radio", { name: /Environs d'Antananarivo/ })).toBeChecked();
-  await expectFocusShown(page, "zone choisie aux flèches");
-  await page.keyboard.press("ArrowUp");
-  await expect(page.getByRole("radio", { name: /Antananarivo ville/ })).toBeChecked();
+  // Les zones sont prises telles qu'elles sont : dans la suite complète, admin.spec.ts a supprimé toutes celles
+  // du seed sauf « Antananarivo ville ». Les flèches sont alors vérifiées sur les seuls moyens de paiement.
+  const zones = page.getByRole("group", { name: "Zone de livraison" }).getByRole("radio");
+  await tabTo(page, zones.first(), { step: "zone de livraison" });
+  if ((await zones.count()) > 1) {
+    await page.keyboard.press("ArrowDown");
+    await expect(zones.nth(1)).toBeChecked();
+    await focused(zones.nth(1));
+    await expectFocusShown(page, "zone choisie aux flèches");
+    await page.keyboard.press("ArrowUp");
+    await expect(zones.first()).toBeChecked();
+  }
 
   const cod = page.getByRole("radio", { name: /Paiement à la livraison/ });
   await page.keyboard.press("Tab");
@@ -130,13 +162,14 @@ test("achat complet au clavier : recherche, fiche, panier, commande, confirmatio
 
 test.describe("tiroir et menus", () => {
   test("tiroir du panier : le focus y entre, y reste, Échap ferme et rend le focus au bouton", async ({ page }) => {
+    await recordDialogOpening(page);
     await page.goto("/fr/products/sac-a-dos-transit");
     const cart = page.getByRole("button", { name: /^Panier/ });
     await tabTo(page, cart, { step: "bouton du panier" });
     await page.keyboard.press("Enter");
     const drawer = page.getByRole("dialog");
     await expect(drawer).toBeVisible();
-    expect(await focusInside(drawer), "le focus entre dans le tiroir").toBe(true);
+    await expectFocusInside(drawer, "le focus entre dans le tiroir");
     await expectTrapped(page, drawer);
     await page.keyboard.press("Escape");
     await expect(drawer).toHaveCount(0);
@@ -147,7 +180,8 @@ test.describe("tiroir et menus", () => {
     await tabTo(page, add, { step: "ajout au panier" });
     await page.keyboard.press("Enter");
     await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible();
-    expect(await focusInside(drawer), "le focus entre dans le tiroir").toBe(true);
+    expect(await dialogOnOpen(page), "le tiroir s'ouvre sur le panier à jour, pas sur le panier vide").toContain("Sac à dos Transit");
+    await expectFocusInside(drawer, "le focus entre dans le tiroir");
     await expectTrapped(page, drawer);
     await page.keyboard.press("Escape");
     await expect(drawer).toHaveCount(0);
@@ -164,7 +198,7 @@ test.describe("tiroir et menus", () => {
       await page.keyboard.press("Enter");
       const menu = page.getByRole("dialog");
       await expect(menu).toBeVisible();
-      expect(await focusInside(menu)).toBe(true);
+      await expectFocusInside(menu);
       await expectTrapped(page, menu);
       await page.keyboard.press("Escape");
       await expect(menu).toHaveCount(0);
@@ -184,7 +218,7 @@ test.describe("tiroir et menus", () => {
       await page.keyboard.press("Enter");
       const menu = page.getByRole("dialog");
       await expect(menu).toBeVisible();
-      expect(await focusInside(menu)).toBe(true);
+      await expectFocusInside(menu);
       await expectTrapped(page, menu);
       await page.keyboard.press("Escape");
       await expect(menu).toHaveCount(0);
@@ -194,6 +228,7 @@ test.describe("tiroir et menus", () => {
 });
 
 test("personnalisation de la tasse au clavier", async ({ page }) => {
+  await recordDialogOpening(page);
   await page.goto("/fr/products/tasse-en-gres-vato");
   const photos = page.getByRole("tab", { name: "Photos" });
   const custom = page.getByRole("tab", { name: "Personnaliser" });
@@ -252,7 +287,14 @@ test("personnalisation de la tasse au clavier", async ({ page }) => {
   const add = page.getByRole("button", { name: "Ajouter au panier" });
   await tabTo(page, add, { step: "ajout" });
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("dialog").getByText(/Personnalisé : .*« Fara »/)).toBeVisible();
+  const drawer = page.getByRole("dialog");
+  await expect(drawer.getByText(/Personnalisé : .*« Fara »/)).toBeVisible();
+  // Même enchaînement que sur une fiche ordinaire : le tiroir s'ouvre sur la tasse ajoutée, le focus y entre, Échap le rend au bouton.
+  expect(await dialogOnOpen(page), "le tiroir s'ouvre sur le panier à jour, pas sur le panier vide").toContain("« Fara »");
+  await expectFocusInside(drawer, "le focus entre dans le tiroir");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await focused(add);
 });
 
 test("back-office au clavier : barre latérale, onglets de langue, enregistrement, paiement reçu", async ({ page }) => {
@@ -301,26 +343,26 @@ test("back-office au clavier : barre latérale, onglets de langue, enregistremen
   await expect(toast).toBeVisible();
   expect(await toast.evaluate((el) => !!el.closest('[aria-live="polite"], [aria-live="assertive"], [role="status"], [role="alert"]'))).toBe(true);
 
-  // Paiement reçu sur une commande Mobile Money en attente.
+  // Paiement reçu sur une commande Mobile Money en attente. On vise une ligne dont le paiement est à confirmer :
+  // la première commande en attente peut être celle, payable à la livraison, d'un parcours d'achat lancé avant.
   await page.goto("/fr/admin/orders?status=PENDING");
-  const order = page.getByRole("main").getByRole("link", { name: /^AL-/ }).first();
+  const order = page.getByRole("main").getByRole("row").filter({ hasText: /Pas encore payé|Référence à vérifier/ }).first().getByRole("link", { name: /^AL-/ });
   await tabTo(page, order, { step: "liste des commandes", max: 80 });
   await page.keyboard.press("Enter");
   await page.waitForURL(/\/fr\/admin\/orders\/c/);
   const paid = page.getByRole("button", { name: "Paiement reçu" });
-  if ((await paid.count()) === 0) test.skip(true, "la première commande en attente est payable à la livraison");
   await tabTo(page, paid, { step: "paiement reçu", max: 80 });
   await page.keyboard.press("Enter");
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  expect(await focusInside(dialog)).toBe(true);
+  await expectFocusInside(dialog);
   await tabTo(page, dialog.getByRole("button", { name: "Paiement reçu" }), { step: "confirmation" });
   await page.keyboard.press("Enter");
   const done = page.getByText("Paiement confirmé : la commande est à préparer.");
   await expect(done).toBeVisible();
   expect(await done.evaluate((el) => !!el.closest('[aria-live="polite"], [aria-live="assertive"], [role="status"], [role="alert"]'))).toBe(true);
-  // Le bouton a disparu : le focus ne doit pas être perdu sur la page.
-  expect(await page.evaluate(() => document.activeElement !== document.body && document.activeElement !== null)).toBe(true);
+  // Le bouton a disparu : le focus va sur le texte qui confirme le nouvel état, au lieu de retomber sur la page.
+  await focused(page.getByRole("main").getByText(/^Paiement confirmé/));
 });
 
 test("connexion refusée : le message est annoncé et le focus n'est pas perdu", async ({ page }) => {

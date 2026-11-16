@@ -4,7 +4,9 @@
     "copy": "Copy",
     "copied": "Copied",
     "decrease": "Decrease quantity",
-    "increase": "Increase quantity"
+    "increase": "Increase quantity",
+    "close": "Close",
+    "notifications": "Notifications"
   },
   "meta": {
     "title": "Everyday things, delivered across Madagascar"

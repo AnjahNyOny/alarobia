@@ -150,7 +150,8 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
       <div className="relative mt-5 flex flex-wrap items-start justify-between gap-x-8 gap-y-4 lg:items-end">
         {/* Un seul formulaire : replié derrière une case à cocher sur téléphone, toujours visible sur grand écran. */}
         <div className="min-w-0">
-          <input id="filtres" type="checkbox" defaultChecked={hasFilters} className="peer sr-only" />
+          {/* Sur grand écran, les filtres sont toujours dépliés : la case n'y sert à rien et disparaît (ni focus, ni lecture). */}
+          <input id="filtres" type="checkbox" defaultChecked={hasFilters} className="peer sr-only lg:hidden" />
           <label htmlFor="filtres" className="flex h-10 w-fit cursor-pointer items-center gap-2 rounded-md border border-input px-4 text-sm font-medium peer-checked:bg-muted peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring lg:hidden">
             <SlidersHorizontal className="size-4" aria-hidden />
             {t("filters")}

@@ -2,13 +2,13 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 15/11/2026** : phases 0 à 5 faites et committées. Phase 6 commencée puis interrompue à la demande du propriétaire (quota atteint) : la 6.1 est à moitié faite, la revue de sécurité de la 6.3 est faite mais rien n'est corrigé. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité) faite et committée ; 6.3 en cours chez `developpeur`. La revue de sécurité de la 6.3 est faite, ses corrections et la limitation de débit restent à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : reprendre la 6.1 là où elle s'est arrêtée (liste « Pour finir la 6.1 » au journal du 15/11/2026), puis la 6.3 avec les constats de la revue (même journal). **Attention : `npm run test:e2e` est rouge tant que la 6.1 n'est pas finie** (les trois nouveaux fichiers de tests trouvent des défauts pas encore corrigés ; les 56 parcours d'avant ne sont pas touchés). Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : tâche 6.3 (constats de la revue au journal du 15/11/2026), puis 6.2, 6.4, 6.5, 6.6. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
-- **Pousser vers GitHub** : les commits de la phase 5 et de la 6.1 en cours sont locaux. À pousser quand le propriétaire le demande (un envoi déclenche un déploiement Vercel).
+- **Pousser vers GitHub** : les commits de la phase 5 et de la phase 6 sont locaux. À pousser quand le propriétaire le demande (un envoi déclenche un déploiement Vercel).
 - **Heures du back-office** : les heures affichées (liste et détail des commandes, tableau de bord) et le découpage par jour du tableau de bord suivent le fuseau du serveur, pas celui de Madagascar. Sur un serveur en UTC (Vercel), elles ont 3 h de retard, et entre minuit et 3 h « aujourd'hui » est encore la veille. Défaut antérieur à la phase 5, non corrigé : la correction touche `src/lib/format.ts`, utilisé aussi par la boutique. Les dates de livraison promises ne sont pas concernées. À faire en tâche à part.
 - **Malgache du back-office** : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
 - **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
@@ -39,6 +39,8 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 14/11/2026 | Plafond de 20 000 000 Ar par montant validé par le propriétaire. |
 | 14/11/2026 | Passage à Next 16 et React 19.3 : seule façon trouvée d'éliminer les erreurs d'hydratation intermittentes (mesuré). |
 | 15/11/2026 | Le propriétaire demande de pousser sur GitHub (`AnjahNyOny/alarobia`) pour voir le site en ligne sur Vercel. Remplace « sans pousser » de D1. La phase 4 est committée en un seul commit. |
+| 16/11/2026 | Le propriétaire autorise l'architecte à committer chaque tâche finie (vérifiée par `verificateur`), sans pousser. |
+| 16/11/2026 | Session principale passée de Fable 5.2 à Opus 5.5 (quota). Le propriétaire autorise l'architecte à modifier lui-même le code (règle de délégation assouplie dans `CLAUDE.md`). |
 
 ## Avancement
 
@@ -95,7 +97,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 5.4 Interface en trois langues, aux couleurs d'Alarobia. Sélecteur de langue dans la barre latérale et le menu mobile, logo « Ar », tableau de bord, listes (produits, commandes, clients, catégories, codes promo, avis), composants partagés et actions traduits en fr, en, mg : plus aucun texte visible en dur dans le back-office. Vérifié : 258 tests unitaires, 56 parcours navigateur, lint, types et compilation propres ; les 10 pages du back-office dans les 3 langues à 320 px sans débordement ni erreur ; captures à 320 et 1440 px relues
 
 ### Phase 6 — Qualité
-- [ ] 6.1 Accessibilité — **en cours** : tests écrits (`e2e/accessibilite.spec.ts`, `e2e/mobile-accessibilite.spec.ts`, `e2e/clavier.spec.ts`, aides dans `e2e/helpers.ts`), un seul lancé, aucun correctif appliqué. Voir le journal du 15/11/2026.
+- [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
 - [ ] 6.2 Performance sur téléphone modeste
 - [ ] 6.3 Sécurité et limitation de débit — revue faite (journal du 15/11/2026), corrections et limitation de débit à faire
 - [ ] 6.4 Référencement multilingue
@@ -287,3 +289,17 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - Rappel : `npm run db:seed` crée `admin@alarobia.example` / `admin1234` ; ne jamais le lancer sur la base de production.
 - Relevé pour la 6.4 : le plan du site déclare déjà les trois langues et la fiche produit a ses données structurées ; manquent `alternates` (adresse canonique et `hreflang`) dans les métadonnées des pages, l'image de partage et l'icône Apple (restées de la 2.2).
 - `git remote set-head origin main` lancé une fois : la référence locale `origin/HEAD` manquait et le skill `/security-review` en a besoin.
+
+### 16/11/2026
+- Tâche 6.1 faite : `developpeur` pour les correctifs, `executant` pour une retouche de test, `developpeur` pour un bug de focus, deux passages de `verificateur`. Défauts trouvés par les tests et corrigés :
+  - **Sélecteur de langue compact** : affichait « fr » et s'annonçait « Français » ; le code visible est masqué aux lecteurs d'écran, le nom complet est en `sr-only`.
+  - **Contrastes** : nom du dimanche dans la frise (3,64:1, opacité retirée), badge « Payée » du back-office (4,43:1, fond passé de 12 % à 10 %). Aucun jeton de la palette n'a changé.
+  - **Structure** : case des filtres du catalogue encore focalisable sur grand écran ; lien image des lignes de panier sans nom (sorti de la tabulation, le nom du produit est un lien juste à côté) ; listes de définitions invalides (totaux du panier et de la commande, panneau de paiement Mobile Money) ; frise de la semaine, qui défile sur téléphone, rendue focalisable.
+  - **Clavier** : lien d'évitement ajouté au back-office, et celui de la boutique amène maintenant vraiment le focus dans le contenu (`<main id="contenu" tabIndex={-1}>`) ; après un refus de formulaire le focus va sur le premier champ en erreur, sinon sur le message (`<Form>`) ; après « Paiement reçu » il va sur la confirmation ; les boutons d'envoi gardent le focus pendant l'envoi (`focusableWhenDisabled`, et `<Form>` ignore un second envoi) ; anneau de focus sur le champ du code promo et celui de la lettre d'information ; erreurs reliées à leur groupe (note d'un avis, zone, paiement).
+  - **Textes** : « Close » des tiroirs et fenêtres et l'étiquette des notifications traduits (`common.close`, `common.notifications`).
+- **Bug trouvé par les parcours clavier, antérieur à la 6.1** : après un ajout au panier, le tiroir s'ouvrait un rendu trop tôt, sur le panier d'avant l'ajout (panier vide visible un instant) ; une fois sur six environ, le focus restait derrière le tiroir. Cause : `setOpen(true)` appelé après un `await`, donc hors de la transition. Correctif : `start(() => setOpen(true))` dans `add-to-cart.tsx` et `controls.tsx`. Prouvé par une sonde horodatée (4 échecs sur 20 avant, 0 sur 40 après) ; deux parcours contrôlent maintenant le contenu du tiroir à l'instant où il s'ouvre. La première hypothèse de l'architecte (test trop pressé) était fausse : une attente d'une seconde n'y changeait rien.
+- À savoir pour les tests : les attentes de focus de `clavier.spec.ts` sont bornées à 2 s. Machine chargée, c'est la lecture du focus par Playwright qui tarde (un échec isolé sur 60 passages à 500 ms, focus pourtant en place dans la trace), notamment pendant la rafale de préchargements que Next relance après un ajout au panier. `admin.spec.ts` supprime des zones de livraison sans les recréer : un parcours lancé après lui ne doit pas supposer les zones du seed.
+- Choix retenus, à corriger si le propriétaire voit les choses autrement : le lien image d'une ligne de panier n'est plus atteignable au clavier (doublon du nom) ; le message d'erreur et la confirmation de paiement montrent le contour de focus quand ils le reçoivent.
+- Relevé, non traité : la frise de la semaine est un arrêt de tabulation aussi sur ordinateur, où elle ne défile pas (il faudrait un composant client pour ne la rendre focalisable que si elle déborde). Pas de test avec un vrai lecteur d'écran.
+- Malgache à relire, termes nouveaux : « Akatony » (fermer), « Fampandrenesana » (notifications).
+- État des vérifications : 258 tests unitaires, 79 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.

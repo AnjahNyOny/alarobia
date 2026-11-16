@@ -34,11 +34,16 @@ export function AddToCart({ productId, stock, children }: { productId: string; s
         size="xl"
         className="flex-1"
         disabled={pending}
+        // Le bouton garde le focus pendant l'ajout : le tiroir le lui rend en se fermant, et en cas d'erreur il reste dessus.
+        focusableWhenDisabled
         onClick={() =>
           start(async () => {
             const res = await addToCart(productId, quantity);
             if (res.error) toast.error(res.error);
-            else setOpen(true);
+            // Après un `await`, React ne compte plus la mise à jour dans la transition : sans `start`, le tiroir s'ouvrirait
+            // seul, sur le panier d'avant l'ajout, puis les lignes arriveraient un rendu plus tard. Base UI viserait alors
+            // pour le focus un élément de l'ancien contenu, déjà remplacé, et le focus resterait derrière le tiroir.
+            else start(() => setOpen(true));
           })
         }
       >

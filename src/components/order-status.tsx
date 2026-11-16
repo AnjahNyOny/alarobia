@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 const tone: Record<string, string> = {
   PENDING: "bg-warning/12 text-warning",
-  PAID: "bg-chart-3/12 text-chart-3",
+  // Fond à 10 % : à 12 %, le bleu chart-3 tombe à 4,43:1 (sous le seuil AA de 4,5:1).
+  PAID: "bg-chart-3/10 text-chart-3",
   SHIPPED: "bg-brand/12 text-brand",
   DELIVERED: "bg-success/12 text-success",
   CANCELLED: "bg-muted text-muted-foreground",

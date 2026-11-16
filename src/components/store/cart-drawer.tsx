@@ -50,7 +50,13 @@ export function CartDrawer({
   const locale = useLocale();
   const price = (cents: number) => formatPrice(cents, currency, locale);
   const remaining = freeShippingThresholdCents - subtotalCents;
-  const close = () => setOpen(false);
+  // Un lien du tiroir change de page : le focus part du contenu de la nouvelle page. Sinon il resterait dans le tiroir
+  // qui se referme, puis retomberait sur la page (le bouton « Ajouter au panier » qui l'a ouvert n'existe plus).
+  // Base UI ne rend pas le focus quand on l'a déjà placé ailleurs.
+  const close = () => {
+    document.getElementById("contenu")?.focus({ preventScroll: true });
+    setOpen(false);
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -74,7 +80,8 @@ export function CartDrawer({
             <ul className="flex-1 divide-y overflow-y-auto px-5">
               {lines.map((line) => (
                 <li key={line.key} className="flex gap-4 py-4">
-                  <Link href={`/products/${line.slug}`} onClick={close} className="relative size-20 shrink-0 overflow-hidden rounded-sm bg-stone">
+                  {/* Doublon du lien sur le nom, juste à côté : réservé à la souris, hors tabulation et hors lecture. */}
+                  <Link href={`/products/${line.slug}`} onClick={close} tabIndex={-1} aria-hidden className="relative size-20 shrink-0 overflow-hidden rounded-sm bg-stone">
                     {line.image && <Image src={line.image} alt="" fill sizes="80px" className="object-cover" />}
                   </Link>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2">

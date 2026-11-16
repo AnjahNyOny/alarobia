@@ -4,7 +4,9 @@
     "copy": "Copier",
     "copied": "Copié",
     "decrease": "Diminuer la quantité",
-    "increase": "Augmenter la quantité"
+    "increase": "Augmenter la quantité",
+    "close": "Fermer",
+    "notifications": "Notifications"
   },
   "meta": {
     "title": "Objets du quotidien, livrés à Madagascar"

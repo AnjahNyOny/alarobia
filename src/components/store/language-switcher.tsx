@@ -27,15 +27,22 @@ export function LanguageSwitcher({ compact = false, className, listClassName, li
               hrefLang={locale}
               lang={locale}
               aria-current={locale === current ? "true" : undefined}
-              aria-label={compact ? localeNames[locale] : undefined}
               className={cn(
                 "rounded-md transition-colors",
-                compact ? "grid h-8 min-w-8 place-items-center px-1.5 text-xs font-medium uppercase" : "text-sm",
+                compact ? "relative grid h-8 min-w-8 place-items-center px-1.5 text-xs font-medium uppercase" : "text-sm",
                 locale === current ? (compact ? "bg-muted text-foreground" : "font-medium underline underline-offset-4") : "opacity-70 hover:opacity-100",
                 linkClassName
               )}
             >
-              {compact ? locale : localeNames[locale]}
+              {/* Code affiché, nom complet lu : un aria-label masquerait le texte visible (critère 2.5.3). */}
+              {compact ? (
+                <>
+                  <span aria-hidden>{locale}</span>
+                  <span className="sr-only">{localeNames[locale]}</span>
+                </>
+              ) : (
+                localeNames[locale]
+              )}
             </Link>
           </li>
         ))}

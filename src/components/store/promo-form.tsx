@@ -37,7 +37,7 @@ export function PromoForm({ applied }: { applied: { code: string; label: string 
           autoCapitalize="characters"
           aria-invalid={state.error ? true : undefined}
           aria-describedby={state.error ? "promo-error" : undefined}
-          className="h-10 min-w-0 flex-1 rounded-md border border-input bg-card px-3 text-sm uppercase outline-none placeholder:normal-case focus-visible:border-ring aria-invalid:border-destructive"
+          className="h-10 min-w-0 flex-1 rounded-md border border-input bg-card px-3 text-sm uppercase outline-none placeholder:normal-case focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 aria-invalid:border-destructive"
         />
         <SubmitButton variant="outline">{t("promoApply")}</SubmitButton>
       </div>

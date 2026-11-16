@@ -75,6 +75,24 @@ export function Form({
 }: Omit<React.ComponentProps<"form">, "action" | "onSubmit"> & { action: (formData: FormData) => void; draftKey?: string }) {
   const [pending, start] = useTransition();
   const inner = useRef<HTMLFormElement>(null);
+  const sent = useRef(false);
+
+  // Après une réponse en erreur, le focus va sur le premier champ refusé (visible : un onglet de langue fermé
+  // ne le reçoit pas), sinon sur le message d'erreur général. Sans cela, il reste sur le bouton désactivé ou retombe sur la page.
+  useEffect(() => {
+    if (pending) {
+      sent.current = true;
+      return;
+    }
+    const form = inner.current;
+    if (!sent.current || !form) return;
+    sent.current = false;
+    const candidates = [...form.querySelectorAll<HTMLElement>('[aria-invalid="true"]'), ...form.querySelectorAll<HTMLElement>('[role="alert"][tabindex="-1"]')];
+    for (const el of candidates) {
+      el.focus();
+      if (document.activeElement === el) return;
+    }
+  }, [pending]);
 
   useEffect(() => {
     const form = inner.current;
@@ -117,6 +135,8 @@ export function Form({
       onInput={saveDraft}
       onSubmit={(e) => {
         e.preventDefault();
+        // Le bouton reste focalisable pendant l'envoi (aria-disabled) : Entrée dans un champ ne doit pas renvoyer.
+        if (pending) return;
         const data = new FormData(e.currentTarget);
         start(() => action(data));
       }}
@@ -140,7 +160,8 @@ export function SubmitButton({
   const status = useFormStatus();
   const pending = useContext(PendingContext) || status.pending;
   return (
-    <Button type="submit" size={size} variant={variant} disabled={pending} className={className}>
+    // focusableWhenDisabled : pendant l'envoi, le bouton garde le focus au lieu de le laisser retomber sur la page.
+    <Button type="submit" size={size} variant={variant} disabled={pending} focusableWhenDisabled className={className}>
       {pending && <Loader2 className="animate-spin" aria-hidden />}
       {children}
     </Button>
@@ -150,7 +171,8 @@ export function SubmitButton({
 export function FormAlert({ state }: { state: { error?: string; ok?: boolean; message?: string } }) {
   if (state.error)
     return (
-      <p role="alert" className="rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
+      // tabIndex -1 : <Form> y place le focus quand aucun champ n'est en cause.
+      <p role="alert" tabIndex={-1} className="rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-sm text-destructive">
         {state.error}
       </p>
     );

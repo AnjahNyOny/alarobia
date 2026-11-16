@@ -23,24 +23,27 @@ export function WeekStrip({ today, delivery, zone }: { today: Date; delivery: Da
         </p>
       </div>
       {/* Sur petit écran, la frise défile dans son cadre : les noms des jours restent entiers. */}
-      <div className="mt-5 overflow-x-auto pb-1">
+      {/* Focalisable pour défiler au clavier quand la frise déborde (téléphone). */}
+      <div tabIndex={0} role="group" aria-labelledby="frise-titre" className="mt-5 overflow-x-auto pb-1">
         <ol className="grid min-w-[660px] grid-cols-7 border-y">
           {days.map((day) => {
             const isToday = sameDay(day, today);
             const isDelivery = sameDay(day, delivery);
             const isSunday = day.getDay() === 0;
             const isBrandDay = day.getDay() === 3;
+            // Le dimanche est déjà en gris (pas de livraison) : une opacité en plus passerait sous 4,5:1.
+            const restDay = isSunday && !isDelivery && !isToday;
             return (
               <li
                 key={day.toISOString()}
-                className={cn("relative flex flex-col justify-between border-l px-3 py-3 first:border-l-0", isDelivery && "bg-primary text-primary-foreground", isToday && !isDelivery && "bg-highlight text-highlight-foreground", isSunday && !isDelivery && !isToday && "text-muted-foreground")}
+                className={cn("relative flex flex-col justify-between border-l px-3 py-3 first:border-l-0", isDelivery && "bg-primary text-primary-foreground", isToday && !isDelivery && "bg-highlight text-highlight-foreground", restDay && "text-muted-foreground")}
               >
                 <div>
                   <p lang="mg" className="display-sm flex items-center gap-1.5 text-lg">
                     {weekdayName(day, "mg")}
                     {isBrandDay && <LogoMark className="h-4" />}
                   </p>
-                  {locale !== "mg" && <p className={cn("text-xs capitalize", isDelivery ? "text-primary-foreground/75" : "opacity-75")}>{weekdayName(day, locale)}</p>}
+                  {locale !== "mg" && <p className={cn("text-xs capitalize", isDelivery ? "text-primary-foreground/75" : !restDay && "opacity-75")}>{weekdayName(day, locale)}</p>}
                 </div>
                 {/* Le libellé passe sous le chiffre : en malgache il est trop long pour tenir à côté. */}
                 <div className="mt-3">

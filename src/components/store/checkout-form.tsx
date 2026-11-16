@@ -106,21 +106,21 @@ export function CheckoutForm({
         </Step>
 
         <Step n={3} title={t("legend")}>
-          <fieldset className="grid min-w-0 gap-3">
+          <fieldset className="grid min-w-0 gap-3" aria-describedby={e.shippingZoneId ? "zone-erreur" : undefined}>
             <legend className="sr-only">{t("legend")}</legend>
             {zones.map((zone) => (
               <Choice key={zone.id} name="shippingZoneId" value={zone.id} checked={zoneId === zone.id} onChange={setZoneId} title={zone.name} description={zone.detail} aside={zone.costCents === 0 ? t("free") : formatPrice(zone.costCents, currency, locale)} />
             ))}
           </fieldset>
           {e.shippingZoneId && (
-            <p role="alert" className="mt-2 text-sm text-destructive">
+            <p id="zone-erreur" role="alert" className="mt-2 text-sm text-destructive">
               {e.shippingZoneId}
             </p>
           )}
         </Step>
 
         <Step n={4} title={tp("legend")}>
-          <fieldset className="grid min-w-0 gap-3">
+          <fieldset className="grid min-w-0 gap-3" aria-describedby={e.paymentMethod ? "paiement-erreur" : undefined}>
             <legend className="sr-only">{tp("legend")}</legend>
             {paymentMethods.map((method) =>
               isMobileMoney(method) ? (
@@ -131,7 +131,7 @@ export function CheckoutForm({
             )}
           </fieldset>
           {e.paymentMethod && (
-            <p role="alert" className="mt-2 text-sm text-destructive">
+            <p id="paiement-erreur" role="alert" className="mt-2 text-sm text-destructive">
               {e.paymentMethod}
             </p>
           )}
@@ -153,8 +153,8 @@ export function CheckoutForm({
               {formatPrice(baseCents + shippingCents, currency, locale)}
             </dd>
           </div>
-          <p className="text-[0.8125rem] text-muted-foreground">{tk("taxes")}</p>
         </dl>
+        <p className="mt-2.5 text-[0.8125rem] text-muted-foreground">{tk("taxes")}</p>
         <div className="mt-5 grid gap-3">
           <FormAlert state={state} />
           <SubmitButton size="xl" className="w-full">

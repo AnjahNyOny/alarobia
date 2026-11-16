@@ -42,7 +42,8 @@ export default async function CartPage() {
         <ul className="divide-y border-y">
           {cart.lines.map((line) => (
             <li key={line.key} className="flex gap-4 py-5 sm:gap-6">
-              <Link href={`/products/${line.product.slug}`} className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-stone sm:size-28">
+              {/* Doublon du lien sur le nom, juste à côté : réservé à la souris, hors tabulation et hors lecture. */}
+              <Link href={`/products/${line.product.slug}`} tabIndex={-1} aria-hidden className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-stone sm:size-28">
                 {line.image && <Image src={line.image} alt="" fill sizes="112px" className="object-cover" />}
               </Link>
               <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">

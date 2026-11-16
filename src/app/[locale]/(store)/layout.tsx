@@ -8,7 +8,8 @@ export default async function StoreLayout({ children }: { children: React.ReactN
     <CartUIProvider>
       <div className="flex min-h-dvh flex-col">
         <Header {...shell} />
-        <main id="contenu" className="flex-1">
+        {/* tabIndex -1 : le lien d'évitement y amène vraiment le focus (la tabulation suivante part du contenu). */}
+        <main id="contenu" tabIndex={-1} className="flex-1 outline-none">
           {children}
         </main>
         <Footer settings={shell.settings} categories={shell.categories} />

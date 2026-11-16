@@ -59,7 +59,8 @@ export async function expectAccessible(page: Page, where: string, { rules }: { r
 /**
  * Description de l'indicateur de focus de l'élément actif, ou `null` s'il n'en a pas.
  * Cherche un contour ou une ombre non nuls sur l'élément, puis là où les composants le dessinent
- * quand le champ lui-même est caché : le libellé parent (`has-focus-visible`) ou l'élément suivant (`peer-focus-visible`).
+ * quand le champ lui-même est caché : le libellé parent (`has-focus-visible`) ou l'élément suivant (`peer-focus-visible`),
+ * enfin sur les pseudo-éléments de l'élément.
  */
 export async function focusIndicator(page: Page) {
   return page.evaluate(() => {
@@ -68,8 +69,9 @@ export async function focusIndicator(page: Page) {
     const where = `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""} « ${(el.getAttribute("aria-label") ?? el.textContent ?? "").trim().slice(0, 40)} »`;
     const transparent = (color: string) => color === "transparent" || /rgba?\([^)]*,\s*0\)$/.test(color.replace(/\s+/g, " ")) || /\/\s*0\)$/.test(color);
     const shadows = (value: string) => (value === "none" ? [] : value.split(/,(?![^(]*\))/));
-    const drawn = (node: Element) => {
-      const s = getComputedStyle(node);
+    const drawn = (node: Element, pseudo?: string) => {
+      const s = getComputedStyle(node, pseudo);
+      if (pseudo && s.content === "none") return null;
       if (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0 && !transparent(s.outlineColor)) return `outline ${s.outlineWidth} ${s.outlineColor}`;
       for (const shadow of shadows(s.boxShadow)) {
         const color = shadow.match(/(rgba?|oklch|oklab|lab|color)\([^)]*\)|#[0-9a-f]+/i)?.[0] ?? "";
@@ -83,12 +85,21 @@ export async function focusIndicator(page: Page) {
       const found = drawn(node);
       if (found) return { where, indicator: found, visible: el.matches(":focus-visible") };
     }
+    // Lien qui couvre toute une carte : le contour est dessiné sur son pseudo-élément (`focus-visible:after:outline-2`).
+    for (const pseudo of ["::after", "::before"]) {
+      const found = drawn(el, pseudo);
+      if (found) return { where, indicator: `${pseudo} ${found}`, visible: el.matches(":focus-visible") };
+    }
     return { where, indicator: null, visible: el.matches(":focus-visible") };
   });
 }
 
-/** L'élément actif est focalisé au clavier et son focus se voit. */
+/**
+ * L'élément actif est focalisé au clavier et son focus se voit. On mesure une fois les transitions finies :
+ * les boutons (`transition-all`) et les champs font apparaître leur anneau en 150 ms, mesuré à 0 px juste après Tab.
+ */
 export async function expectFocusShown(page: Page, step: string) {
+  await settle(page);
   const f = await focusIndicator(page);
   expect.soft(f.indicator, `${step} : indicateur de focus sur ${f.where}`).not.toBeNull();
 }

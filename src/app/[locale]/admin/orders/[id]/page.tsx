@@ -187,7 +187,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 </div>
               )}
               {payment === "received" && (
-                <p className="text-muted-foreground">
+                // Reçoit le focus après « Paiement reçu » (le bouton a disparu) : c'est la confirmation lue.
+                <p id="paiement-etat" tabIndex={-1} className="text-muted-foreground">
                   {isMobileMoney(order.paymentMethod)
                     ? order.paidAt ? t("receivedMobile", { date: formatDateTime(order.paidAt, locale) }) : t("receivedMobileNoDate")
                     : order.paidAt ? t("receivedCod", { date: formatDateTime(order.paidAt, locale) }) : t("receivedCodNoDate")}
@@ -208,6 +209,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   danger={false}
                 >
                   {t("markPaid")}
+                  focusAfter="paiement-etat"
                 </ConfirmAction>
               )}
             </div>

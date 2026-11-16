@@ -31,12 +31,13 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   // Les textes du back-office restent sur le serveur : le layout de /admin les transmet lui-même.
-  const messages = storeMessages(await getMessages());
+  const [messages, t] = await Promise.all([getMessages().then(storeMessages), getTranslations("common")]);
   return (
     <html lang={locale} className={archivo.variable}>
       <body className="antialiased">
         <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
-        <Toaster />
+        {/* Hors du fournisseur de messages : l'étiquette de la zone des notifications arrive traduite. */}
+        <Toaster containerAriaLabel={t("notifications")} />
       </body>
     </html>
   );

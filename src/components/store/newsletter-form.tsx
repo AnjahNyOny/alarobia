@@ -25,12 +25,13 @@ export function NewsletterForm() {
           placeholder="rakoto@exemple.mg"
           aria-label={t("newsletterLabel")}
           aria-invalid={state.error ? true : undefined}
-          className="h-10 min-w-0 flex-1 basis-40 rounded-md border border-primary-foreground/35 bg-transparent px-3 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/55 focus-visible:border-primary-foreground"
+          aria-describedby={state.error ? "lettre-erreur" : undefined}
+          className="h-10 min-w-0 flex-1 basis-40 rounded-md border border-primary-foreground/35 bg-transparent px-3 text-sm text-primary-foreground outline-none placeholder:text-primary-foreground/55 focus-visible:border-primary-foreground focus-visible:ring-3 focus-visible:ring-primary-foreground/40"
         />
         <SubmitButton variant="secondary">{t("subscribe")}</SubmitButton>
       </div>
       {state.error && (
-        <p role="alert" className="text-sm">
+        <p id="lettre-erreur" role="alert" className="text-sm">
           {state.error}
         </p>
       )}

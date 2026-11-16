@@ -138,7 +138,8 @@ export function BuyBox({ productId, stock, surcharge, total, children }: { produ
           print,
         });
         if (res.error) toast.error(res.error);
-        else setOpen(true);
+        // Dans la transition, comme dans AddToCart : le tiroir s'ouvre dans le même rendu que le panier mis à jour.
+        else start(() => setOpen(true));
       } catch {
         toast.error(t("upload.network"));
       }
@@ -250,7 +251,8 @@ export function BuyBox({ productId, stock, surcharge, total, children }: { produ
         ) : (
           <div className="flex flex-wrap gap-3">
             <Stepper value={quantity} max={Math.min(stock, 10)} onChange={setQuantity} disabled={pending} label={tp("quantity")} />
-            <Button size="xl" className="flex-1" disabled={pending || sending} onClick={add}>
+            {/* focusableWhenDisabled : comme le bouton d'ajout de la fiche, il garde le focus pendant l'envoi. */}
+            <Button size="xl" className="flex-1" disabled={pending || sending} focusableWhenDisabled onClick={add}>
               {pending && <Loader2 className="animate-spin" aria-hidden />}
               {tp("add")}
             </Button>
