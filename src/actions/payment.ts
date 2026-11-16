@@ -6,6 +6,10 @@ import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import type { FormState } from "@/lib/form";
 import { isMobileMoney, normalizePaymentReference } from "@/lib/payment";
+import { createRateLimiter, withRateLimit } from "@/lib/rate-limit";
+
+// Dix déclarations par commande et par dizaine de minutes : de quoi corriger une référence mal recopiée.
+const declarationsByOrder = createRateLimiter({ limit: 10, windowMs: 10 * 60_000 });
 
 /**
  * Le client indique la référence de sa transaction Mobile Money. La commande reste « en attente » :
@@ -22,8 +26,13 @@ export async function declarePayment(orderId: string, _: FormState, formData: Fo
   if (!reference) return { error: t("formInvalid"), fieldErrors: { reference: t("referenceInvalid") } };
 
   // Condition sur le statut dans l'écriture elle-même : une commande annulée entre-temps n'est pas modifiée.
-  const { count } = await db.order.updateMany({ where: { id: orderId, status: "PENDING" }, data: { paymentReference: reference, paymentDeclaredAt: new Date() } });
-  if (count === 0) return { error: t("paymentClosed") };
+  const outcome = await withRateLimit(
+    [[declarationsByOrder, orderId]],
+    async () => (await db.order.updateMany({ where: { id: orderId, status: "PENDING" }, data: { paymentReference: reference, paymentDeclaredAt: new Date() } })).count,
+    (count) => count > 0,
+  );
+  if (outcome.limited) return { error: t("formInvalid"), fieldErrors: { reference: t("rateLimited", { minutes: outcome.minutes }) } };
+  if (outcome.value === 0) return { error: t("paymentClosed") };
   revalidatePath("/", "layout");
   return { ok: true, message: n("referenceSaved") };
 }

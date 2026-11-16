@@ -29,6 +29,8 @@
     "promoExpired": "Lany daty io kaody io.",
     "promoExhausted": "Tratra ny fetra fampiasana io kaody io.",
     "promoMinimum": "Azo ampiasaina io kaody io raha mividy {amount} farafahakeliny.",
+    "promoNoLongerValid": "Tsy manan-kery intsony ny kaody {code}, ka tsy lasa ny komandinao. Nesorinay tao anaty harona izy: jereo ny fitambarany vaovao, dia avereno ny komandy.",
+    "rateLimited": "Be loatra ny fanandramana tao anatin'ny fotoana fohy. Andramo indray afaka {minutes, plural, other {# minitra}}.",
     "cartEmpty": "Foana ny haronao.",
     "stockInsufficient": "Tsy ampy ny tahiry ho an'ny « {name} ». Amboary ny haronao.",
     "justSold": "Vao lafo ny « {name} ». Amboary ny haronao.",

@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
-import { checkUpload, clientIp, createRateLimiter, customFileName, MAX_UPLOAD_BYTES, type UploadError } from "@/lib/upload";
+import { clientIp, createRateLimiter } from "@/lib/rate-limit";
+import { checkUpload, customFileName, MAX_UPLOAD_BYTES, type UploadError } from "@/lib/upload";
 import { uploadDir, uploadPath } from "@/lib/upload-dir";
 
 /**
@@ -11,7 +12,7 @@ import { uploadDir, uploadPath } from "@/lib/upload-dir";
 
 // Soixante envois par adresse et par dizaine de minutes. Chaque ajout au panier en fait deux (aperçu et fichier d'impression),
 // et les opérateurs mobiles font sortir beaucoup de clients par la même adresse : une limite plus basse gênerait des acheteurs.
-// Au pire, une adresse remplit 300 Mo en dix minutes ; le nettoyage hebdomadaire les reprend. À ajuster avec le trafic réel (phase 6.3).
+// Au pire, une adresse remplit 300 Mo en dix minutes ; le nettoyage hebdomadaire les reprend. À ajuster avec le trafic réel.
 const allow = createRateLimiter({ limit: 60, windowMs: 10 * 60_000 });
 
 const STATUS: Record<UploadError, number> = { missing: 400, tooLarge: 413, heic: 415, type: 415, dimensions: 422, rate: 429 };

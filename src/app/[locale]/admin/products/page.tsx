@@ -15,6 +15,7 @@ import { formatPrice } from "@/lib/format";
 import { PRODUCT_FIELDS, untranslatedFields } from "@/lib/localize";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.products");
@@ -25,6 +26,7 @@ const PER_PAGE = 12;
 const tone: Record<string, string> = { ACTIVE: "bg-success/12 text-success", DRAFT: "bg-warning/12 text-warning", ARCHIVED: "bg-muted text-muted-foreground" };
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; category?: string; page?: string }> }) {
+  await requireAdmin();
   const sp = await searchParams;
   const status = PRODUCT_STATUSES.find((s) => s === sp.status);
   const q = sp.q?.trim() ?? "";

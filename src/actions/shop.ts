@@ -1,12 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import { invalid, type FormState } from "@/lib/form";
 import { getTranslations } from "next-intl/server";
 import { makeSchemas } from "@/lib/schemas";
+import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
+
+// Dix inscriptions à la lettre d'information par adresse et par heure.
+const subscriptionsByIp = createRateLimiter({ limit: 10, windowMs: 60 * 60_000 });
 
 export async function toggleWishlist(productId: string): Promise<FormState & { active?: boolean }> {
   const [user, t, n] = await Promise.all([getUser(), getTranslations("errors"), getTranslations("notices")]);
@@ -49,6 +54,11 @@ export async function subscribeNewsletter(_: FormState, formData: FormData): Pro
   const [t, n] = await Promise.all([getTranslations("errors"), getTranslations("notices")]);
   const parsed = makeSchemas(t).email.safeParse(formData.get("email"));
   if (!parsed.success) return { error: t("emailInvalid") };
-  await db.newsletterSubscriber.upsert({ where: { email: parsed.data }, update: {}, create: { email: parsed.data } });
+  const outcome = await withRateLimit(
+    [[subscriptionsByIp, clientIp(await headers())]],
+    () => db.newsletterSubscriber.upsert({ where: { email: parsed.data }, update: {}, create: { email: parsed.data } }),
+    () => true,
+  );
+  if (outcome.limited) return { error: t("rateLimited", { minutes: outcome.minutes }) };
   return { ok: true, message: n("newsletterDone") };
 }

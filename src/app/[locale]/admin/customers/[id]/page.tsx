@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.customers");
@@ -17,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const [user, { currency }, t, locale] = await Promise.all([db.user.findUnique({ where: { id }, include: { address: true, orders: { orderBy: { createdAt: "desc" } } } }), getSettings(), getTranslations("admin.customers"), getLocale()]);
   if (!user) notFound();

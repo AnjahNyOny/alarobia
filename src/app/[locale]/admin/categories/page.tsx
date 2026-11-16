@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { CATEGORY_FIELDS, untranslatedFields } from "@/lib/localize";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.categories");
@@ -17,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CategoriesPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+  await requireAdmin();
   const { edit } = await searchParams;
   const [categories, t, tc] = await Promise.all([
     db.category.findMany({ orderBy: { position: "asc" }, include: { _count: { select: { products: true } }, translations: true } }),

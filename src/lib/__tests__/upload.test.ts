@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CUSTOM_FILE } from "../customization";
-import { checkUpload, clientIp, createRateLimiter, customFileName, MAX_UPLOAD_BYTES, scaleToFit, sniffImage, sniffType } from "../upload";
+import { checkAdminUpload, checkUpload, customFileName, MAX_UPLOAD_BYTES, scaleToFit, sniffImage, sniffType } from "../upload";
 import { staleFiles } from "../../../scripts/nettoyer-personnalisations.mjs";
 
 const bytes = (...parts: (number[] | string)[]) => Uint8Array.from(parts.flatMap((p) => (typeof p === "string" ? Array.from(p, (c) => c.charCodeAt(0)) : p)));
@@ -18,6 +18,7 @@ const webpLossy = (width: number, height: number) => bytes("RIFF", le32(100), "W
 const webpLossless = (width: number, height: number) => bytes("RIFF", le32(100), "WEBP", "VP8L", le32(50), [0x2f], le32(((height - 1) << 14) | (width - 1)));
 const webpExtended = (width: number, height: number) => bytes("RIFF", le32(100), "WEBP", "VP8X", le32(10), [0x10, 0, 0, 0], le24(width - 1), le24(height - 1));
 const heic = bytes(be32(24), "ftyp", "heic", be32(0), "mif1heic");
+const avif = (brand = "avif") => bytes(be32(28), "ftyp", brand, be32(0), "mif1miafMA1B", be32(0));
 const svg = bytes('<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
 
 describe("sniffImage : type lu dans le contenu", () => {
@@ -99,6 +100,41 @@ describe("checkUpload", () => {
   });
 });
 
+describe("checkUpload : l'AVIF reste refusé au public", () => {
+  it("refuse une image AVIF envoyée par un visiteur", () => {
+    expect(checkUpload(avif())).toEqual({ ok: false, error: "type" });
+  });
+});
+
+describe("checkAdminUpload : photos de produits envoyées par le vendeur", () => {
+  it("accepte JPEG, PNG et WebP d'après leur contenu", () => {
+    expect(checkAdminUpload(jpeg(1200, 900))).toEqual({ ok: true, ext: "jpg" });
+    expect(checkAdminUpload(png(640, 480))).toEqual({ ok: true, ext: "png" });
+    expect(checkAdminUpload(webpLossy(320, 200))).toEqual({ ok: true, ext: "webp" });
+  });
+  it("accepte l'AVIF, image fixe ou animée", () => {
+    expect(checkAdminUpload(avif("avif"))).toEqual({ ok: true, ext: "avif" });
+    expect(checkAdminUpload(avif("avis"))).toEqual({ ok: true, ext: "avif" });
+  });
+  it("garde les grandes photos d'appareil : pas de plafond de 4096 px pour le vendeur", () => {
+    expect(checkAdminUpload(jpeg(6000, 4000))).toEqual({ ok: true, ext: "jpg" });
+  });
+  it("refuse un fichier texte renommé en .jpg, quel que soit le type annoncé", () => {
+    expect(checkAdminUpload(bytes("Ceci n'est pas une photo."))).toEqual({ ok: false, error: "type" });
+    expect(checkAdminUpload(svg)).toEqual({ ok: false, error: "type" });
+  });
+  it("ramène les autres refus aux codes que traduit le back-office", () => {
+    // `admin.photos.errors` ne connaît que missing, type et tooLarge (plus forbidden, décidé par la route).
+    expect(checkAdminUpload(heic)).toEqual({ ok: false, error: "type" });
+    expect(checkAdminUpload(png(0, 100))).toEqual({ ok: false, error: "type" });
+    expect(checkAdminUpload(bytes(be32(28), "ftyp", "isom"))).toEqual({ ok: false, error: "type" });
+    expect(checkAdminUpload(new Uint8Array())).toEqual({ ok: false, error: "missing" });
+    const heavy = new Uint8Array(MAX_UPLOAD_BYTES + 1);
+    heavy.set(jpeg(4000, 3000));
+    expect(checkAdminUpload(heavy)).toEqual({ ok: false, error: "tooLarge" });
+  });
+});
+
 describe("scaleToFit : réduction dans le navigateur avant l'envoi", () => {
   it("ramène une photo de téléphone à 2048 px de grand côté, sans la déformer", () => {
     expect(scaleToFit(4000, 3000)).toEqual({ width: 2048, height: 1536 });
@@ -121,48 +157,6 @@ describe("customFileName", () => {
   });
   it("ne donne jamais deux fois le même nom", () => {
     expect(customFileName("jpg")).not.toBe(customFileName("jpg"));
-  });
-});
-
-describe("createRateLimiter", () => {
-  it("laisse passer jusqu'à la limite, puis refuse", () => {
-    const allow = createRateLimiter({ limit: 3, windowMs: 60_000, now: () => 1000 });
-    expect([allow("a"), allow("a"), allow("a"), allow("a")]).toEqual([true, true, true, false]);
-  });
-  it("compte chaque adresse séparément", () => {
-    const allow = createRateLimiter({ limit: 1, windowMs: 60_000, now: () => 1000 });
-    expect(allow("a")).toBe(true);
-    expect(allow("b")).toBe(true);
-    expect(allow("a")).toBe(false);
-  });
-  it("laisse repasser une fois la fenêtre écoulée", () => {
-    let now = 0;
-    const allow = createRateLimiter({ limit: 2, windowMs: 1000, now: () => now });
-    allow("a");
-    now = 600;
-    allow("a");
-    expect(allow("a")).toBe(false);
-    now = 1001; // le premier envoi est sorti de la fenêtre, pas le second
-    expect(allow("a")).toBe(true);
-    expect(allow("a")).toBe(false);
-  });
-  it("oublie les adresses inactives au lieu de les garder en mémoire", () => {
-    let now = 0;
-    const allow = createRateLimiter({ limit: 2, windowMs: 1000, now: () => now });
-    for (let i = 0; i < 500; i++) allow(`ip-${i}`);
-    now = 5000;
-    allow("nouvelle");
-    expect(allow.size()).toBe(1);
-  });
-});
-
-describe("clientIp", () => {
-  it("prend la première adresse de x-forwarded-for", () => {
-    expect(clientIp(new Headers({ "x-forwarded-for": "197.149.1.20, 10.0.0.1" }))).toBe("197.149.1.20");
-  });
-  it("se rabat sur x-real-ip, puis sur une clé commune", () => {
-    expect(clientIp(new Headers({ "x-real-ip": "41.188.2.3" }))).toBe("41.188.2.3");
-    expect(clientIp(new Headers())).toBe("inconnue");
   });
 });
 

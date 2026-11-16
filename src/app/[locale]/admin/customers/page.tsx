@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.customers");
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const PER_PAGE = 15;
 
 export default async function CustomersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
+  await requireAdmin();
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);

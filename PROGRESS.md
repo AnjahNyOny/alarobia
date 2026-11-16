@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité) faite et committée ; 6.3 en cours chez `developpeur`. La revue de sécurité de la 6.3 est faite, ses corrections et la limitation de débit restent à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité) faite et committée ; 6.3 (sécurité) à moitié faite, interrompue le 16/11/2026 (quota du propriétaire) et committée en l'état : code serveur et tests unitaires faits, parcours navigateur pas encore écrits ni lancés. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : tâche 6.3 (constats de la revue au journal du 15/11/2026), puis 6.2, 6.4, 6.5, 6.6. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : finir la 6.3 (liste « Pour finir la 6.3 » au journal du 16/11/2026), puis 6.2, 6.4, 6.5, 6.6. **La suite navigateur n'a pas été lancée depuis la 6.3** : les nouvelles limites de débit peuvent faire échouer des parcours existants. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -99,7 +99,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 ### Phase 6 — Qualité
 - [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
 - [ ] 6.2 Performance sur téléphone modeste
-- [ ] 6.3 Sécurité et limitation de débit — revue faite (journal du 15/11/2026), corrections et limitation de débit à faire
+- [ ] 6.3 Sécurité et limitation de débit — **en cours** : revue faite (journal du 15/11/2026), code serveur et 297 tests unitaires faits, parcours navigateur à écrire et à lancer (journal du 16/11/2026)
 - [ ] 6.4 Référencement multilingue
 - [ ] 6.5 Parcours complets dans les trois langues
 - [ ] 6.6 Documentation à jour
@@ -303,3 +303,16 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - Relevé, non traité : la frise de la semaine est un arrêt de tabulation aussi sur ordinateur, où elle ne défile pas (il faudrait un composant client pour ne la rendre focalisable que si elle déborde). Pas de test avec un vrai lecteur d'écran.
 - Malgache à relire, termes nouveaux : « Akatony » (fermer), « Fampandrenesana » (notifications).
 - État des vérifications : 258 tests unitaires, 79 parcours navigateur, lint, types et compilation propres, aucun avertissement de compilation.
+- Session principale passée sur Opus 5.5 (quota Fable atteint). Le propriétaire autorise l'architecte à retoucher le code et à committer les tâches finies (`CLAUDE.md` mis à jour).
+- Tâche 6.3 commencée (`developpeur`), arrêtée à un point stable à la demande du propriétaire (quota), committée en l'état. Fait et couvert par des tests unitaires (lint, types, 297 tests verts) :
+  - **Code promo** : `consumePromo` (`src/lib/promo.ts`) consomme le code sous condition dans la transaction de commande (actif, non expiré, `usedCount < maxUses`) ; sinon la transaction est annulée, le stock rendu, le cookie du code retiré et la commande refusée (`errors.promoNoLongerValid`). Test de concurrence sur une base SQLite temporaire : vu rouge (deux commandes simultanées passaient), vert après.
+  - **Pages du back-office** : `await requireAdmin()` en tête des 13 pages ; un test lit leur source pour qu'une future page ne l'oublie pas.
+  - **Envoi de photos du back-office** : format lu dans le contenu (`checkAdminUpload`, `src/lib/upload.ts`), AVIF accepté pour l'admin seulement ; pas de plafond en pixels pour le vendeur (choix du sous-agent : les photos d'appareil dépassent souvent 4096 px).
+  - **Limitation de débit** : limiteur sorti dans `src/lib/rate-limit.ts` ; `clientIp` renvoie `null` si l'adresse est inconnue (plus de compteur « inconnue » partagé par tous) ; place réservée avant la tentative et rendue si elle ne compte pas (sans cela, une rafale passait avant le premier comptage : test vu rouge). Limites branchées : connexion (8 échecs par e-mail et 30 par adresse, par 15 min ; au-delà, mot de passe non comparé), inscription (10 par heure et par adresse), changement de mot de passe (5 échecs par 15 min et par compte), code promo (20 codes inconnus par 10 min), commande (40 par 10 min et par adresse), déclaration de paiement (10 par 10 min et par commande), lettre d'information (10 par heure). Message `errors.rateLimited`.
+- **Pour finir la 6.3**, dans l'ordre :
+  1. Écrire `e2e/securite.spec.ts` : 8 mots de passe faux sur un compte propre au test, la 9e tentative refusée même avec le bon mot de passe, un autre e-mail se connecte toujours ; un fichier texte renommé en `.jpg` refusé à l'envoi du back-office. Les voir rouges avec les versions d'avant de `auth.ts` et de la route d'envoi.
+  2. Compter, sur un passage de la suite navigateur, les connexions ratées, inscriptions et commandes face aux limites. `next start` remplit `x-forwarded-for` avec l'adresse du socket (lu dans le code de Next, à confirmer) : toute la suite partage une seule adresse. Si une limite fait échouer la suite, décision de l'architecte, pas du sous-agent.
+  3. Vérifier que chaque limiteur est une seule instance partagée entre les pages dans la compilation de production (la lettre d'information est envoyée depuis toutes les pages).
+  4. `npm run test:e2e` en entier, puis `verificateur`, relecture du diff par l'architecte, commit.
+- Relevé pendant la 6.3, non traité : au-delà d'une dizaine de transactions simultanées, Prisma + SQLite échoue (« Socket timeout » après 5 s), y compris `placeOrder`. Limite connue de SQLite, à revoir avec le passage à PostgreSQL (phase 7).
+- Malgache à relire, textes nouveaux : `errors.rateLimited` (« Be loatra ny fanandramana tao anatin'ny fotoana fohy… »), `errors.promoNoLongerValid` (« Tsy manan-kery intsony ny kaody… »).

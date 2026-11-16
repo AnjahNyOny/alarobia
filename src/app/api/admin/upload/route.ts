@@ -2,10 +2,15 @@ import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { checkAdminUpload, MAX_UPLOAD_BYTES, type AdminUploadError } from "@/lib/upload";
 import { uploadDir, uploadPath } from "@/lib/upload-dir";
 
-const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" };
-const MAX_BYTES = 5 * 1024 * 1024;
+const REFUSED: Record<AdminUploadError, { error: string; status: number }> = {
+  missing: { error: "Aucun fichier reçu.", status: 400 },
+  type: { error: "Format accepté : JPG, PNG, WebP ou AVIF.", status: 415 },
+  tooLarge: { error: "Image trop lourde (5 Mo maximum).", status: 413 },
+};
+const refuse = (code: AdminUploadError) => NextResponse.json({ error: REFUSED[code].error, code }, { status: REFUSED[code].status });
 
 /**
  * `code` est traduit par le navigateur (`admin.photos.errors`) ; `error` garde le texte français
@@ -16,15 +21,18 @@ export async function POST(req: Request) {
   if (user?.role !== "ADMIN") return NextResponse.json({ error: "Accès refusé.", code: "forbidden" }, { status: 403 });
 
   const file = (await req.formData()).get("file");
-  if (!(file instanceof File)) return NextResponse.json({ error: "Aucun fichier reçu.", code: "missing" }, { status: 400 });
-  const ext = TYPES[file.type];
-  if (!ext) return NextResponse.json({ error: "Format accepté : JPG, PNG, WebP ou AVIF.", code: "type" }, { status: 415 });
-  if (file.size > MAX_BYTES) return NextResponse.json({ error: "Image trop lourde (5 Mo maximum).", code: "tooLarge" }, { status: 413 });
+  if (!(file instanceof File)) return refuse("missing");
+  if (file.size > MAX_UPLOAD_BYTES) return refuse("tooLarge");
+
+  // Le type annoncé par le navigateur (`file.type`) ne sert pas : le format et l'extension viennent du contenu.
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const checked = checkAdminUpload(bytes);
+  if (!checked.ok) return refuse(checked.error);
 
   // Le nom est généré côté serveur : rien de ce que fournit le client n'atteint le système de fichiers.
-  const name = `${randomUUID()}.${ext}`;
+  const name = `${randomUUID()}.${checked.ext}`;
   const dir = uploadDir();
   await mkdir(dir, { recursive: true });
-  await writeFile(uploadPath(name), Buffer.from(await file.arrayBuffer()));
+  await writeFile(uploadPath(name), bytes);
   return NextResponse.json({ url: `/uploads/${name}` });
 }

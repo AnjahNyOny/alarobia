@@ -29,6 +29,8 @@
     "promoExpired": "This code has expired.",
     "promoExhausted": "This code has reached its usage limit.",
     "promoMinimum": "This code applies to orders of {amount} or more.",
+    "promoNoLongerValid": "The code {code} is no longer valid, so your order was not placed. We removed it from your cart: check the new total, then place your order again.",
+    "rateLimited": "Too many attempts in a short time. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
     "cartEmpty": "Your cart is empty.",
     "stockInsufficient": "Not enough stock for \"{name}\". Update your cart.",
     "justSold": "\"{name}\" has just sold out. Update your cart.",

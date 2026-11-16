@@ -9,6 +9,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.promotions");
@@ -16,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PromosPage() {
+  await requireAdmin();
   const [promos, { currency }, t, tc, locale] = await Promise.all([db.promoCode.findMany({ orderBy: { createdAt: "desc" } }), getSettings(), getTranslations("admin.promotions"), getTranslations("admin.common"), getLocale()]);
   const now = new Date();
   return (

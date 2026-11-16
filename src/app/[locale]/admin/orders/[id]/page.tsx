@@ -19,6 +19,7 @@ import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { itemFile, type ItemFile } from "@/lib/order-files";
 import { isMobileMoney, OPERATOR_NAME, paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.order");
@@ -36,6 +37,7 @@ function Swatch({ color, name }: { color: ColorKey; name: string }) {
 }
 
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const [order, { currency }, locale, t, tc, tp, colorName, fontName] = await Promise.all([
     // Articles triés par identifiant : la route de téléchargement numérote les fichiers dans le même ordre.
@@ -207,9 +209,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   variant={payment === "declared" ? "default" : "outline"}
                   size="md"
                   danger={false}
+                  focusAfter="paiement-etat"
                 >
                   {t("markPaid")}
-                  focusAfter="paiement-etat"
                 </ConfirmAction>
               )}
             </div>

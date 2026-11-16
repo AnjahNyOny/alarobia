@@ -8,6 +8,10 @@ import { requireUser } from "@/lib/auth";
 import { invalid, type FormState } from "@/lib/form";
 import { getTranslations } from "next-intl/server";
 import { makeSchemas } from "@/lib/schemas";
+import { createRateLimiter, withRateLimit } from "@/lib/rate-limit";
+
+// Cinq mots de passe actuels faux par compte et par quart d'heure : une session volée ne sert pas à deviner le mot de passe.
+const wrongPasswordsByAccount = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
 
 export async function updateProfile(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
@@ -36,8 +40,9 @@ export async function changePassword(_: FormState, formData: FormData): Promise<
   const parsed = z.object({ current: z.string().min(1, t("currentPasswordRequired")), password: makeSchemas(t).password }).safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalid(parsed.error, t("formInvalid"));
   const record = await db.user.findUniqueOrThrow({ where: { id: user.id } });
-  if (!(await bcrypt.compare(parsed.data.current, record.passwordHash)))
-    return { fieldErrors: { current: t("currentPasswordWrong") } };
+  const outcome = await withRateLimit([[wrongPasswordsByAccount, user.id]], () => bcrypt.compare(parsed.data.current, record.passwordHash), (valid) => !valid);
+  if (outcome.limited) return { fieldErrors: { current: t("rateLimited", { minutes: outcome.minutes }) } };
+  if (!outcome.value) return { fieldErrors: { current: t("currentPasswordWrong") } };
   await db.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(parsed.data.password, 12) } });
   return { ok: true, message: n("passwordChanged") };
 }

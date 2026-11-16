@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getLocale, getTranslations } from "next-intl/server";
 import { formatPrice } from "@/lib/format";
@@ -9,6 +9,10 @@ import { addCartLine, addResultState, getCart, PROMO_COOKIE, readCartEntries, wr
 import { setEntryQuantity } from "@/lib/cart-lines";
 import { evaluatePromo } from "@/lib/pricing";
 import type { FormState } from "@/lib/form";
+import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
+
+// Vingt codes inconnus par adresse et par dizaine de minutes : assez pour les fautes de frappe, pas pour essayer des codes au hasard.
+const unknownPromosByIp = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 });
 
 export async function addToCart(productId: string, quantity = 1): Promise<FormState> {
   return addResultState(await addCartLine({ id: productId }, quantity));
@@ -24,7 +28,9 @@ export async function applyPromo(_: FormState, formData: FormData): Promise<Form
   const code = String(formData.get("code") ?? "");
   // Le sous-total vient du panier résolu : il compte les suppléments de personnalisation.
   const subtotal = (await getCart()).subtotalCents;
-  const result = await evaluatePromo(code, subtotal);
+  const outcome = await withRateLimit([[unknownPromosByIp, clientIp(await headers())]], () => evaluatePromo(code, subtotal), (r) => !r.ok && r.reason === "unknown");
+  if (outcome.limited) return { error: (await getTranslations("errors"))("rateLimited", { minutes: outcome.minutes }) };
+  const result = outcome.value;
   if (!result.ok) {
     const t = await getTranslations("errors");
     if (result.reason === "minimum") {

@@ -29,6 +29,8 @@
     "promoExpired": "Ce code a expiré.",
     "promoExhausted": "Ce code a atteint son nombre maximal d'utilisations.",
     "promoMinimum": "Ce code s'applique à partir de {amount} d'achat.",
+    "promoNoLongerValid": "Le code {code} n'est plus valable : votre commande n'a pas été passée. Nous l'avons retiré du panier ; vérifiez le nouveau total, puis validez à nouveau.",
+    "rateLimited": "Trop de tentatives en peu de temps. Réessayez dans {minutes, plural, one {# minute} other {# minutes}}.",
     "cartEmpty": "Votre panier est vide.",
     "stockInsufficient": "Stock insuffisant pour « {name} ». Ajustez votre panier.",
     "justSold": "« {name} » vient d'être vendu. Ajustez votre panier.",

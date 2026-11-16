@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.shipping");
@@ -18,6 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ShippingPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+  await requireAdmin();
   const { edit } = await searchParams;
   const [zones, settings, locale, t] = await Promise.all([db.shippingZone.findMany({ orderBy: [{ position: "asc" }, { name: "asc" }] }), getSettings(), getLocale(), getTranslations("admin.shipping")]);
   const editing = zones.find((z) => z.id === edit);

@@ -1,5 +1,6 @@
 /**
- * Contrôle des fichiers envoyés par les visiteurs (personnalisation). Le point d'envoi est public :
+ * Contrôle des fichiers envoyés par les visiteurs (personnalisation) et, plus bas, par le vendeur
+ * (photos de produits, `checkAdminUpload`). Le point d'envoi des visiteurs est public :
  * rien de ce que dit le navigateur n'est cru. Le type est lu dans le contenu, jamais dans le nom
  * ni dans l'en-tête Content-Type, et le nom du fichier enregistré est généré ici.
  *
@@ -94,6 +95,25 @@ export function checkUpload(bytes: Uint8Array): { ok: true; ext: ImageType; widt
   return { ok: true, ext: type, width, height };
 }
 
+/** Codes d'erreur de l'envoi du vendeur, traduits dans `admin.photos.errors`. */
+export type AdminUploadError = "missing" | "tooLarge" | "type";
+// Marques « ftyp » de l'AVIF : image fixe, ou suite d'images.
+const AVIF_BRANDS = new Set(["avif", "avis"]);
+
+/**
+ * Photo de produit envoyée depuis le back-office. Même contrôle sur le contenu que pour les visiteurs, avec deux
+ * différences : l'AVIF est accepté (réservé au vendeur, le public ne l'a pas), et la taille en pixels n'est pas
+ * plafonnée (une photo d'appareil dépasse souvent 4096 px ; le poids reste limité à 5 Mo).
+ */
+export function checkAdminUpload(bytes: Uint8Array): { ok: true; ext: ImageType | "avif" } | { ok: false; error: AdminUploadError } {
+  if (bytes.length === 0) return { ok: false, error: "missing" };
+  if (bytes.length > MAX_UPLOAD_BYTES) return { ok: false, error: "tooLarge" };
+  if (bytes.length >= 12 && ascii(bytes, 4, 4) === "ftyp" && AVIF_BRANDS.has(ascii(bytes, 8, 4))) return { ok: true, ext: "avif" };
+  const sniffed = sniffImage(bytes);
+  if ("error" in sniffed || sniffed.width < 1 || sniffed.height < 1) return { ok: false, error: "type" };
+  return { ok: true, ext: sniffed.type };
+}
+
 /** Dimensions d'une image ramenée à `max` pixels de grand côté. Ne l'agrandit jamais, ne la déforme pas. */
 export function scaleToFit(width: number, height: number, max = RESIZE_SIDE) {
   const factor = Math.min(1, max / Math.max(width, height));
@@ -103,34 +123,4 @@ export function scaleToFit(width: number, height: number, max = RESIZE_SIDE) {
 /** Nom d'enregistrement : rien de ce que fournit le client n'atteint le système de fichiers. */
 export function customFileName(ext: ImageType) {
   return `perso-${crypto.randomUUID()}.${ext}`;
-}
-
-/**
- * Limite le nombre d'appels par clé (adresse IP) sur une fenêtre glissante. En mémoire : suffisant pour un seul
- * serveur ; à remplacer par un stockage partagé si la boutique tourne un jour sur plusieurs machines (phase 7).
- */
-export function createRateLimiter({ limit, windowMs, now = Date.now }: { limit: number; windowMs: number; now?: () => number }) {
-  const hits = new Map<string, number[]>();
-  const allow = (key: string) => {
-    const since = now() - windowMs;
-    // Les adresses qui n'ont plus rien envoyé dans la fenêtre sont oubliées : la table ne grossit pas sans fin.
-    for (const [k, times] of hits) if (times[times.length - 1] <= since) hits.delete(k);
-    const recent = (hits.get(key) ?? []).filter((t) => t > since);
-    if (recent.length >= limit) {
-      hits.set(key, recent);
-      return false;
-    }
-    hits.set(key, [...recent, now()]);
-    return true;
-  };
-  allow.size = () => hits.size;
-  return allow;
-}
-
-/**
- * Adresse du visiteur, pour la limitation de débit. Derrière un proxy de confiance, c'est la première adresse
- * de x-forwarded-for ; sans proxy, cet en-tête peut être forgé (à traiter avec l'hébergement, phase 7).
- */
-export function clientIp(headers: Headers) {
-  return headers.get("x-forwarded-for")?.split(",")[0].trim() || headers.get("x-real-ip")?.trim() || "inconnue";
 }

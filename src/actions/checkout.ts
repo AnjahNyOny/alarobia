@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirectTo } from "@/i18n/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -15,10 +15,30 @@ import { getSettings } from "@/lib/settings";
 import { invalid, type FormState } from "@/lib/form";
 import { getLocale, getTranslations } from "next-intl/server";
 import { makeSchemas } from "@/lib/schemas";
+import { consumePromo } from "@/lib/promo";
+import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
 
 class StockError extends Error {}
+class PromoError extends Error {}
+
+// Quarante commandes passées par adresse et par dizaine de minutes : une commande réserve du stock,
+// des commandes en série pourraient vider la boutique. Les tentatives refusées (formulaire, stock) ne comptent pas.
+const ordersByIp = createRateLimiter({ limit: 40, windowMs: 10 * 60_000 });
 
 export async function placeOrder(_: FormState, formData: FormData): Promise<FormState> {
+  const outcome = await withRateLimit([[ordersByIp, clientIp(await headers())]], () => createOrder(formData), (result) => typeof result === "string");
+  if (outcome.limited) return { error: (await getTranslations("errors"))("rateLimited", { minutes: outcome.minutes }) };
+  if (typeof outcome.value !== "string") return outcome.value;
+
+  const store = await cookies();
+  store.delete(CART_COOKIE);
+  store.delete(PROMO_COOKIE);
+  revalidatePath("/", "layout");
+  return redirectTo(`/order/${outcome.value}`);
+}
+
+/** Crée la commande et renvoie son identifiant, ou l'état du formulaire à réafficher. */
+async function createOrder(formData: FormData): Promise<FormState | string> {
   const t = await getTranslations("errors");
   const schemas = makeSchemas(t);
   const parsed = schemas.address
@@ -58,9 +78,8 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
         });
         if (res.count === 0) throw new StockError(line.product.name);
       }
-      if (cart.promo) {
-        await tx.promoCode.update({ where: { code: cart.promo.code }, data: { usedCount: { increment: 1 } } });
-      }
+      // Même principe pour le code promo : épuisé, expiré ou coupé depuis la validation du panier, il annule tout (stock compris).
+      if (cart.promo && !(await consumePromo(tx, cart.promo.code))) throw new PromoError(cart.promo.code);
       if (user) {
         await tx.address.upsert({ where: { userId: user.id }, update: address, create: { ...address, userId: user.id } });
       }
@@ -102,12 +121,13 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
     });
   } catch (e) {
     if (e instanceof StockError) return { error: t("justSold", { name: e.message }) };
+    if (e instanceof PromoError) {
+      // Le code est retiré : le panier se réaffiche sans la remise, que le client vérifie avant de valider à nouveau.
+      (await cookies()).delete(PROMO_COOKIE);
+      revalidatePath("/", "layout");
+      return { error: t("promoNoLongerValid", { code: e.message }) };
+    }
     throw e;
   }
-
-  const store = await cookies();
-  store.delete(CART_COOKIE);
-  store.delete(PROMO_COOKIE);
-  revalidatePath("/", "layout");
-  return redirectTo(`/order/${orderId}`);
+  return orderId;
 }

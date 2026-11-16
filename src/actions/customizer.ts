@@ -7,7 +7,7 @@ import { addCartLine, addResultState, designOf, readCartEntries } from "@/lib/ca
 import { CUSTOM_FILE, customizerOptions, isPrinted, parseDesign, sameDesign } from "@/lib/customization";
 import { db } from "@/lib/db";
 import type { FormState } from "@/lib/form";
-import { clientIp, createRateLimiter } from "@/lib/upload";
+import { clientIp, createRateLimiter } from "@/lib/rate-limit";
 import { uploadPath } from "@/lib/upload-dir";
 
 // Trente ajouts personnalisés par adresse et par dizaine de minutes (une adresse peut être partagée par plusieurs clients mobiles).

@@ -8,6 +8,7 @@ import { Card, EmptyState, PageHeader, Tabs } from "@/components/admin/ui";
 import { Stars } from "@/components/store/stars";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.reviews");
@@ -20,6 +21,7 @@ async function toggle(id: string, published: boolean) {
 }
 
 export default async function ReviewsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  await requireAdmin();
   const { status: requested } = await searchParams;
   const status = requested === "HIDDEN" || requested === "PUBLISHED" ? requested : undefined;
   const [reviews, counts, t, tc, locale] = await Promise.all([

@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/admin/ui";
 import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.products");
@@ -15,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
   const { id } = await params;
   const [product, categories, { currency }, t] = await Promise.all([
     db.product.findUnique({ where: { id }, include: { images: { orderBy: { position: "asc" } }, translations: true } }),

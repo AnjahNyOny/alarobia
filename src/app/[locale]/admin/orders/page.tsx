@@ -12,6 +12,7 @@ import { formatDateTime, formatPrice } from "@/lib/format";
 import { isMobileMoney, OPERATOR_NAME, paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.orders");
@@ -20,6 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const PER_PAGE = 15;
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; page?: string }> }) {
+  await requireAdmin();
   const sp = await searchParams;
   const status = ORDER_STATUSES.find((s) => s === sp.status);
   const q = sp.q?.trim() ?? "";

@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+import { requireAdmin } from "@/lib/auth";
 
 const PERIODS = [7, 30, 90];
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -42,6 +43,7 @@ function Kpi({ label, value, current, previous, days, t }: { label: string; valu
 }
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
+  await requireAdmin();
   const days = PERIODS.includes(Number((await searchParams).p)) ? Number((await searchParams).p) : 30;
   const [{ currency }, locale, t, tc] = await Promise.all([getSettings(), getLocale(), getTranslations("admin.dashboard"), getTranslations("admin.common")]);
   const price = (cents: number) => formatPrice(cents, currency, locale);
