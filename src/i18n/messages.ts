@@ -26,11 +26,43 @@ export function flattenMessages(messages: Messages, prefix = ""): Record<string,
 }
 
 /**
- * Messages transmis au navigateur sur les pages de la boutique : tout sauf l'espace `admin`, qui ne
- * part vers le client que depuis le layout du back-office. Le serveur, lui, garde tous les messages.
+ * Espaces de messages lus dans le navigateur par les composants de la boutique. Seuls ceux-là partent avec chaque page
+ * (dans la charge RSC du HTML) ; les textes des pages rendues par le serveur seul (aide, mentions, à propos, erreurs
+ * des actions…) restent sur le serveur. Un composant client qui lit un nouvel espace doit l'ajouter ici :
+ * `src/i18n/__tests__/client-messages.test.ts` le vérifie en suivant les imports de chaque composant client.
  */
-export function storeMessages<M extends Messages>(messages: M): Omit<M, "admin"> {
-  const out: Messages = { ...messages };
-  delete out.admin;
-  return out as Omit<M, "admin">;
+export const CLIENT_NAMESPACES: readonly string[] = [
+  "common",
+  "nav",
+  "cart",
+  "card",
+  "footer",
+  "catalog",
+  "product",
+  "customizer",
+  "home.demo",
+  "address",
+  "delivery",
+  "payment",
+  "checkout",
+  "auth",
+  "account",
+  "pages",
+];
+
+/** Garde de `messages` les espaces listés ; `home.demo` garde ce sous-espace seulement. */
+export function clientMessages(messages: Messages, namespaces: readonly string[] = CLIENT_NAMESPACES): Messages {
+  const out: Messages = {};
+  for (const path of namespaces) {
+    const keys = path.split(".");
+    let source: Messages | string | undefined = messages;
+    let target = out;
+    keys.forEach((key, i) => {
+      source = typeof source === "object" ? source[key] : undefined;
+      if (source === undefined) return;
+      if (i === keys.length - 1) target[key] = source;
+      else target = (target[key] ??= {}) as Messages;
+    });
+  }
+  return out;
 }

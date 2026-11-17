@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flattenMessages, mergeMessages, storeMessages } from "../messages";
+import { flattenMessages, mergeMessages } from "../messages";
 import fr from "../../../messages/fr.json";
 import en from "../../../messages/en.json";
 import mg from "../../../messages/mg.json";
@@ -28,15 +28,4 @@ describe("fichiers de messages", () => {
       expect({ missing, extra, variables }).toEqual({ missing: [], extra: [], variables: [] });
     });
   }
-});
-
-describe("storeMessages", () => {
-  it("retire les textes du back-office et garde tout le reste", () => {
-    const messages = { cart: { title: "Panier" }, admin: { product: { name: "Nom du produit" } }, ok: "D'accord" };
-    expect(storeMessages(messages)).toEqual({ cart: { title: "Panier" }, ok: "D'accord" });
-    expect(messages.admin).toBeDefined();
-  });
-  it("laisse les fichiers de la boutique sans aucune clé admin", () => {
-    expect(Object.keys(flattenMessages(storeMessages(fr))).filter((k) => k.startsWith("admin."))).toEqual([]);
-  });
 });

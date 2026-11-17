@@ -12,7 +12,10 @@ export function ProductCard({
   currency,
   wished = false,
   priority = false,
-  sizes = "(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw",
+  // Largeur réelle de la carte : deux colonnes sous 768 px, marges de la page (16 px, puis 24 px dès 640 px) et
+  // espace entre colonnes (12 px, puis 20 px) déduits. À 390 px en densité 2, la carte affiche 346 pixels : le
+  // navigateur prend la photo de 384 px au lieu de celle de 640 px (deux fois moins lourde).
+  sizes = "(min-width: 1024px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) calc(50vw - 34px), calc(50vw - 22px)",
 }: {
   product: CardProduct;
   currency: string;

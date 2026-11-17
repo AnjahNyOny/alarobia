@@ -40,11 +40,12 @@ export default async function CartPage() {
       <h1 className="display text-5xl md:text-6xl">{t("pageTitle")}</h1>
       <div className="mt-8 grid gap-10 *:min-w-0 lg:grid-cols-[1fr_380px] lg:gap-14">
         <ul className="divide-y border-y">
-          {cart.lines.map((line) => (
+          {cart.lines.map((line, i) => (
             <li key={line.key} className="flex gap-4 py-5 sm:gap-6">
               {/* Doublon du lien sur le nom, juste à côté : réservé à la souris, hors tabulation et hors lecture. */}
               <Link href={`/products/${line.product.slug}`} tabIndex={-1} aria-hidden className="relative size-24 shrink-0 overflow-hidden rounded-sm bg-stone sm:size-28">
-                {line.image && <Image src={line.image} alt="" fill sizes="112px" className="object-cover" />}
+                {/* Les premières vignettes sont visibles dès l'arrivée : chargées tout de suite, pas après la mise en page (en 3G, l'attente se voyait). */}
+                {line.image && <Image src={line.image} alt="" fill sizes="112px" loading={i < 3 ? "eager" : "lazy"} className="object-cover" />}
               </Link>
               <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
                 <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">

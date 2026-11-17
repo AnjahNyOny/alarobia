@@ -3,9 +3,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { BadgeCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { BuyBox } from "@/components/customizer/controls";
-import { CustomizerShell } from "@/components/customizer/customizer-context";
-import { Stage } from "@/components/customizer/stage";
+import { BuyBox, CustomizerShell as LazyCustomizerShell, Stage } from "@/components/customizer/lazy";
 import { AddToCart } from "@/components/store/add-to-cart";
 import { Gallery } from "@/components/store/gallery";
 import { ProductCard } from "@/components/store/product-card";
@@ -16,7 +14,7 @@ import { Link } from "@/i18n/navigation";
 import { getUser } from "@/lib/auth";
 import { cardInclude, discountPercent, ratingOf, wishedIds } from "@/lib/catalog";
 import { LOW_STOCK_THRESHOLD, REVENUE_STATUSES } from "@/lib/constants";
-import { cleanText, customizerOptions, graphemes } from "@/lib/customization";
+import { cleanText, customizerOptions, graphemes, type CustomizerOptions } from "@/lib/customization";
 import { db } from "@/lib/db";
 import { formatDate, formatPrice } from "@/lib/format";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
@@ -37,6 +35,17 @@ const getProduct = cache((slug: string) =>
     },
   })
 );
+
+/** Sans réglages de personnalisation, la fiche se passe de l'état partagé : le code de la personnalisation n'est pas téléchargé. */
+function CustomizerShell({ options, initialText, children }: { options: CustomizerOptions | null; initialText: string; children: React.ReactNode }) {
+  return options ? (
+    <LazyCustomizerShell options={options} initialText={initialText}>
+      {children}
+    </LazyCustomizerShell>
+  ) : (
+    children
+  );
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }): Promise<Metadata> {
   const { slug, locale } = await params;

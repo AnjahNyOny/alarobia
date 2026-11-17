@@ -2,6 +2,20 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * Remplaçant d'Archivo pendant son chargement (layout : `fallback`) : Arial ramenée aux proportions d'Archivo.
+ * Valeurs reprises de next/font/google, qui chargeait la police avant la tâche 6.2 : le texte occupe la même place
+ * avant et après l'arrivée de la police.
+ */
+@font-face {
+  font-family: "Archivo Fallback";
+  src: local("Arial");
+  ascent-override: 88.96%;
+  descent-override: 21.28%;
+  line-gap-override: 0%;
+  size-adjust: 98.7%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

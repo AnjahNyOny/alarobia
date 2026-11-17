@@ -13,7 +13,7 @@ export function Gallery({ images, name }: { images: string[]; name: string }) {
   return (
     <div className="grid gap-3">
       <div className="relative aspect-square overflow-hidden rounded-sm bg-stone">
-        <Image key={images[index]} src={images[index]} alt={t("photoAlt", { name, n: index + 1 })} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        <Image key={images[index]} src={images[index]} alt={t("photoAlt", { name, n: index + 1 })} fill priority sizes="(min-width: 1024px) 50vw, (min-width: 640px) calc(100vw - 48px), calc(100vw - 32px)" className="object-cover" />
       </div>
       {images.length > 1 && (
         <ul className="flex flex-wrap gap-2">

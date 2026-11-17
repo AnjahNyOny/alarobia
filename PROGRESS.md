@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées ; 6.2 (performance) interrompue le 16/11/2026 (quota du propriétaire) et committée en l'état : outil de mesure, référence et cinq allègements faits, mesure finale, budgets et suite navigateur à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : 6.2 (performance), puis 6.5, 6.6. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : finir la 6.2 (liste « Pour finir la 6.2 » au journal du 16/11/2026), puis 6.5, 6.6. **La suite navigateur n'a pas été lancée depuis les changements de la 6.2.** Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -98,7 +98,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 
 ### Phase 6 — Qualité
 - [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
-- [ ] 6.2 Performance sur téléphone modeste
+- [ ] 6.2 Performance sur téléphone modeste — **en cours** : outil de mesure, référence et cinq allègements faits (lint, types, 311 tests unitaires) ; mesure finale, budgets et suite navigateur à faire (journal du 16/11/2026)
 - [x] 6.3 Sécurité et limitation de débit : revue (journal du 15/11/2026), code promo consommé sous condition, contrôle de session sur chaque page du back-office, format des photos lu dans le contenu, limites de débit sur connexion, inscription, mot de passe, code promo, commande, paiement et lettre d'information (journal du 16/11/2026). Vérifié : 297 tests unitaires, 81 parcours navigateur (dont 2 nouveaux dans `e2e/securite.spec.ts`, vus rouges avec l'ancien code), lint, types et compilation propres
 - [x] 6.4 Référencement multilingue : adresse canonique et `hreflang` (fr, en, mg, `x-default` → fr) sur l'accueil, le catalogue, les fiches, « Qui sommes-nous », l'aide et les mentions, par `src/lib/seo.ts` que le plan du site utilise aussi ; image de partage générée par langue ; icône Apple ; données structurées de la boutique sur l'accueil, fil d'Ariane et page dans sa langue sur la fiche. Vérifié : 309 tests unitaires, 93 parcours navigateur (dont 12 dans `e2e/referencement.spec.ts`, vus rouges avant), lint, types et compilation propres, balises relues en production, captures de l'image relues
 - [ ] 6.5 Parcours complets dans les trois langues
@@ -327,3 +327,32 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - `/legal` ajoutée au plan du site (priorité 0,1) alors que son texte est encore « à compléter » : à retirer de l'index si le propriétaire préfère, d'ici la phase 7.
 - Poids après la 6.4 : accueil 361,6 ko (JS 215,3), catalogue 427,1 ko (JS 212,8), soit +3 à +4 ko depuis la phase 5, presque tout dans le HTML (balises et données structurées).
 - Non vérifié : l'aperçu réel sur Facebook et WhatsApp (site local, leurs robots ne l'atteignent pas) ; un nom de boutique de plus de 20 caractères sur l'image.
+- Tâche 6.2 commencée (`developpeur`), arrêtée à un point stable à la demande du propriétaire (quota), committée en l'état. Lint, types et 311 tests unitaires verts (contrôlés par l'architecte) ; **suite navigateur pas lancée** ; diff pas encore relu en détail par l'architecte.
+  - **Outil** : `node scripts/mesure-telephone.mjs http://localhost:3100 [--pages=accueil,catalogue,fiche,fiche-perso,3d,panier,commande] [--langues=fr,mg] [--passages=5] [--profil=3g-lente|3g] [--cpu=4] [--detail] [--json]`, contre un serveur de production lancé comme dans `playwright.config.ts`. Profil « 3g-lente » : préréglage Slow 3G de Chrome (2 000 ms de latence, 400 kbit/s dans les deux sens), processeur ralenti ×4, 390×844 densité 2, cache vide. Relève FCP, LCP et son élément, CLS, TBT, premier rendu de React (« hydratation »), et pour la 3D le temps du clic à l'objet peint. Environ 25 min pour fr et mg en 5 passages. Mesurer avec une charge machine inférieure à 6.
+  - **Référence avant changements** (fr, mg très proche ; médianes de 5 passages, charge 5) :
+
+    | Page | Total | JS | Police | Images | FCP | LCP (élément) | CLS | Hydratation |
+    | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+    | Accueil | 577 ko | 215 | 88 | 222 | 5,4 s | 5,4 (photo de la tasse) | 0,033 | 9,4 s |
+    | Catalogue | 583 | 213 | 88 | 217 | 5,9 | 5,9 (carte) | 0,001 | 11,5 |
+    | Fiche simple | 463 | 224 | 88 | 97 | 5,4 | 5,7 (photo) | 0,040 | 10,1 |
+    | Fiche personnalisable | 375 | 224 | 88 | 9 | 5,2 | 5,2 (photo) | 0 | 10,2 |
+    | Panier | 360 | 213 | 88 | 6 | 5,6 | 11,8 (vignette) | 0,113 | 9,1 |
+    | Commande | 351 | 214 | 88 | 3 | 5,6 | 5,6 (titre) | 0 (mg 0,039) | 9,2 |
+
+    3D : objet peint 7,4 s après le clic, +239 ko. FCP, LCP et hydratation varient de moins de 0,2 s d'un passage à l'autre ; le TBT varie de 30 à 772 ms : pas de seuil de temps dans la suite automatique. En 3G lente, Chrome élargit la zone de chargement différé : l'accueil télécharge 12 photos (222 ko), contre 6 ko vus par `poids-pages.mjs`.
+  - **Ce qui pèse** : la feuille CSS bloque l'affichage (FCP environ 2,8 s après le HTML, un aller-retour de plus) ; le code React et Next (environ 160 ko sur 215) ; la police (88 ko, prioritaire) ; des photos de carte trop grandes ; le JS de personnalisation sur toutes les fiches ; les vignettes du panier chargées tard.
+  - **Changements faits** (octets mesurés, temps de l'état final à mesurer) :
+    1. `sizes` exact des cartes (`product-card.tsx`) et de la photo de fiche (`gallery.tsx`) : photo de 384 px au lieu de 640 pour une carte affichée sur 346 px. Images de la fiche 96,7 → 55,5 ko ; accueil et catalogue à mesurer (environ −100 ko attendus).
+    2. Personnalisation chargée seulement sur une fiche personnalisable (`src/components/customizer/lazy.tsx` et `fiche.ts`, `next/dynamic`) : fiche simple JS 224,1 → 216,0 ko, CSS 17,2 → 15,0 ; fiche personnalisable +1,9 ko. Chaque `dynamic` écrit son `import("./fiche")` en clair : caché derrière une fonction, Next ne le précharge pas (+2,3 s).
+    3. Seuls les espaces de messages lus dans le navigateur sont envoyés (`CLIENT_NAMESPACES`, `clientMessages` dans `src/i18n/messages.ts`, qui remplace `storeMessages`) ; `client-messages.test.ts` suit les imports des composants client et échoue si un espace manque ou est en trop. HTML de l'accueil 26,8 → 23,9 ko.
+    4. Police Archivo réduite aux graisses 400 à 800 et largeurs 68 à 100 % : 88,3 → 57,3 ko sur chaque page. Fichier dérivé `src/app/fonts/archivo-latin.woff2` chargé par `next/font/local`, fabriqué par `scripts/police-archivo.py` (fontTools, commande en tête du script) ; police de remplacement recopiée de next/font/google dans `globals.css`. Écart des contours de l'ordre de 0,1 px, hauteur des pages identique sur 10 captures.
+    5. Trois premières vignettes du panier chargées tout de suite (`cart/page.tsx`), pour le LCP de 11,8 s. Pas encore mesuré.
+  - **Écarté** : sonner (utilisé par l'ajout au panier et les favoris), Base UI (menu et tiroir), AVIF (peu d'images au-dessus de la ligne de flottaison), précompilation ICU de next-intl (expérimentale, incompatible avec `mergeMessages`).
+- **Pour finir la 6.2**, dans l'ordre :
+  1. Relire le diff (architecte), en particulier la police dérivée et `clientMessages`.
+  2. Mesurer l'état actuel, fr et mg, 5 passages, machine peu chargée ; analyser le CLS du panier (0,113, peut-être lié à la police).
+  3. Décider d'`experimental.inlineCss` (option de Next 16.4) : environ −2 s de FCP et LCP estimées en 3G lente, mais environ 15 ko de CSS en plus à chaque chargement complet (plus de cache). À mesurer avant de trancher. Évaluer aussi les préchargements des liens visibles (8 à 25 ko par page après chargement).
+  4. Remplir les budgets de `e2e/performance.spec.ts` (structure écrite, budgets à 0, bloc en `test.describe.fixme`) d'après la mesure finale, avec environ 10 % de marge, puis retirer `fixme`.
+  5. `npm run test:e2e` en entier, `verificateur`, captures avant/après relues, commit.
+- Les mesures brutes et captures de la 6.2 sont dans le scratchpad de la session du 16/11/2026 et peuvent disparaître ; la référence ci-dessus suffit pour comparer.
