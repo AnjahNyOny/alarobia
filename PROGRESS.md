@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées ; 6.2 (performance) interrompue le 16/11/2026 (quota du propriétaire) et committée en l'état : outil de mesure, référence et cinq allègements faits, mesure finale, budgets et suite navigateur à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 17/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées ; 6.2 (performance) arrêtée le 17/11/2026 à un point stable, à la demande du propriétaire, et committée en l'état : décalage de mise en page corrigé (CLS 0 partout), mesures `inlineCss` et préchargements faites, décisions prises ; leur application, le remplaçant Android, les budgets et la mesure finale restent à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : finir la 6.2 (liste « Pour finir la 6.2 » au journal du 16/11/2026), puis 6.5, 6.6. **La suite navigateur n'a pas été lancée depuis les changements de la 6.2.** Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : finir la 6.2 (liste « Pour finir la 6.2 » au journal du 17/11/2026), puis 6.5, 6.6. **La suite navigateur n'a pas été lancée depuis les changements de la 6.2.** Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -98,7 +98,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 
 ### Phase 6 — Qualité
 - [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
-- [ ] 6.2 Performance sur téléphone modeste — **en cours** : outil de mesure, référence et cinq allègements faits (lint, types, 311 tests unitaires) ; mesure finale, budgets et suite navigateur à faire (journal du 16/11/2026)
+- [ ] 6.2 Performance sur téléphone modeste — **en cours** : outil de mesure, référence, cinq allègements, correctif du décalage de mise en page (lint, types, 318 tests unitaires) ; `inlineCss`, `prefetch={false}`, remplaçant Android, budgets, mesure finale et suite navigateur à faire (journaux du 16 et du 17/11/2026)
 - [x] 6.3 Sécurité et limitation de débit : revue (journal du 15/11/2026), code promo consommé sous condition, contrôle de session sur chaque page du back-office, format des photos lu dans le contenu, limites de débit sur connexion, inscription, mot de passe, code promo, commande, paiement et lettre d'information (journal du 16/11/2026). Vérifié : 297 tests unitaires, 81 parcours navigateur (dont 2 nouveaux dans `e2e/securite.spec.ts`, vus rouges avec l'ancien code), lint, types et compilation propres
 - [x] 6.4 Référencement multilingue : adresse canonique et `hreflang` (fr, en, mg, `x-default` → fr) sur l'accueil, le catalogue, les fiches, « Qui sommes-nous », l'aide et les mentions, par `src/lib/seo.ts` que le plan du site utilise aussi ; image de partage générée par langue ; icône Apple ; données structurées de la boutique sur l'accueil, fil d'Ariane et page dans sa langue sur la fiche. Vérifié : 309 tests unitaires, 93 parcours navigateur (dont 12 dans `e2e/referencement.spec.ts`, vus rouges avant), lint, types et compilation propres, balises relues en production, captures de l'image relues
 - [ ] 6.5 Parcours complets dans les trois langues
@@ -349,10 +349,42 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
     4. Police Archivo réduite aux graisses 400 à 800 et largeurs 68 à 100 % : 88,3 → 57,3 ko sur chaque page. Fichier dérivé `src/app/fonts/archivo-latin.woff2` chargé par `next/font/local`, fabriqué par `scripts/police-archivo.py` (fontTools, commande en tête du script) ; police de remplacement recopiée de next/font/google dans `globals.css`. Écart des contours de l'ordre de 0,1 px, hauteur des pages identique sur 10 captures.
     5. Trois premières vignettes du panier chargées tout de suite (`cart/page.tsx`), pour le LCP de 11,8 s. Pas encore mesuré.
   - **Écarté** : sonner (utilisé par l'ajout au panier et les favoris), Base UI (menu et tiroir), AVIF (peu d'images au-dessus de la ligne de flottaison), précompilation ICU de next-intl (expérimentale, incompatible avec `mergeMessages`).
-- **Pour finir la 6.2**, dans l'ordre :
+- **Pour finir la 6.2** (remplacé par la liste du 17/11/2026), dans l'ordre :
   1. Relire le diff (architecte), en particulier la police dérivée et `clientMessages`.
   2. Mesurer l'état actuel, fr et mg, 5 passages, machine peu chargée ; analyser le CLS du panier (0,113, peut-être lié à la police).
   3. Décider d'`experimental.inlineCss` (option de Next 16.4) : environ −2 s de FCP et LCP estimées en 3G lente, mais environ 15 ko de CSS en plus à chaque chargement complet (plus de cache). À mesurer avant de trancher. Évaluer aussi les préchargements des liens visibles (8 à 25 ko par page après chargement).
   4. Remplir les budgets de `e2e/performance.spec.ts` (structure écrite, budgets à 0, bloc en `test.describe.fixme`) d'après la mesure finale, avec environ 10 % de marge, puis retirer `fixme`.
   5. `npm run test:e2e` en entier, `verificateur`, captures avant/après relues, commit.
 - Les mesures brutes et captures de la 6.2 sont dans le scratchpad de la session du 16/11/2026 et peuvent disparaître ; la référence ci-dessus suffit pour comparer.
+
+### 17/11/2026
+- Tâche 6.2, suite (`developpeur`, mesures relues par l'architecte). Diff du 16/11 relu par l'architecte : graisses (400 à 800) et largeurs (68 à 100 %, « condensed » = 75 %) employées restent dans les plages de la police réduite, aucun `useTranslations` dynamique que `client-messages.test.ts` raterait, `BuyBox` et `Stage` rendus seulement sur une fiche personnalisable.
+- **Mesure après les cinq allègements** (fr, 5 passages, médianes, charge 5,7 au début, jusqu'à 16 sur la fin en mg ; mg à moins de 0,1 s près) :
+
+  | Page | Total | JS | FCP | LCP | CLS | Hydratation |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | Accueil | 577 → 436 ko | 216 | 5,5 s | 5,5 | 0,033 | 9,4 → 8,8 |
+  | Catalogue | 583 → 441 | 213 | 5,7 | 5,7 | 0,001 | 11,5 → 10,3 |
+  | Fiche simple | 463 → 377 | 216 | 5,6 | 5,9 | 0,040 | 10,1 → 9,1 |
+  | Fiche personnalisable | 375 → 341 | 226 | 5,2 | 5,2 | 0 | 10,2 → 9,3 |
+  | Panier | 360 → 327 | 213 | 5,2 | **11,8 → 5,2** | 0,113 | 9,1 |
+  | Commande | 351 → 318 | 215 | 5,7 | 5,7 | 0 | 9,2 → 8,7 |
+
+  3D : objet peint 7,6 s après le clic (+239 ko), inchangé. Le FCP ne bouge pas : la feuille CSS bloque toujours l'affichage.
+- **Décalage de mise en page : cause trouvée et corrigée.** Les temps des ressources de `mesure-telephone.mjs` partent de la fin du HTML (environ 2,4 s après le début) : la police arrive en fait à 6,0 s, au moment exact du décalage (relevé sur une même horloge). Avec le remplaçant (Arial à 98,7 %, réglé pour la largeur normale), les textes étroits (`display` à 68 %, `display-sm` à 78 %) sont 18 à 22 % trop larges : le prix du casque passe à la ligne, puis remonte à l'arrivée d'Archivo. Correctif dans `globals.css` : deux faces « Archivo Fallback » de plus, une par largeur, size-adjust mesuré sur les textes du site (fr, en, mg), hauteurs ramenées à celles d'Archivo. Aucun composant modifié. CLS panier 0,113 → 0 (fr), 0,109 → 0 (mg) ; accueil, fiche, catalogue mg et commande mg (même cause) → 0. Apparence finale inchangée : 100 % des glyphes en Archivo une fois la police chargée (CDP), captures identiques. Test `src/app/__tests__/fallback-font.test.ts` (une face par `font-stretch` des utilitaires, hauteurs), vu rouge avec l'ancien `globals.css`.
+- **`experimental.inlineCss` mesuré** (deux compilations, séries alternées, charge 5 à 9 sauf indication) : première visite, FCP 5,5 → 2,4 s sur les cinq pages, LCP −1 à −3 s (sauf la fiche, limitée par la photo), hydratation −0,1 à −0,7 s, captures identiques. Coût : le CSS part deux fois dans le HTML (`<style>` et copie dans la charge RSC, limite connue de Next), HTML +29 ko gzip par page (+17 ko en brotli) ; visiteur qui revient (cache rempli) : +29 ko, FCP +0,3 s, hydratation +0,6 s. Navigations internes inchangées (pas de CSS dans la charge RSC). Nouvelle option `--retour` de `mesure-telephone.mjs`.
+- **Préchargements des liens** : 6 à 15 requêtes (8 à 23 ko) au chargement, 14 à 26 de plus (23 à 46 ko) en défilant jusqu'en bas, dont 11 à 27 ko pour les seuls liens du pied ; ouvrir le menu du téléphone : 16 ko. Aucun gain de temps mesuré (pages dynamiques sans `loading.tsx` : le clic attend toujours une requête complète ; un préchargement en cours ralentit même le clic : 3,4 s contre 2,5).
+- **Décisions de l'architecte** :
+  - `inlineCss` activé : la première visite en 3G (lien partagé) prime ; coût accepté. Expérimental, à revérifier à chaque mise à jour de Next ; une future CSP (phase 7) devra autoriser le `<style>` en ligne. Réduire la feuille (85 ko bruts, back-office et tw-animate-css compris) réduirait les deux coûts.
+  - `prefetch={false}` sur les liens du pied et du menu du téléphone (données payées au mégaoctet, aucun gain de temps), pas sur l'en-tête ni le contenu.
+  - Remplaçant calibré pour Roboto : `local("Arial")` n'existe pas sur Android, principal appareil des clients ; avec `inlineCss`, le texte reste 2 à 5 s dans le remplaçant à chaque première visite.
+- Arrêté à un point stable à la demande du propriétaire (commit d'étape). Vérifié : lint, types, 318 tests unitaires (`verificateur`). Suite navigateur pas lancée.
+- Restes relevés : sur `/en/products`, un titre de carte (graisse 500) tient sur une ligne avec le remplaçant et deux avec Archivo (CLS 0,007) ; une face à 500 changerait aussi les graisses 600 à 800 pendant le chargement, à mesurer avant de décider. Le remplaçant réel sur un vrai téléphone Android n'a pas été vu. Une compilation dans un `NEXT_DIST_DIR` non ignoré par git modifie `tsconfig.json` et laisse Tailwind lire son contenu : rendre `tsconfig.json` et ignorer le dossier après usage.
+- **Pour finir la 6.2**, dans l'ordre :
+  1. `experimental: { inlineCss: true }` dans `next.config.ts`, avec un commentaire (gain, coût, expérimental, CSP).
+  2. `prefetch={false}` sur les liens de `footer.tsx` et du menu du téléphone (`mobile-nav.tsx`) ; vérifier que le `Link` de `@/i18n/navigation` transmet `prefetch`.
+  3. Faces « Archivo Fallback » calibrées pour Roboto (100, 78 et 68 %), dans une famille à part placée après « Archivo Fallback » dans `fallback` du layout. Vérifier que Chrome passe à elle quand Arial manque, et que la mise en page du panier et de l'accueil avec ce remplaçant est celle d'Archivo. Hypothèse à garder en tête : si Chrome applique l'axe `wdth` à la Roboto variable locale d'Android, les faces étroites calibrées sur l'instance par défaut seraient trop étroites. Étendre `fallback-font.test.ts`.
+  4. Budgets de `e2e/performance.spec.ts` d'après l'état final (environ 10 % de marge), retirer `fixme` ; deux passages verts.
+  5. Mesure finale (toutes pages, fr et mg, 5 passages, plus `--retour` sur accueil et panier).
+  6. `npm run test:e2e` en entier, `verificateur`, captures relues, commit.
+- Les scripts et relevés de cette session (`calibre-repli.mjs`, `compare-repli.mjs`, `polices-utilisees.mjs`, `prefetch.mjs`, séries de mesure, fichier Roboto) sont dans le scratchpad de la session et peuvent disparaître ; les chiffres ci-dessus suffisent pour comparer.

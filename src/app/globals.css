@@ -16,6 +16,33 @@
   size-adjust: 98.7%;
 }
 
+/*
+ * Même remplaçant pour les titres et les prix étroits (`display`, `display-sm`) : Arial ne se resserre pas, elle
+ * prenait 18 à 22 % de largeur de plus qu'Archivo et renvoyait des mots ou des prix à la ligne, qui remontaient à
+ * l'arrivée de la police (décalage de 0,11 sur le panier en 3G). Chaque largeur a sa face, choisie par le navigateur
+ * d'après `font-stretch`. size-adjust : rapport des largeurs mesuré sur les textes du site (fr, en, mg) ; les
+ * hauteurs, divisées d'autant, restent celles d'Archivo (montée 87,8 %, descente 21 % du corps).
+ */
+@font-face {
+  font-family: "Archivo Fallback";
+  src: local("Arial");
+  font-stretch: 78%;
+  ascent-override: 100.92%;
+  descent-override: 24.14%;
+  line-gap-override: 0%;
+  size-adjust: 87%;
+}
+
+@font-face {
+  font-family: "Archivo Fallback";
+  src: local("Arial");
+  font-stretch: 68%;
+  ascent-override: 108.80%;
+  descent-override: 26.03%;
+  line-gap-override: 0%;
+  size-adjust: 80.7%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

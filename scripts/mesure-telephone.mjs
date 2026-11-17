@@ -3,6 +3,7 @@
 //   node scripts/mesure-telephone.mjs http://localhost:3100            # toutes les pages, fr et mg, 5 passages
 //   node scripts/mesure-telephone.mjs http://localhost:3100 --pages=accueil,3d --langues=fr --passages=3
 //   node scripts/mesure-telephone.mjs http://localhost:3100 --profil=3g --json > mesure.json
+//   node scripts/mesure-telephone.mjs http://localhost:3100 --pages=accueil --retour    # second chargement, cache rempli
 //
 // Compagnon de `poids-pages.mjs` (octets seuls, sans ralentissement, quelques secondes) : celui-ci simule le réseau
 // et le processeur, rejoue chaque page plusieurs fois et donne des temps (médiane, plus petit et plus grand passage).
@@ -36,7 +37,7 @@ const PAGES = {
 const option = (name, fallback) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1] ?? fallback;
 const base = process.argv.slice(2).find((a) => !a.startsWith("--"));
 if (!base) {
-  console.error("Usage : node scripts/mesure-telephone.mjs <adresse du serveur> [--pages=accueil,catalogue,…] [--langues=fr,mg] [--passages=5] [--profil=3g-lente|3g] [--cpu=4] [--json]");
+  console.error("Usage : node scripts/mesure-telephone.mjs <adresse du serveur> [--pages=accueil,catalogue,…] [--langues=fr,mg] [--passages=5] [--profil=3g-lente|3g] [--cpu=4] [--detail] [--retour] [--json]");
   process.exit(1);
 }
 const profilName = option("profil", "3g-lente");
@@ -49,6 +50,9 @@ const json = process.argv.includes("--json");
 // --detail : pour le premier passage de chaque page, chaque ressource (type, octets, fin du téléchargement), chaque
 // image (pixels reçus et pixels affichés) et l'origine des décalages.
 const detail = process.argv.includes("--detail");
+// --retour : visiteur qui revient. La page est d'abord chargée une fois dans un autre onglet (sans ralentissement), ce
+// qui remplit le cache du navigateur ; seul le second chargement, cache gardé, est mesuré.
+const retour = process.argv.includes("--retour");
 if (!profil || pages.some((p) => !(p in PAGES))) {
   console.error(`Profils : ${Object.keys(PROFILS).join(", ")}. Pages : ${Object.keys(PAGES).join(", ")}.`);
   process.exit(1);
@@ -119,7 +123,7 @@ async function newPhone(browser, cookies) {
   const page = await context.newPage();
   const cdp = await context.newCDPSession(page);
   await cdp.send("Network.enable");
-  await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+  await cdp.send("Network.setCacheDisabled", { cacheDisabled: !retour });
   await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: profil.latence, downloadThroughput: profil.descendant, uploadThroughput: profil.montant });
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: cpu });
   const bytes = { js: 0, css: 0, images: 0, polices: 0, html: 0, autres: 0 };
@@ -138,6 +142,11 @@ async function newPhone(browser, cookies) {
 async function measure(browser, key, url, cookies, verbose) {
   const { context, page, bytes, resources } = await newPhone(browser, cookies);
   try {
+    if (retour) {
+      const first = await context.newPage();
+      await first.goto(url, { waitUntil: "networkidle", timeout: 180_000 });
+      await first.close();
+    }
     await page.goto(url, { waitUntil: "networkidle", timeout: 180_000 });
     const m = await page.evaluate(() => window.__mesure);
     const fcp = m.fcp ?? NaN;
@@ -203,8 +212,8 @@ const spread = (xs) => [Math.min(...xs), Math.max(...xs)];
 const charge = () => execSync("uptime").toString().trim().replace(/.*load averages?: /, "");
 
 const browser = await chromium.launch({ channel: "chrome" });
-const report = { profil: { nom: profilName, ...profil, cpu, passages: runs, appareil: DEVICE }, chargeDebut: charge(), pages: {} };
-if (!json) console.error(`Profil ${profilName} : latence ${profil.latence} ms, ${(profil.descendant * 8) / 1000} kbit/s descendant, ${(profil.montant * 8) / 1000} kbit/s montant, processeur ×${cpu}, ${runs} passages. Charge : ${report.chargeDebut}`);
+const report = { profil: { nom: profilName, ...profil, cpu, passages: runs, retour, appareil: DEVICE }, chargeDebut: charge(), pages: {} };
+if (!json) console.error(`Profil ${profilName} : latence ${profil.latence} ms, ${(profil.descendant * 8) / 1000} kbit/s descendant, ${(profil.montant * 8) / 1000} kbit/s montant, processeur ×${cpu}, ${runs} passages${retour ? ", visiteur qui revient (cache rempli)" : ""}. Charge : ${report.chargeDebut}`);
 const cookies = pages.some((p) => p === "panier" || p === "commande") ? await cartCookies(browser) : null;
 for (const langue of langues) {
   for (const key of pages) {
