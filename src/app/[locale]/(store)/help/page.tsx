@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
+import { pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { zoneName } from "@/lib/shipping";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("help");
-  return { title: t("title"), description: t("metaDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("help")]);
+  return { title: t("title"), description: t("metaDescription"), alternates: pageAlternates(siteBase(), locale, "/help") };
 }
 
 export default async function HelpPage() {

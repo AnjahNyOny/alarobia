@@ -22,6 +22,7 @@ import { formatDate, formatPrice } from "@/lib/format";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
 import { availablePaymentMethods, isMobileMoney, OPERATOR_NAME } from "@/lib/payment";
 import { shippingCost } from "@/lib/pricing";
+import { catalogPath, jsonLdScript, openGraphBase, pageAlternates, schemaPrice, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
 
@@ -39,13 +40,19 @@ const getProduct = cache((slug: string) =>
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string; locale: string }> }): Promise<Metadata> {
   const { slug, locale } = await params;
-  const raw = await getProduct(slug);
+  const [raw, { storeName }] = await Promise.all([getProduct(slug), getSettings()]);
   if (!raw) return {};
   const product = localize(raw, locale, PRODUCT_FIELDS);
+  const description = product.description.slice(0, 155);
+  const alternates = pageAlternates(siteBase(), locale, `/products/${product.slug}`);
+  const photo = product.images[0]?.url;
   return {
     title: product.name,
-    description: product.description.slice(0, 155),
-    openGraph: { title: product.name, description: product.tagline, images: product.images[0] ? [product.images[0].url] : [] },
+    description,
+    alternates,
+    // Un openGraph de page remplace celui du layout en entier : on repart de la base commune (nom du site, langue).
+    // Sans photo, pas d'openGraph propre : la fiche garde l'image de partage générique.
+    ...(photo && { openGraph: { ...openGraphBase(locale, storeName), url: alternates.canonical, title: product.name, description: product.tagline || description, images: [photo] } }),
   };
 }
 
@@ -83,7 +90,6 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const details = product.details.split("\n").filter(Boolean);
   const today = madagascarTime();
   const operators = availablePaymentMethods(settings).filter(isMobileMoney).map((method) => OPERATOR_NAME[method]);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const custom = customizerOptions(product);
   // Prénom écrit sur la démonstration de l'accueil (« ?perso=Miora ») : coupé à la longueur que le produit accepte.
   const { perso } = await searchParams;
@@ -91,21 +97,40 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const photos = product.images.map((i) => i.url);
   const wishlist = <WishlistButton productId={product.id} active={wished.has(product.id)} name={product.name} variant="page" />;
 
+  // Données structurées : la page dans sa langue, son fil d'Ariane (le rayon affiché au-dessus du titre) et le produit.
+  const base = siteBase();
+  const url = pageAlternates(base, locale, `/products/${product.slug}`).canonical;
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Product",
-    name: product.name,
-    description: product.description,
-    sku: product.sku,
-    image: product.images.map((i) => siteUrl + i.url),
-    offers: {
-      "@type": "Offer",
-      price: (product.priceCents / 100).toFixed(2),
-      priceCurrency: currency,
-      availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      url: `${siteUrl}/${locale}/products/${product.slug}`,
-    },
-    ...(rating.count > 0 && { aggregateRating: { "@type": "AggregateRating", ratingValue: rating.average.toFixed(1), reviewCount: rating.count } }),
+    "@graph": [
+      { "@type": "ItemPage", "@id": url, url, name: product.name, inLanguage: locale, breadcrumb: { "@id": `${url}#ariane` }, mainEntity: { "@id": `${url}#produit` } },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${url}#ariane`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: category.name, item: pageAlternates(base, locale, catalogPath({ category: category.slug })).canonical },
+          { "@type": "ListItem", position: 2, name: product.name },
+        ],
+      },
+      {
+        "@type": "Product",
+        "@id": `${url}#produit`,
+        name: product.name,
+        description: product.description,
+        sku: product.sku,
+        url,
+        image: product.images.map((i) => new URL(i.url, base).href),
+        offers: {
+          "@type": "Offer",
+          // Les montants sont stockés en unités mineures : 2 500 000 → « 25000 » (ariary).
+          price: schemaPrice(product.priceCents),
+          priceCurrency: currency,
+          availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          url,
+        },
+        ...(rating.count > 0 && { aggregateRating: { "@type": "AggregateRating", ratingValue: rating.average.toFixed(1), reviewCount: rating.count } }),
+      },
+    ],
   };
 
   return (
@@ -309,7 +334,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
         )}
       </div>
       {/* Données structurées pour les moteurs de recherche. */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
     </>
   );
 }

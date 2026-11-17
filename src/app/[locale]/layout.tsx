@@ -6,23 +6,25 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { storeMessages } from "@/i18n/messages";
 import { isLocale } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/sonner";
+import { openGraphBase, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import "../globals.css";
 
 // Police variable : graisse et largeur (axe wdth), pour des titres étroits et un texte courant normal.
 const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], axes: ["wdth"], display: "swap" });
 
-const OG_LOCALE: Record<string, string> = { fr: "fr_FR", en: "en_US", mg: "mg_MG" };
-
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const [{ storeName }, t] = await Promise.all([getSettings(), getTranslations({ locale })]);
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(siteBase()),
     title: { default: `${storeName} — ${t("meta.title")}`, template: `%s — ${storeName}` },
     description: t("home.lead"),
-    openGraph: { type: "website", locale: OG_LOCALE[locale], siteName: storeName },
+    // Pas d'`alternates` ici : la page 404 et les pages privées en hériteraient. Chaque page indexable déclare les siens.
+    // L'image de partage vient de ./opengraph-image.tsx ; X reprend celle de l'Open Graph.
+    openGraph: openGraphBase(locale, storeName),
+    twitter: { card: "summary_large_image" },
   };
 }
 

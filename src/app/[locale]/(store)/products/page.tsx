@@ -12,6 +12,7 @@ import { cardInclude, wishedIds } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { currencyLabel, parseAmountToCents } from "@/lib/format";
 import { CATEGORY_FIELDS, localize } from "@/lib/localize";
+import { catalogPath, pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -24,14 +25,15 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const [sp, locale, t] = await Promise.all([searchParams, getLocale(), getTranslations("catalog")]);
   const q = sp.q?.trim().slice(0, 80);
   if (q) return { title: t("searchTitle", { q }), robots: { index: false } };
-  if (sp.category) {
-    const found = await db.category.findUnique({ where: { slug: sp.category }, include: { translations: true } });
-    if (found) {
-      const c = localize(found, locale, CATEGORY_FIELDS);
-      return { title: c.name, description: c.description };
-    }
+  const page = Number.parseInt(sp.page ?? "1");
+  const found = sp.category ? await db.category.findUnique({ where: { slug: sp.category }, include: { translations: true } }) : null;
+  // Canonique : le rayon (s'il existe) et la page ; le tri et les filtres renvoient vers la liste de référence (catalogPath).
+  const alternates = pageAlternates(siteBase(), locale, catalogPath({ category: found?.slug, page }));
+  if (found) {
+    const c = localize(found, locale, CATEGORY_FIELDS);
+    return { title: c.name, description: c.description, alternates };
   }
-  return { title: sp.sale ? t("sale") : t("all") };
+  return { title: sp.sale ? t("sale") : t("all"), alternates };
 }
 
 export default async function CataloguePage({ searchParams }: { searchParams: Promise<Params> }) {

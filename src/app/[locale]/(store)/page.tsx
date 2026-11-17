@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { HomeDemo } from "@/components/customizer/home-demo";
@@ -11,8 +12,14 @@ import { customizerOptions } from "@/lib/customization";
 import { DEMO_COLOR } from "@/lib/customizer/demo";
 import { db } from "@/lib/db";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
+import { jsonLdScript, pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
+
+export async function generateMetadata(): Promise<Metadata> {
+  // Titre et description viennent du layout ; l'accueil ajoute son adresse canonique et ses équivalents.
+  return { alternates: pageAlternates(siteBase(), await getLocale(), "") };
+}
 
 export default async function HomePage() {
   const [settings, user, locale, t] = await Promise.all([getSettings(), getUser(), getLocale(), getTranslations("home")]);
@@ -30,6 +37,24 @@ export default async function HomePage() {
   const mugOptions = mug && customizerOptions(mug);
   const demo = mug && mugOptions && mugOptions.textMax > 0 && mugOptions.colors.includes(DEMO_COLOR) ? { options: mugOptions, slug: mug.slug, name: localize(mug, locale, PRODUCT_FIELDS).name } : null;
   const mosaic = featured.filter((p) => p.images[0]).slice(0, 4);
+  const base = siteBase();
+  const home = pageAlternates(base, locale, "").canonical;
+  // Données structurées : la boutique (une seule, quelle que soit la langue) et le site dans la langue de la page.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "OnlineStore",
+        "@id": `${base}/#boutique`,
+        name: settings.storeName,
+        url: home,
+        logo: `${base}/apple-icon.png`,
+        email: settings.contactEmail,
+        areaServed: { "@type": "Country", name: "Madagascar" },
+      },
+      { "@type": "WebSite", "@id": `${home}#site`, url: home, name: settings.storeName, description: t("lead"), inLanguage: locale, publisher: { "@id": `${base}/#boutique` } },
+    ],
+  };
   const steps = [
     [t("steps.s1"), t("steps.s1text")],
     [t("steps.s2"), t("steps.s2text")],
@@ -138,6 +163,7 @@ export default async function HomePage() {
           </ol>
         </div>
       </section>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />
     </>
   );
 }

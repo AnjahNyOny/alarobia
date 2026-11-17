@@ -4,12 +4,13 @@ import { LogoMark } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { weekdayName } from "@/lib/format";
+import { pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("about");
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("about")]);
+  return { title: t("metaTitle"), description: t("metaDescription"), alternates: pageAlternates(siteBase(), locale, "/about") };
 }
 
 // Une semaine quelconque commençant un lundi : seuls les noms des jours servent.

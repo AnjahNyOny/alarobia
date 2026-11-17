@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité) et 6.3 (sécurité) faites et committées. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 16/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : 6.4 (référencement), puis 6.2, 6.5, 6.6. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 6.2 (performance), puis 6.5, 6.6. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -100,7 +100,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
 - [ ] 6.2 Performance sur téléphone modeste
 - [x] 6.3 Sécurité et limitation de débit : revue (journal du 15/11/2026), code promo consommé sous condition, contrôle de session sur chaque page du back-office, format des photos lu dans le contenu, limites de débit sur connexion, inscription, mot de passe, code promo, commande, paiement et lettre d'information (journal du 16/11/2026). Vérifié : 297 tests unitaires, 81 parcours navigateur (dont 2 nouveaux dans `e2e/securite.spec.ts`, vus rouges avec l'ancien code), lint, types et compilation propres
-- [ ] 6.4 Référencement multilingue
+- [x] 6.4 Référencement multilingue : adresse canonique et `hreflang` (fr, en, mg, `x-default` → fr) sur l'accueil, le catalogue, les fiches, « Qui sommes-nous », l'aide et les mentions, par `src/lib/seo.ts` que le plan du site utilise aussi ; image de partage générée par langue ; icône Apple ; données structurées de la boutique sur l'accueil, fil d'Ariane et page dans sa langue sur la fiche. Vérifié : 309 tests unitaires, 93 parcours navigateur (dont 12 dans `e2e/referencement.spec.ts`, vus rouges avant), lint, types et compilation propres, balises relues en production, captures de l'image relues
 - [ ] 6.5 Parcours complets dans les trois langues
 - [ ] 6.6 Documentation à jour
 
@@ -317,3 +317,13 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - Un premier passage complet a eu 16 dépassements de délai, machine saturée par des processus étrangers au projet (charge 20 à 35) ; repassé par `verificateur` : 81 sur 81 en 5,7 min, 297 tests unitaires, lint et types propres.
 - Relevé pendant la 6.3, non traité : au-delà d'une dizaine de transactions simultanées, Prisma + SQLite échoue (« Socket timeout » après 5 s), y compris `placeOrder`. Limite connue de SQLite, à revoir avec le passage à PostgreSQL (phase 7).
 - Malgache à relire, textes nouveaux : `errors.rateLimited` (« Be loatra ny fanandramana tao anatin'ny fotoana fohy… »), `errors.promoNoLongerValid` (« Tsy manan-kery intsony ny kaody… »).
+- Tâche 6.4 faite (`developpeur`, puis `verificateur`). Choix retenus :
+  - **Catalogue** : l'adresse canonique garde le rayon (s'il existe) et la page au-delà de 1 ; tri, prix, « en stock » et « promotions » renvoient vers la liste de référence. La recherche reste `noindex`.
+  - **Pas d'`alternates` dans le layout** : la page 404 et les pages privées en hériteraient. La 404 reste `noindex`, sans canonique (elle ne connaît pas l'adresse demandée).
+  - **Open Graph** : en Next, un `openGraph` de page remplace celui du layout et l'image `opengraph-image` n'est fusionnée qu'au niveau de son segment. La fiche produit perdait `siteName`, `locale` et `type` (défaut corrigé, base commune `openGraphBase`) ; elle garde sa photo comme image de partage, et l'image générique si elle n'en a pas.
+  - **Image de partage** (`src/app/[locale]/opengraph-image.tsx`) : nom de la boutique en indigo, accroche `meta.title` dans la langue de la page, grande étiquette « Ar » latérite coupée par le bord. Générée à chaque demande (elle lit le nom de la boutique dans les réglages), `Cache-Control` d'un jour. Police Archivo versionnée dans `assets/fonts/` (deux instances fixes tirées de la police variable, réduites au latin, licence OFL jointe) : satori ne lit ni le woff2 ni les polices variables, et le build ne dépend pas d'internet.
+  - **Icône Apple** : PNG statique (`src/app/apple-icon.png`, régénéré par `scripts/apple-icon.mjs`). Une route `/apple-icon` sans extension serait redirigée par le proxy de langue.
+  - **JSON-LD** : `inLanguage` sur un nœud `ItemPage` (il n'existe pas sur `Product`) ; prix sans « .00 » sur un montant rond (`schemaPrice`), contrôlé contre le prix affiché ; adresses toujours absolues.
+  - `/legal` ajoutée au plan du site (priorité 0,1) alors que son texte est encore « à compléter » : à retirer de l'index si le propriétaire préfère, d'ici la phase 7.
+- Poids après la 6.4 : accueil 361,6 ko (JS 215,3), catalogue 427,1 ko (JS 212,8), soit +3 à +4 ko depuis la phase 5, presque tout dans le HTML (balises et données structurées).
+- Non vérifié : l'aperçu réel sur Facebook et WhatsApp (site local, leurs robots ne l'atteignent pas) ; un nom de boutique de plus de 20 caractères sur l'image.
