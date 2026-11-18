@@ -250,26 +250,30 @@ Le client choisit une couleur, écrit un texte, ajoute une image, et voit le ré
 
 ## Phase 7 — Mise en ligne, puis ce qu'une vraie boutique demande
 
-Décidé par le propriétaire le 18/11/2026 :
-- hébergement sur Vercel, avec le projet existant `anjahnyonys-projects/alarobia`, mis à jour à chaque envoi sur `main` ;
-- base PostgreSQL chez Neon et fichiers envoyés dans Vercel Blob, créés depuis le tableau de bord Vercel ;
-- adresse en `.vercel.app` d'abord. Un domaine se branchera plus tard en changeant `NEXT_PUBLIC_SITE_URL`.
+Décidé par le propriétaire le 18/11/2026 : **aucune option payante**.
+- Hébergement sur l'offre gratuite de **Netlify**, mise à jour à chaque envoi sur `main`. Écartés :
+  - Vercel, dont l'offre gratuite interdit l'usage commercial et dont l'offre Pro est payante ;
+  - Cloudflare : code du serveur limité à 3 Mo, et changement de pilote pour Prisma.
+- Base PostgreSQL sur l'offre gratuite de **Neon** ; fichiers envoyés dans **Netlify Blobs**, sans compte de plus.
+- Adresse en `.netlify.app` d'abord. Un domaine se branchera plus tard en changeant `NEXT_PUBLIC_SITE_URL`.
+- L'ancien projet Vercel (`anjahnyonys-projects/alarobia`) est à débrancher de GitHub, sinon chaque envoi le remettrait en ligne.
 
 La phase est découpée en sous-phases indépendantes. **7A met la boutique en ligne** et se détaille ci-dessous. 7B à 7D se détaillent quand le propriétaire les demande.
 
 ### Contraintes propres à la phase 7A
 
-- **Région** : les fonctions Vercel et la base sont dans la même région, Francfort (`fra1` chez Vercel, `aws-eu-central-1` chez Neon).
+- **Quotas gratuits** : Netlify compte en crédits (300 par mois sur l'offre gratuite). Au-delà, le site se met en pause jusqu'au mois suivant, sans jamais facturer. Chaque mise en ligne en consomme : on n'envoie sur GitHub que des lots finis et vérifiés.
+- **Région** : la base Neon est créée dans la région des fonctions Netlify du site (relevée à la création du site), pour que chaque requête n'ait pas à traverser un océan.
 - **En local et dans les tests** : PostgreSQL 17 (Homebrew), installé le 18/11/2026.
   - Bases `alarobia` (développement) et `alarobia_test` (tests), créées en collation `C.UTF-8` (fournisseur `builtin`).
   - Utilisateur `mac`, sans mot de passe : `postgresql://mac@localhost:5432/<base>`.
-- **Fichiers envoyés** : ils restent sur le disque en local et dans les tests (`uploads/`, `uploads-test/`). Vercel Blob ne sert que si `BLOB_READ_WRITE_TOKEN` est défini.
-- **Fuseau** : les tests unitaires et navigateur tournent avec `TZ=UTC`, comme Vercel.
-- **Taille des envois** : Vercel refuse tout corps de requête de plus de 4,5 Mo. Aucun envoi ne doit s'en approcher.
+- **Fichiers envoyés** : ils restent sur le disque en local et dans les tests (`uploads/`, `uploads-test/`). Netlify Blobs ne sert que quand le code tourne sur Netlify.
+- **Fuseau** : les tests unitaires et navigateur tournent avec `TZ=UTC`, comme les fonctions Netlify.
+- **Taille des envois** : les fonctions Netlify refusent les requêtes de plus de 6 Mo. Avec l'encodage d'un formulaire, aucun envoi ne doit dépasser 4 Mo.
 - **Schéma** :
   - `prisma db push` en local et dans les tests ;
   - en production, migrations versionnées (`prisma/migrations/`), appliquées par `prisma migrate deploy` à la compilation.
-- **Dépendances** : une seule ajoutée, `@vercel/blob` (stockage des envois sur Vercel).
+- **Dépendances** : une seule ajoutée, `@netlify/blobs` (stockage des envois sur Netlify).
 - **GitHub** : rien n'y part sans la demande du propriétaire, puisqu'un envoi met le site en ligne.
 
 ### Points de vigilance de la phase 7A
@@ -279,8 +283,8 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
 8. **Recherche et majuscules** : « CAFÉ », « Café » et « café » trouvent les mêmes produits, dans la boutique et dans le back-office. PostgreSQL, contrairement à SQLite, compare `contains` à la lettre près, majuscules comprises (7.1).
 9. **Commandes simultanées sur le dernier stock** : vingt commandes arrivent en même temps sur un article qui n'a plus que cinq exemplaires. Cinq passent, quinze sont refusées pour rupture, et le stock finit à 0 sans jamais devenir négatif (7.1).
 10. **Commande tard le soir** : une commande passée à 23 h 30 à Antananarivo (20 h 30 UTC) s'affiche à 23:30 et compte pour ce jour-là dans le tableau de bord, même sur un serveur en UTC (7.3).
-11. **Photo de téléphone de 8 Mo**, envoyée par le vendeur ou par un client : elle est réduite dans le navigateur, ou refusée avec un message qui dit quoi faire. Jamais une erreur 413 muette de Vercel (7.2).
-12. **Variable manquante** (`BLOB_READ_WRITE_TOKEN`, `AUTH_SECRET`, `CRON_SECRET`) : l'échec est explicite et nomme la variable. Jamais d'écriture sur le disque éphémère de Vercel, qui perdrait le fichier en silence (7.2, 7.4).
+11. **Photo de téléphone de 8 Mo**, envoyée par le vendeur ou par un client : elle est réduite dans le navigateur, ou refusée avec un message qui dit quoi faire. Jamais une erreur muette de l'hébergeur (7.2).
+12. **Réglage de production manquant** (Netlify Blobs injoignable, `AUTH_SECRET`, `CRON_SECRET`) : l'échec est explicite et nomme ce qui manque. Jamais d'écriture sur le disque éphémère des fonctions, qui perdrait le fichier en silence (7.2, 7.4).
 
 ### 7.0 Prénom de démonstration « Anjah »
 - Le propriétaire a changé le prénom dans le code et les tests.
@@ -292,7 +296,7 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
   - les quatre recherches : `src/app/[locale]/(store)/products/page.tsx`, `src/app/[locale]/admin/{products,orders,customers}/page.tsx` ;
   - créés : `prisma/migrations/0_init/migration.sql`, `prisma/migrations/migration_lock.toml`, `src/lib/__tests__/migrations.test.ts`, `src/lib/__tests__/stock.test.ts`.
 - **Connexion** : `datasource db { provider = "postgresql", url = env("DATABASE_URL"), directUrl = env("DATABASE_URL_UNPOOLED") }`.
-  - Ce sont les noms posés par l'intégration Neon de Vercel : l'adresse regroupée (pooler) sert à l'application, l'adresse directe aux migrations.
+  - L'adresse regroupée de Neon (pooler) sert à l'application, l'adresse directe aux migrations. Le propriétaire les copie depuis Neon dans les variables du site Netlify.
   - En local, les deux valent `postgresql://mac@localhost:5432/alarobia`.
 - **Nettoyage du schéma** (la base de production part vide) :
   - retirer les colonnes obsolètes `StoreSettings.shippingStandardCents` et `shippingExpressCents` ;
@@ -307,36 +311,36 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
 - `prisma/seed.mjs` doit produire les mêmes données qu'avant (`demo-catalog.test.ts` reste vert).
 - **Fini quand** : `npm test` et toute la suite `npm run test:e2e` passent contre PostgreSQL en local ; `lint`, `tsc` et la compilation sont propres.
 
-### 7.2 Fichiers envoyés dans Vercel Blob
+### 7.2 Fichiers envoyés dans Netlify Blobs
 - **Fichiers** :
-  - créés : `src/lib/storage.ts` et ses tests, `src/lib/cleanup.ts` et ses tests, `src/app/api/cron/nettoyage/route.ts`, `vercel.json` ;
-  - modifiés : les deux points d'envoi (`api/customizer/upload`, `api/admin/upload`), `src/app/uploads/[name]/route.ts`, la route de téléchargement du back-office (`api/admin/orders/…/[file]`), `src/actions/customizer.ts`, `src/components/admin/image-uploader.tsx`, `src/lib/upload.ts`, les messages (fr, en, mg) ;
+  - créés : `src/lib/storage.ts` et ses tests, `src/lib/cleanup.ts` et ses tests, `src/app/api/cron/nettoyage/route.ts`, `.github/workflows/nettoyage.yml` ;
+  - modifiés : les deux points d'envoi (`api/customizer/upload`, `api/admin/upload`), `src/app/uploads/[name]/route.ts`, la route de téléchargement du back-office (`api/admin/orders/…/[file]`), `src/actions/customizer.ts`, `src/components/admin/image-uploader.tsx`, `src/lib/upload.ts`, les messages (fr, en, mg), le commentaire de `Customization` dans `prisma/schema.prisma` (il cite le script supprimé) ;
   - supprimé : `scripts/nettoyer-personnalisations.mjs`.
 - **Interface** (`src/lib/storage.ts`, `server-only`) : plus aucun autre fichier ne touche au disque des envois.
   - `saveUpload(name: string, bytes: Uint8Array, contentType: string): Promise<void>`
-  - `readUpload(name: string): Promise<Uint8Array | null>`
+  - `readUpload(name: string): Promise<{ bytes: Uint8Array; contentType: string } | null>`
   - `uploadExists(name: string): Promise<boolean>`
   - `listUploads(prefix: string): Promise<{ name: string; uploadedAt: Date }[]>`
   - `deleteUploads(names: string[]): Promise<void>`
 - **Choix du stockage** :
-  - Vercel Blob si `BLOB_READ_WRITE_TOKEN` est défini : `put(name, bytes, { access: "public", addRandomSuffix: false, contentType })`. Les noms sont déjà uniques (générés par le serveur).
+  - Netlify Blobs quand le code tourne sur Netlify : magasin `uploads` en cohérence forte (`getStore({ name: "uploads", consistency: "strong" })`), chaque fichier avec ses métadonnées `{ contentType, uploadedAt }`. Le signe « on tourne sur Netlify » est celui que donne la documentation de `@netlify/blobs` (à relever et à citer dans le code).
   - Sinon le disque, comme aujourd'hui (`upload-dir.ts`).
-  - Sur Vercel (`process.env.VERCEL`) sans jeton : erreur qui nomme la variable (point 12).
+  - Sur Netlify, si le magasin est injoignable : erreur explicite (point 12), jamais de repli sur le disque.
 - **Adresses des fichiers** : celles qui sont en base ne changent pas (`/uploads/<nom>`).
-  - La route `/uploads/[name]` lit par `readUpload`, garde ses en-têtes et ajoute `s-maxage=31536000`, pour que le réseau de Vercel serve les demandes suivantes sans relancer la fonction.
-  - Le fichier d'impression peut-il dépasser 4 Mo (sac, image en grand) ? À mesurer. Si oui, la route du back-office répond par une redirection vers l'adresse de téléchargement de Blob, au lieu de renvoyer le fichier.
+  - La route `/uploads/[name]` lit par `readUpload`, garde ses en-têtes et ajoute `Netlify-CDN-Cache-Control: public, max-age=31536000, immutable`, pour que le réseau de Netlify serve les demandes suivantes sans relancer la fonction.
+  - Le fichier d'impression peut-il dépasser 4 Mo (sac, image en grand) ? À mesurer. Si oui, vérifier que le téléchargement passe sous la limite de réponse des fonctions Netlify, sinon le dire avant de choisir.
 - **Taille des envois** (point 11) :
   - `MAX_UPLOAD_BYTES` passe de 5 à 4 Mo, avec les textes « 4 Mo », « 4 MB » dans les trois langues ;
   - les photos envoyées par le vendeur sont réduites dans le navigateur à 2048 px, comme l'image du client (même fonction que `send-image.ts`).
   - Tests : une photo de 8 Mo envoyée depuis le back-office et depuis la fiche arrive réduite, sous 4 Mo.
 - **Nettoyage** :
   - `staleFiles` passe du script à `src/lib/cleanup.ts`, avec ses tests, à côté de `cleanupCustomizations({ dryRun, now }): Promise<{ abandoned: number; files: string[] }>` ;
-  - route `GET /api/cron/nettoyage` : `Authorization: Bearer <CRON_SECRET>` (c'est ce qu'envoie Vercel Cron), 401 sinon, 503 si `CRON_SECRET` n'est pas défini, `?dry-run=1` pour un essai à blanc ;
-  - `vercel.json` : `crons: [{ path: "/api/cron/nettoyage", schedule: "0 1 * * *" }]`, soit 4 h à Antananarivo.
+  - route `GET /api/cron/nettoyage` : `Authorization: Bearer <CRON_SECRET>`, 401 sinon, 503 si `CRON_SECRET` n'est pas défini, `?dry-run=1` pour un essai à blanc ;
+  - déclenchée chaque jour par GitHub Actions (`.github/workflows/nettoyage.yml`, `schedule: "0 1 * * *"`, soit 4 h à Antananarivo, plus `workflow_dispatch` pour un lancement à la main). Le flux de travail appelle la route avec `curl --fail`, en lisant les secrets du dépôt `SITE_URL` et `CRON_SECRET`. C'est gratuit, et cela ne dépend pas de l'hébergeur.
 - **Tests** :
   - le disque dans un dossier temporaire (les cinq fonctions) ;
-  - Blob avec `vi.mock("@vercel/blob")` : options de `put`, lecture, liste, suppression ;
-  - absence de jeton sur Vercel ;
+  - Netlify Blobs avec `vi.mock("@netlify/blobs")` : nom et options du magasin, métadonnées écrites, lecture, liste, suppression ;
+  - magasin injoignable sur Netlify ;
   - la route de nettoyage : sans secret, avec un mauvais secret, sans variable, à blanc ;
   - les tests navigateur existants restent sur le disque et passent tels quels.
 - **Fini quand** : tests unitaires et suite navigateur verts, et `grep -rn "node:fs" src` ne trouve plus que `storage.ts`, `upload-dir.ts` et ce qui ne concerne pas les envois (image de partage, tests).
@@ -352,8 +356,9 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
   - Les dates de livraison promises restent justes (tests de `shipping` verts sous `TZ=UTC`).
 
 ### 7.4 Réglages de production
-- **`vercel.json`** : `"regions": ["fra1"]` et `"buildCommand": "prisma migrate deploy && next build"`, en plus des tâches planifiées de la 7.2.
-- **Adresse du site** : `siteBase()` (`src/lib/seo.ts`) se rabat sur `https://` + `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` quand `NEXT_PUBLIC_SITE_URL` est vide. Ce sont les variables que Vercel fournit à Next. Test unitaire.
+- **`netlify.toml`** : commande de compilation `npx prisma migrate deploy && npm run build`. Node 22 vient de `.nvmrc`. Le reste est laissé à l'adaptateur Next.js de Netlify, sans réglage de plus.
+- **Adresse du site** : `siteBase()` (`src/lib/seo.ts`) se rabat sur `process.env.URL`, l'adresse principale que Netlify fournit, quand `NEXT_PUBLIC_SITE_URL` est vide. Vérifier d'abord que `siteBase` ne sert que côté serveur, sinon le signaler. Test unitaire.
+- **Adresse du client** : sur Netlify, `clientIp()` (`src/lib/rate-limit.ts`) lit d'abord `x-nf-client-connection-ip`, posé par Netlify (vérifier dans sa documentation que le client ne peut pas l'imposer), puis `x-forwarded-for` comme aujourd'hui. Tests unitaires.
 - **En-têtes de sécurité** sur toutes les adresses (`headers()` de `next.config.ts`), testés dans `e2e/securite.spec.ts` :
   - `X-Content-Type-Options: nosniff` ;
   - `Referrer-Policy: strict-origin-when-cross-origin` ;
@@ -365,34 +370,39 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
   - Il ne crée rien d'autre : ni client, ni avis (jamais de faux avis sur une vraie boutique), ni commande, ni code promo, ni abonné.
   - Il lit les mêmes données que `seed.mjs`, sans les recopier. La sortie de `seed.mjs` ne change pas.
   - Test unitaire sur un schéma temporaire : 1 utilisateur ADMIN, 27 produits, 0 avis, 0 commande, 0 code promo ; une seconde exécution est refusée, de même qu'une exécution sans `ADMIN_PASSWORD`.
-- **Documentation** : `.env.example` documente chaque variable avec sa provenance (Neon, Blob, à générer), et `README.md` gagne une section « Mise en ligne ». `AUTH_SECRET` absent ou trop court arrête déjà le serveur (`src/lib/auth.ts`).
+- **Documentation** : `.env.example` documente chaque variable avec sa provenance (Neon, Netlify, à générer), et `README.md` gagne une section « Mise en ligne ». `AUTH_SECRET` absent ou trop court arrête déjà le serveur (`src/lib/auth.ts`).
 
 ### 7.5 Mise en ligne (propriétaire et architecte)
-1. **Propriétaire, sur vercel.com** :
-   - passer à l'offre Pro (l'offre gratuite exclut l'usage commercial) ;
-   - créer la base Neon depuis l'onglet Storage (région Francfort) et un magasin Blob, et relier les deux au seul environnement Production ;
-   - ajouter `AUTH_SECRET` et `CRON_SECRET` (`openssl rand -base64 32` chacun).
-2. **Propriétaire, en local** : copier `DATABASE_URL_UNPOOLED` dans `.env.production.local` (ignoré par git), avec `ADMIN_EMAIL` et `ADMIN_PASSWORD` de son choix.
-3. **Architecte, quand le propriétaire le demande** :
-   - `git push` : Vercel compile et applique les migrations ;
+1. **Propriétaire, avant l'envoi** :
+   - débrancher l'ancien projet Vercel de GitHub, ou le supprimer ;
+   - créer la base sur neon.tech (offre gratuite) et noter ses deux adresses, regroupée et directe ;
+   - générer `AUTH_SECRET` et `CRON_SECRET` (`openssl rand -base64 32` chacun).
+2. **Propriétaire, sur netlify.com** (offre gratuite) :
+   - créer le site depuis le dépôt GitHub `AnjahNyOny/alarobia` et relever la région de ses fonctions (la base Neon doit être dans la même ; sinon la recréer au bon endroit) ;
+   - ajouter, pour la production seulement, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `AUTH_SECRET`, `CRON_SECRET` et `NEXT_PUBLIC_SITE_URL` (l'adresse `.netlify.app` du site).
+3. **Propriétaire, sur GitHub** : secrets du dépôt `SITE_URL` et `CRON_SECRET`, pour le nettoyage quotidien.
+4. **Propriétaire, en local** : copier l'adresse directe de Neon dans `.env.production.local` (ignoré par git) sous le nom `DATABASE_URL_UNPOOLED` (et `DATABASE_URL`), avec `ADMIN_EMAIL` et `ADMIN_PASSWORD` de son choix.
+5. **Architecte, quand le propriétaire le demande** :
+   - `git push` : Netlify compile et applique les migrations ;
    - puis `node --env-file=.env.production.local prisma/init-production.mjs` ;
    - vérifier que la collation de la base Neon (`SHOW lc_collate`) est la même qu'en local, sinon le signaler.
-4. **Contrôle en ligne (`verificateur`)** : `e2e/production.spec.ts`, lancé seulement si `PROD_URL` est défini.
+6. **Contrôle en ligne (`verificateur`)** : `e2e/production.spec.ts`, lancé seulement si `PROD_URL` est défini.
    - Pages en fr, en et mg (accueil, catalogue, fiche, aide) : réponse 200, aucune erreur de console.
    - Envoi d'une image sur la fiche personnalisable, puis relecture de l'image par `/uploads/…` (le nettoyage l'effacera au bout de sept jours).
    - Connexion au back-office avec le compte du propriétaire.
    - En-têtes de sécurité, `hreflang` et adresse canonique sur l'adresse en ligne.
    - Poids des pages par `poids-pages.mjs` contre l'adresse en ligne, comparé aux budgets.
-5. **Propriétaire** : une commande réelle de bout en bout (paiement à la livraison), puis son annulation dans le back-office.
-6. **Tâche planifiée** : visible dans le tableau de bord Vercel ; un appel à blanc (`?dry-run=1`) avec le secret.
+7. **Propriétaire** : une commande réelle de bout en bout (paiement à la livraison), puis son annulation dans le back-office.
+8. **Nettoyage** : lancer une fois le flux de travail à la main depuis GitHub (onglet Actions), puis vérifier qu'il réussit.
 
-**Livrable 7A** : la boutique tourne sur son adresse `.vercel.app`, et les commandes, les comptes et les images survivent d'un déploiement à l'autre.
+**Livrable 7A** : la boutique tourne gratuitement sur son adresse `.netlify.app`, et les commandes, les comptes et les images survivent d'un déploiement à l'autre.
 
 ### Ce que la phase 7A ne fait pas (décidé)
-- **Limites de débit partagées** : elles restent en mémoire, donc comptées par instance Vercel, ce qui les rend plus lâches. À revoir (stockage partagé ou pare-feu Vercel) si des abus apparaissent.
+- **Limites de débit partagées** : elles restent en mémoire, donc comptées par instance de fonction, ce qui les rend plus lâches. À revoir avec un stockage partagé si des abus apparaissent.
 - **Politique CSP** : elle demande des nonces, incompatibles avec la mise en cache statique des pages. Plus tard.
-- **Domaine personnalisé** : plus tard. Il suffira de l'ajouter dans Vercel et de changer `NEXT_PUBLIC_SITE_URL`.
-- **Déploiements de prévisualisation** : aucun, on n'envoie que `main`. La base et le magasin ne sont reliés qu'à Production, donc une autre branche envoyée sur GitHub échouerait à la compilation au lieu de toucher la base réelle.
+- **Domaine personnalisé** : plus tard. Il suffira de l'ajouter dans Netlify et de changer `NEXT_PUBLIC_SITE_URL`.
+- **Aperçus de déploiement** (branches, demandes de fusion) : aucun, on n'envoie que `main`. Les variables de la base ne sont définies que pour la production, donc un aperçu échouerait à la compilation au lieu de toucher la base réelle.
+- **Surveillance des quotas** : le propriétaire consulte la consommation de crédits dans Netlify. Rien d'automatique.
 
 ### 7B à 7D (à détailler quand le propriétaire les demande)
 - **7B E-mails et SMS** : confirmation de commande, changement de statut, et la lettre d'information (soit on la tient, soit on retire ses promesses). Service d'envoi à choisir.

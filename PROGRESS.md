@@ -2,14 +2,14 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne sur Vercel) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
+**État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
 
-**Prochaine action** : 7.3, heures du back-office (`executant`), puis 7.2 et 7.4. En parallèle, le propriétaire peut préparer Vercel : offre Pro, base Neon et magasin Blob (étape 1 de la 7.5). Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 7.3, heures du back-office (`executant`), puis 7.2 et 7.4. En parallèle, le propriétaire peut faire l'étape 1 de la 7.5 : débrancher l'ancien projet Vercel de GitHub, créer la base sur neon.tech, générer les deux secrets. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
 - **Pousser vers GitHub** : les commits des phases 5 et 6 sont locaux. Ils partiront à l'étape 3 de la 7.5, quand le propriétaire le demandera (un envoi déclenche un déploiement Vercel).
-- **Offre Vercel** : l'offre gratuite (Hobby) est réservée à un usage non commercial. Une boutique demande l'offre Pro. Choix et paiement du propriétaire.
+- **Ancien projet Vercel** : toujours relié au dépôt GitHub. À débrancher (ou supprimer) par le propriétaire avant l'envoi de la 7.5, sinon chaque envoi le remettrait en ligne sur une offre qui interdit l'usage commercial.
 - **Malgache du back-office** : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
 - **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
 
@@ -42,6 +42,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 16/11/2026 | Le propriétaire autorise l'architecte à committer chaque tâche finie (vérifiée par `verificateur`), sans pousser. |
 | 16/11/2026 | Session principale passée de Fable 5.2 à Opus 5.5 (quota). Le propriétaire autorise l'architecte à modifier lui-même le code (règle de délégation assouplie dans `CLAUDE.md`). |
 | 18/11/2026 | Phase 7 commencée par la mise en ligne (7A). Hébergement sur Vercel, base PostgreSQL chez Neon, fichiers envoyés dans Vercel Blob (écartés : Turso, serveur unique). Adresse `.vercel.app` d'abord, domaine plus tard. |
+| 18/11/2026 | Aucune option payante (refus de l'offre Pro de Vercel) : hébergement sur l'offre gratuite de Netlify, fichiers dans Netlify Blobs, base sur l'offre gratuite de Neon, nettoyage quotidien par GitHub Actions. Remplace Vercel et Vercel Blob dans la décision précédente. Écartés : Vercel gratuit (usage commercial interdit), Cloudflare (code du serveur limité à 3 Mo, autre pilote Prisma). |
 | 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
 
 ## Avancement
@@ -107,13 +108,13 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 6.6 Documentation à jour : `README.md` réécrit (personnalisation, back-office, qualité, tests, scripts, ce qu'il reste à brancher, chaque chemin et chaque commande vérifiés), `CLAUDE.md` mis à jour (carte du code, commandes de mesure, pièges des tests et des polices, limites actuelles) (journal du 18/11/2026)
 
 ### Phase 7 — Mise en ligne, puis ce qu'une vraie boutique demande
-Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
+Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
 - [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
-- [ ] 7.2 Fichiers envoyés dans Vercel Blob, envois sous 4 Mo, nettoyage par tâche planifiée
+- [ ] 7.2 Fichiers envoyés dans Netlify Blobs, envois sous 4 Mo, nettoyage quotidien par GitHub Actions
 - [ ] 7.3 Heures du back-office à l'heure de Madagascar, tests en `TZ=UTC`
-- [ ] 7.4 Réglages de production : région, migrations à la compilation, adresse du site, en-têtes de sécurité, données de départ sans données de démonstration
-- [ ] 7.5 Mise en ligne : Vercel préparé par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
+- [ ] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), adresse du site et du client sur Netlify, en-têtes de sécurité, données de départ sans données de démonstration
+- [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
 
 7B (e-mails et SMS), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
@@ -477,3 +478,8 @@ Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
   - **Annulation en double** : le statut était lu hors de la transaction, donc deux « Annulée » simultanés remettaient le stock deux fois (défaut antérieur, de la phase 3). `transitionOrder` (`src/lib/order-status.ts`) conditionne l'écriture au statut lu et rend `false` sinon (nouveau message `admin.errors.orderChanged`, à relire en malgache) ; `releaseStock` remet le stock dans le même ordre fixe. Vu rouge (`[true, true]`).
   - `CLAUDE.md` et les définitions de `developpeur` et `executant` mis à jour (PostgreSQL, migrations, ordre des verrous, `createDb`, caractère nul).
   - `verificateur` (7.1) : lint et types propres, 340 tests unitaires, aucun schéma temporaire laissé, **122 parcours navigateur sur 122** en 11,4 min sans relance (charge 11 à 25), `tsconfig.json` intact.
+- **Hébergement revu** : le propriétaire refuse toute option payante, donc l'offre Pro de Vercel est exclue. Vérifié dans la politique officielle de Vercel : l'offre gratuite (Hobby) est réservée à un usage personnel non commercial, et tout usage commercial demande Pro. Choix du propriétaire : **Netlify gratuit**.
+  - Netlify : rien n'interdit l'usage commercial dans les conditions relevées (sources secondaires, la page officielle des conditions reste à lire par le propriétaire). Next.js 16 pris en charge par l'adaptateur OpenNext. 300 crédits par mois : au-delà, pause du site sans facturation.
+  - Risque relevé : en 2026, plusieurs utilisateurs gratuits signalent sur le forum de Netlify des mises en ligne bloquées à tort par le compteur de crédits.
+  - Cloudflare écarté : code du serveur limité à 3 Mo compressés sur l'offre gratuite, Prisma à passer sur un pilote adapté, et R2 qui peut demander une carte bancaire.
+  - `PLAN.md` réécrit pour 7.2, 7.4 et 7.5 : Netlify Blobs (`@netlify/blobs`) au lieu de Vercel Blob, nettoyage par un flux de travail GitHub Actions (gratuit, indépendant de l'hébergeur) qui appelle la route protégée, `netlify.toml`, adresse du client lue dans `x-nf-client-connection-ip`, base Neon créée dans la région des fonctions Netlify. 7.1 et 7.3 ne changent pas. Restent à reprendre en 7.4 : les mentions de « l'intégration Neon de Vercel » dans le commentaire du schéma et dans `.env.example`.
