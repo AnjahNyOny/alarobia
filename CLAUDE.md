@@ -62,6 +62,8 @@ npm test                 # tests unitaires (Vitest)
 npm run test:e2e         # tests navigateur (Playwright) : compile en production sur le port 3100, base prisma/test.db
 npm run db:reset         # recrée la base et recharge les données de démonstration (efface tout)
 npm run db:seed
+node scripts/poids-pages.mjs        # poids transféré des pages, contre un serveur de production (lire l'en-tête)
+node scripts/mesure-telephone.mjs   # temps en 3G lente sur téléphone ralenti (FCP, LCP, CLS, hydratation, 3D)
 ```
 
 Comptes de démonstration : `admin@alarobia.example` / `admin1234`, `client@alarobia.example` / `client1234`. Adresses : `/fr/admin`, `/fr/login`.
@@ -74,9 +76,9 @@ Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind v4, shad
 prisma/schema.prisma     modèle de données (statuts en chaînes : SQLite n'a pas d'enum)
 prisma/seed.mjs          données de démonstration, déterministes
 src/actions/             actions serveur : toute écriture en base passe par ici
-src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, schemas Zod, format, address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées)
+src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, promo (code consommé sous condition), schemas Zod, format, localize (repli sur le français), address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées), rate-limit (limites de débit, en mémoire), seo (canonique, hreflang)
 src/lib/customizer/      mise en place du dessin (layout), tracé sur canevas (paint), objet vu à plat (flat) : fonctions pures, testées
-src/components/customizer/  personnalisation : scène 3D (scene, models), objet en direct 3D ou à plat (live-object), onglets et réglages de la fiche (stage, controls), démonstration de l'accueil (home-demo)
+src/components/customizer/  personnalisation : scène 3D (scene, models), objet en direct 3D ou à plat (live-object), onglets et réglages de la fiche (stage, controls), démonstration de l'accueil (home-demo), chargement à la demande (lazy, fiche), écritures proposées (fonts)
 src/components/ui/       shadcn/ui
 src/components/store/    boutique
 src/components/admin/    back-office
@@ -84,8 +86,12 @@ src/app/[locale]/(store)/  pages publiques et espace client
 src/app/[locale]/admin/    back-office (rôle ADMIN)
 src/i18n/                routage par langue, navigation, fusion des messages
 messages/                textes de l'interface : fr.json (socle), en.json, mg.json
-src/app/globals.css      jetons de design
+src/app/globals.css      jetons de design, polices de remplacement calibrées
+src/app/fonts/           Archivo réduite aux graisses et largeurs du site (scripts/police-archivo.py)
+assets/fonts/            Archivo en instances fixes pour l'image de partage (satori), licence OFL
 uploads/                 fichiers envoyés, servis par src/app/uploads/[name]/route.ts
+e2e/                     tests navigateur ; parcours complets dans les trois langues : parcours*.spec.ts, étapes dans parcours.ts
+scripts/                 mesures (poids, 3G, hydratation), nettoyage des personnalisations, icône, police
 ```
 
 ## Règles de code
@@ -121,20 +127,28 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Ne jamais utiliser `pkill -f "next dev"`** : cela tuerait aussi les autres serveurs Next du propriétaire. Cibler le port : `lsof -ti tcp:3001 -sTCP:LISTEN`.
 - **Node** : la machine a Node 21 par défaut (fin de vie), le projet demande Node 22 (`.nvmrc`). Avant toute commande : `nvm use`, ou préfixer le `PATH` avec `~/.nvm/versions/node/v22.16.0/bin`.
 - **Turbopack en dev** peut ignorer des fichiers créés pendant qu'il tourne (404 sur une page qui existe, erreurs d'hydratation fantômes). Redémarrer le serveur et supprimer `.next` avant de conclure à un bug.
-- **Erreurs d'hydratation (#418) : ne pas redescendre sous Next 16.** Sous Next 15.5, React démarrait parfois l'hydratation avant d'avoir reçu toutes les données d'un composant serveur asynchrone, et se décalait par rapport au HTML : erreur intermittente, uniquement avec le JavaScript en cache, jusqu'à 25 % des chargements sous charge. Next 16 corrige le défaut (0 erreur sur 2 400 chargements). Le banc d'essai est dans le dépôt : `node scripts/stress-hydratation.mjs http://localhost:3100 /aide 600` contre un serveur de production. Deux précautions prises pendant l'enquête sont conservées : la mise en page charge ses données une seule fois (`loadShell`) au lieu d'avoir plusieurs composants asynchrones côte à côte, et les boutons de menu ont un `id` fixe.
+- **Erreurs d'hydratation (#418) : ne pas redescendre sous Next 16.** Sous Next 15.5, React démarrait parfois l'hydratation avant d'avoir reçu toutes les données d'un composant serveur asynchrone, et se décalait par rapport au HTML : erreur intermittente, uniquement avec le JavaScript en cache, jusqu'à 25 % des chargements sous charge. Next 16 corrige le défaut (0 erreur sur 2 400 chargements). Le banc d'essai est dans le dépôt : `node scripts/stress-hydratation.mjs http://localhost:3100 /fr/help 600` contre un serveur de production. Deux précautions prises pendant l'enquête sont conservées : la mise en page charge ses données une seule fois (`loadShell`) au lieu d'avoir plusieurs composants asynchrones côte à côte, et les boutons de menu ont un `id` fixe.
 - **Prisma refuse `db push --force-reset` lancé par un agent.** C'est voulu. Pour repartir de zéro, `npm run db:seed` vide et remplit les tables ; `npm run db:reset` est à lancer par le propriétaire.
 - **Débordement horizontal** : dans un test en émulation mobile, comparer `scrollWidth` à `clientWidth` (`innerWidth` s'élargit avec le contenu et masque le défaut). Deux causes déjà rencontrées : une colonne de grille ou un `fieldset` sans `min-w-0`, et un `sr-only` dans un conteneur `overflow-x-auto` qui n'est pas `relative`.
-- **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar) dans `src/lib/pricing.ts`.
+- **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar), défini dans `src/lib/constants.ts` et réexporté par `src/lib/pricing.ts`.
 - **Dates de livraison** : partir de `madagascarTime()` (`src/lib/shipping.ts`), jamais de `new Date()` seul : le serveur peut tourner dans un autre fuseau.
 - **Schéma Prisma** : `db push` refuse de supprimer une colonne remplie. Ajouter des colonnes avec une valeur par défaut ; les colonnes devenues inutiles sont marquées « obsolètes » dans le schéma.
 - **Constante exportée d'un fichier `"use client"`** : importée dans un composant serveur, elle arrive sous forme de référence, pas de valeur, et toute comparaison échoue en silence. Les valeurs lues des deux côtés vont dans `src/lib/` (exemple : `src/lib/customizer/demo.ts`).
-- **Polices** : ne pas redéclarer Archivo avec `next/font` dans un second fichier, le navigateur la téléchargerait deux fois (88 ko). La personnalisation lit son nom dans la variable CSS `--font-archivo`.
+- **Polices** : ne pas redéclarer Archivo avec `next/font` dans un second fichier, le navigateur la téléchargerait deux fois (57 ko). La personnalisation lit son nom dans la variable CSS `--font-archivo`.
+- **Polices de remplacement** (`globals.css`, familles « Archivo Fallback » sur Arial et « Archivo Fallback Roboto » pour Android) : une face par largeur employée (100, 78, 68 %), `size-adjust` mesuré sur les textes du site. Elles évitent tout décalage pendant le chargement d'Archivo (CLS 0). Une nouvelle largeur (`font-stretch`) dans un utilitaire demande sa face dans les deux familles : `fallback-font.test.ts` échoue sinon. Côté Android, `RobotoStatic-Regular` doit rester la première source : Chrome resserre la Roboto variable par son axe `wdth`.
 - **CSS écrite dans le HTML** (`experimental.inlineCss`, `next.config.ts`) : seule la feuille de la route l'est. Une règle importée seulement par un composant chargé par `next/dynamic` (une police `next/font` par exemple) revient en `<link rel="stylesheet">` et retarde l'affichage de 2 s en 3G : l'importer aussi depuis la page (exemple : `customizer/fonts.ts` dans `products/[slug]/page.tsx`). `e2e/performance.spec.ts` le contrôle, avec les budgets de poids.
 - **Three.js n'est chargé qu'à la demande** (243 ko compressé) : n'importer `scene.tsx` ou `live-object.tsx` que par `next/dynamic`, jamais directement depuis l'accueil ou le catalogue. Vérifier avec `node scripts/poids-pages.mjs`.
 - **Scène 3D et tests** : le cadre `[data-view="3d"]` existe avant que la scène ne soit téléchargée ; un test qui agit sur la 3D attend `[data-view="3d"] canvas`. En se fermant, la scène libère son contexte WebGL et déclenche `webglcontextlost` une demi-seconde plus tard : ce n'est pas une panne.
+- **Tests navigateur** :
+  - le projet `mobile` (Pixel 7) ne prend que les fichiers dont le nom contient `mobile`, le projet `ordinateur` les ignore ;
+  - toute la suite partage une adresse (`::1`) pour les limites de débit : marge la plus faible, 30 échecs de connexion par 15 min. Un test qui en provoque beaucoup envoie son propre `x-forwarded-for` ;
+  - `admin.spec.ts` supprime des zones de livraison sans les recréer : ne pas supposer les zones du seed ;
+  - une compilation dans un `NEXT_DIST_DIR` que git n'ignore pas modifie `tsconfig.json` et fait lire ses fichiers à Tailwind : compiler dans `.next-e2e` ou un dossier ignoré, et rendre `tsconfig.json` après usage ;
+  - capture `fullPage` : les éléments `sticky` et `fixed` (en-tête, objet de la personnalisation, barre latérale du back-office) apparaissent décalés. Ce n'est pas un défaut de la page.
+- **Mesures de temps** : la machine du propriétaire fait tourner d'autres travaux (autre projet, Roblox Studio). Les temps de `mesure-telephone.mjs` ne valent qu'avec une charge (`uptime`) inférieure à 6, sinon en séries alternées avant / après. Les octets, eux, ne dépendent pas de la charge.
 - **Pas de configuration Prettier** dans le dépôt : `npx prettier --write` recoupe tout à 80 colonnes. Ne pas le lancer sur les fichiers existants.
 - **Recherche de photos** : l'interface non officielle d'Unsplash est bloquée dans cet environnement. Utiliser les photos de `public/products/` ou celles fournies par le propriétaire.
 
 ## Limites actuelles (voir phase 7)
 
-Paiement simulé, aucun e-mail envoyé, SQLite et fichiers sur disque local, pas de limitation de débit, mentions légales à compléter.
+Paiement Mobile Money confirmé à la main par le vendeur (pas d'API opérateur), aucun e-mail envoyé, SQLite (échoue au-delà d'une dizaine de transactions simultanées) et fichiers sur disque local, limites de débit en mémoire et adresse du client forgeable sans proxy de confiance, heures du back-office dans le fuseau du serveur, mentions légales à compléter, malgache à faire relire.

@@ -1,5 +1,5 @@
 // Banc d'essai des erreurs d'hydratation : quatre onglets rechargent une page en rafale, cache chaud.
-// Usage : node scripts/stress-hydratation.mjs http://localhost:3100 /aide 600
+// Usage : node scripts/stress-hydratation.mjs http://localhost:3100 /fr/help 600
 // Attendu : 0 erreur. Sous Next 15.5, ce banc en donnait 15 à 25 % sur une page longue.
 import { chromium, devices } from "@playwright/test";
 
