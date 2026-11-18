@@ -7,6 +7,8 @@ import type { FontKey } from "@/lib/customization";
  * chargée par la mise en page : on lit son nom dans la variable CSS `--font-archivo` plutôt que de la déclarer
  * une seconde fois (le fichier serait téléchargé en double). Les trois autres ne sont pas préchargées : le navigateur ne télécharge un
  * fichier que lorsqu'un texte l'utilise, donc quand le client ouvre la personnalisation et écrit.
+ * La fiche produit importe aussi ce module, pour que ces déclarations arrivent dans la feuille écrite dans son HTML
+ * plutôt que dans une feuille à part qui retarderait l'affichage (`products/[slug]/page.tsx`).
  */
 const ronde = Baloo_2({ subsets: ["latin"], display: "swap", preload: false });
 const classique = Lora({ subsets: ["latin"], display: "swap", preload: false });

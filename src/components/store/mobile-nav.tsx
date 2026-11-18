@@ -24,7 +24,7 @@ export function MobileNav({ links, storeName, signedIn }: { links: { href: strin
         </SheetHeader>
         <nav aria-label={t("menu")} className="flex flex-col px-5 py-2">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="border-b py-3.5 text-lg last:border-0">
+            <Link key={l.href} href={l.href} prefetch={false} onClick={() => setOpen(false)} className="border-b py-3.5 text-lg last:border-0">
               {l.label}
             </Link>
           ))}
@@ -35,10 +35,10 @@ export function MobileNav({ links, storeName, signedIn }: { links: { href: strin
         </form>
         <div className="mt-auto grid gap-1 border-t px-5 py-4 text-sm text-muted-foreground">
           <LanguageSwitcher className="pb-2 text-foreground" />
-          <Link href={signedIn ? "/account" : "/login"} onClick={() => setOpen(false)} className="py-1.5 text-foreground">
+          <Link href={signedIn ? "/account" : "/login"} prefetch={false} onClick={() => setOpen(false)} className="py-1.5 text-foreground">
             {signedIn ? t("account") : t("signIn")}
           </Link>
-          <Link href="/help" onClick={() => setOpen(false)} className="py-1.5">
+          <Link href="/help" prefetch={false} onClick={() => setOpen(false)} className="py-1.5">
             {t("help")}
           </Link>
         </div>

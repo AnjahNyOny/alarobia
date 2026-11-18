@@ -21,9 +21,10 @@ const archivo = localFont({
   style: "normal",
   display: "swap",
   // Police de remplacement pendant le chargement : Arial aux proportions d'Archivo, avec les valeurs exactes que
-  // next/font/google employait (globals.css), pour que la page s'affiche et se décale comme avant.
+  // next/font/google employait (globals.css), pour que la page s'affiche et se décale comme avant ; puis Roboto aux
+  // mêmes proportions pour Android, qui n'a pas Arial.
   adjustFontFallback: false,
-  fallback: ["Archivo Fallback"],
+  fallback: ["Archivo Fallback", "Archivo Fallback Roboto"],
   declarations: [
     { prop: "font-stretch", value: "68% 100%" },
     { prop: "unicode-range", value: "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD" },

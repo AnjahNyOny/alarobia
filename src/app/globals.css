@@ -43,6 +43,43 @@
   size-adjust: 80.7%;
 }
 
+/*
+ * Même remplaçant pour Android, qui n'a pas Arial : le navigateur passe à cette famille, placée après dans `fallback`
+ * du layout. RobotoStatic-Regular (Android 12 et suivants) et Roboto-Regular (Android 11 et avant) sont la même
+ * Roboto 2.138, fixe. size-adjust mesuré comme pour Arial, dans Chrome, sur les textes du site (fr, en, mg) ; hauteurs
+ * d'Archivo. Depuis Android 12, « Roboto-Regular » est variable et Chrome (130 et plus) règle son axe wdth sur le
+ * font-stretch de la face, local() compris : 10 % plus étroite à 78 %, 11 % à 68 %, en plus de size-adjust. D'où
+ * RobotoStatic en premier.
+ */
+@font-face {
+  font-family: "Archivo Fallback Roboto";
+  src: local("RobotoStatic-Regular"), local("Roboto-Regular"), local("Roboto");
+  ascent-override: 87.98%;
+  descent-override: 21.04%;
+  line-gap-override: 0%;
+  size-adjust: 99.8%;
+}
+
+@font-face {
+  font-family: "Archivo Fallback Roboto";
+  src: local("RobotoStatic-Regular"), local("Roboto-Regular"), local("Roboto");
+  font-stretch: 78%;
+  ascent-override: 99.89%;
+  descent-override: 23.89%;
+  line-gap-override: 0%;
+  size-adjust: 87.9%;
+}
+
+@font-face {
+  font-family: "Archivo Fallback Roboto";
+  src: local("RobotoStatic-Regular"), local("Roboto-Regular"), local("Roboto");
+  font-stretch: 68%;
+  ascent-override: 107.73%;
+  descent-override: 25.77%;
+  line-gap-override: 0%;
+  size-adjust: 81.5%;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

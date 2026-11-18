@@ -47,7 +47,7 @@ export function Footer({ settings, categories }: Pick<ShellData, "settings" | "c
               <ul className="mt-4 grid gap-2.5 text-sm text-primary-foreground/75">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="underline-offset-4 hover:text-primary-foreground hover:underline">
+                    <Link href={l.href} prefetch={false} className="underline-offset-4 hover:text-primary-foreground hover:underline">
                       {l.label}
                     </Link>
                   </li>

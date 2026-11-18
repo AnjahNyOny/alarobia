@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 17/11/2026** : phases 0 à 5 faites et committées. Phase 6 en cours : 6.1 (accessibilité), 6.3 (sécurité) et 6.4 (référencement) faites et committées ; 6.2 (performance) arrêtée le 17/11/2026 à un point stable, à la demande du propriétaire, et committée en l'état : décalage de mise en page corrigé (CLS 0 partout), mesures `inlineCss` et préchargements faites, décisions prises ; leur application, le remplaçant Android, les budgets et la mesure finale restent à faire. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 18/11/2026** : phases 0 à 5 faites et committées. Phase 6 : 6.1 (accessibilité), 6.2 (performance), 6.3 (sécurité) et 6.4 (référencement) faites et committées. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
 
-**Prochaine action** : finir la 6.2 (liste « Pour finir la 6.2 » au journal du 17/11/2026), puis 6.5, 6.6. **La suite navigateur n'a pas été lancée depuis les changements de la 6.2.** Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 6.5 (parcours complets dans les trois langues), puis 6.6 (documentation). Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -98,7 +98,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 
 ### Phase 6 — Qualité
 - [x] 6.1 Accessibilité : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation en 3D et à plat, formulaires refusés), en fr, plus l'accueil, la fiche personnalisable et la commande en en et mg ; mêmes écrans clés sur mobile avec la taille des cibles tactiles ; parcours au clavier seul (liens d'évitement, achat complet, tiroir et menus, personnalisation, back-office, refus de formulaire, moins d'animations). Aucune règle désactivée, aucun élément exclu. Vérifié : 258 tests unitaires, 79 parcours navigateur (dont 23 nouveaux), lint, types et compilation propres, les trois parcours sensibles au focus rejoués 8 fois chacun (24 sur 24), captures relues à 390 et 1440 px
-- [ ] 6.2 Performance sur téléphone modeste — **en cours** : outil de mesure, référence, cinq allègements, correctif du décalage de mise en page (lint, types, 318 tests unitaires) ; `inlineCss`, `prefetch={false}`, remplaçant Android, budgets, mesure finale et suite navigateur à faire (journaux du 16 et du 17/11/2026)
+- [x] 6.2 Performance sur téléphone modeste : outil de mesure en 3G lente, cinq allègements (photos à la bonne taille, personnalisation chargée seulement où elle sert, textes envoyés par page, police réduite de 88 à 58 ko, vignettes du panier), feuille CSS écrite dans le HTML (`inlineCss`), préchargements coupés au pied de page et dans le menu du téléphone, polices de remplacement calibrées pour Arial et pour la Roboto d'Android (CLS 0 partout). Premier affichage en 3G lente 5,2 à 5,9 s → 2,4 à 2,6 s ; poids en 3G lente −22 % sur l'accueil et le catalogue, −15 % sur la fiche, −5 % ailleurs ; budgets par page dans `e2e/performance.spec.ts`. Vérifié : 322 tests unitaires, 107 parcours navigateur, lint, types et compilation propres, captures relues (journaux du 16 au 18/11/2026)
 - [x] 6.3 Sécurité et limitation de débit : revue (journal du 15/11/2026), code promo consommé sous condition, contrôle de session sur chaque page du back-office, format des photos lu dans le contenu, limites de débit sur connexion, inscription, mot de passe, code promo, commande, paiement et lettre d'information (journal du 16/11/2026). Vérifié : 297 tests unitaires, 81 parcours navigateur (dont 2 nouveaux dans `e2e/securite.spec.ts`, vus rouges avec l'ancien code), lint, types et compilation propres
 - [x] 6.4 Référencement multilingue : adresse canonique et `hreflang` (fr, en, mg, `x-default` → fr) sur l'accueil, le catalogue, les fiches, « Qui sommes-nous », l'aide et les mentions, par `src/lib/seo.ts` que le plan du site utilise aussi ; image de partage générée par langue ; icône Apple ; données structurées de la boutique sur l'accueil, fil d'Ariane et page dans sa langue sur la fiche. Vérifié : 309 tests unitaires, 93 parcours navigateur (dont 12 dans `e2e/referencement.spec.ts`, vus rouges avant), lint, types et compilation propres, balises relues en production, captures de l'image relues
 - [ ] 6.5 Parcours complets dans les trois langues
@@ -388,3 +388,47 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   5. Mesure finale (toutes pages, fr et mg, 5 passages, plus `--retour` sur accueil et panier).
   6. `npm run test:e2e` en entier, `verificateur`, captures relues, commit.
 - Les scripts et relevés de cette session (`calibre-repli.mjs`, `compare-repli.mjs`, `polices-utilisees.mjs`, `prefetch.mjs`, séries de mesure, fichier Roboto) sont dans le scratchpad de la session et peuvent disparaître ; les chiffres ci-dessus suffisent pour comparer.
+- Tâche 6.2, suite (non committée à cette heure) :
+  - **Points 1 et 2 faits par l'architecte** : `experimental.inlineCss` dans `next.config.ts` (commentaire : gain, coût, expérimental, CSP) ; `prefetch={false}` sur les liens du pied de page et du menu du téléphone. Le `Link` de next-intl transmet `prefetch` à celui de Next.
+  - **Point 3 fait (`developpeur`)** : famille « Archivo Fallback Roboto » (trois faces, 100, 78 et 68 %) après « Archivo Fallback » dans `fallback`. Valeurs : size-adjust 99,8 / 87,9 / 81,5 %, mesurées dans Chrome sur 1 211 textes du site (9 pages, 390 et 1440 px, fr, en, mg ; écart entre langues inférieur à 0,5 point), hauteurs d'Archivo. Sources : `local("RobotoStatic-Regular"), local("Roboto-Regular"), local("Roboto")`.
+    - **Axe `wdth` : l'hypothèse était juste.** Chrome 130 et plus règle l'axe `wdth` d'une police variable d'après le `font-stretch` de la face, `local()` compris (code de Chromium, et mesure sur Skia, seule police variable locale de macOS) : la Roboto variable d'Android 12 et plus serait resserrée deux fois (−10 % à 78 %, −11 % à 68 %). D'où `RobotoStatic-Regular` en premier : Android 12 à 16 livre aussi cette Roboto 2.138 fixe (fichiers AOSP), aux avances identiques à celles de la Roboto d'Android 11 et de l'instance par défaut de la variable. Cas le pire simulé (Android sans RobotoStatic, Chrome 130 et plus) : aucun retour à la ligne changé à 390 px, CLS 0,0009 au plus.
+    - **Bascule vérifiée** par simulation (Arial rendue introuvable, Roboto d'AOSP fournie en `data:`, Archivo bloquée) : 100 % des glyphes en RobotoStatic (CDP). Sur ordinateur, rien ne change.
+    - **Mise en page avec le remplaçant Roboto seul**, accueil et panier, fr et mg, 390 px : aucun texte ne change de nombre de lignes, écart vertical nul, hauteurs de page identiques à celles d'Archivo. Sans ce remplaçant (Android aujourd'hui), l'accueil fr prenait 143 px et le prix du panier passait sous le nom. CLS avec Archivo retardée de 3 s, Android simulé : accueil 0,033 → 0, catalogue 0,076 → 0, fiche 0,052 → 0,0002, panier 0,125 → 0,0002.
+    - Compromis visible : pendant le chargement, les titres sont en gras synthétique, plus maigres que le vrai gras de la Roboto système. Largeurs et hauteurs justes. Pas vu sur un vrai téléphone ; versions de constructeurs (Samsung…) non vérifiées.
+    - `fallback-font.test.ts` couvre les deux familles (ordre dans `fallback`, une face par `font-stretch`, hauteurs, ordre des sources) ; vu rouge avant les faces, et sur deux mutations.
+  - **Point 4 fait (`executant`)** : budgets de `e2e/performance.spec.ts` remplis (valeur la plus haute de deux mesures + 10 %, arrondie au ko), `fixme` retiré, deux passages verts (7 sur 7). Mesuré par le test (390 px, cache vide, sans 3G) : accueil 336,9 ko dont 215,9 de JS ; catalogue 432,1 / 213,4 ; fiche 348,0 / 216,0 ; fiche personnalisable 344,5 / 226,0 ; panier 331,0 / 213,1 ; commande 322,0 / 214,6 ; police 57,6.
+  - **Point 5, mesure finale (`executant`)**, fr, 5 passages, médianes, charge 6 à 8 (17/11 → 18/11) :
+
+    | Page | Total | JS | FCP | LCP | CLS | Hydratation |
+    | --- | --- | --- | --- | --- | --- | --- |
+    | Accueil | 436 → 451 ko | 216 | 5,5 → 2,5 s | 5,5 → 4,4 | 0,033 → 0 | 8,8 → 8,6 |
+    | Catalogue | 441 → 455 | 213 | 5,7 → 2,5 | 5,7 → 4,6 | 0,001 → 0 | 10,3 → 10,1 |
+    | Fiche simple | 377 → 392 | 216 | 5,6 → 2,5 | 5,9 → 5,6 | 0,040 → 0 | 9,1 → 8,8 |
+    | Fiche personnalisable | 341 → 356 | 226 | 5,2 → **4,8** | 5,2 → 4,8 | 0 | 9,3 → 8,6 |
+    | Panier | 327 → 342 | 213 | 5,2 → 2,4 | 5,2 → 4,3 | 0,113 → 0 | 9,1 → 8,5 |
+    | Commande | 318 → 333 | 215 | 5,7 → 2,6 | 5,7 → 2,7 | 0 | 8,7 |
+
+    3D : objet peint 7,6 s après le clic (+239 ko), inchangé. En mg (charge 7 à 9) mêmes valeurs à 0,2 s près, sauf la fiche et la fiche personnalisable, plus dispersées (FCP 3,7 et 6,9 s, écarts de 2 s entre passages) : charge. Visiteur qui revient (cache rempli) : accueil 169 ko, FCP 2,4 s, LCP 2,5, hydratation 3,4 ; panier 65 ko, FCP 2,4, LCP 2,5, hydratation 3,3. CLS à 0 sur toutes les pages, dans les deux langues.
+  - L'`executant` a été coupé par la limite d'usage juste après la dernière série, avant son rapport.
+
+### 18/11/2026
+- Reprise après la coupure : les relevés de l'`executant` ont été lus dans ses fichiers (les trois séries étaient finies), et le serveur de test qu'il avait laissé sur le port 3100 a été arrêté par l'architecte.
+  - **Défaut trouvé par la mesure finale** : la fiche personnalisable garde un FCP de 4,8 s. Son HTML contient la seule feuille bloquante du site (`<link rel="stylesheet" data-precedence="dynamic">`, 7 ko) : les `@font-face` de Baloo 2, Lora et Caveat (`src/components/customizer/fonts.ts`), importées par des composants chargés par `next/dynamic`, que `inlineCss` n'intègre pas.
+  - **Corrigé (`developpeur`)** : la page de la fiche produit importe aussi `customizer/fonts.ts` ; Next range ces déclarations dans la feuille de la route, écrite dans le HTML. Le morceau dynamique ne référence plus de feuille (pas de doublon) ; les fichiers des trois polices ne sont toujours téléchargés que lorsqu'un texte les affiche ; l'accueil ne reçoit pas ces déclarations, sa démonstration les charge au premier contact comme avant. Coût : HTML de toutes les fiches +4,2 ko compressés (fiche simple 348,0 → 352,1 ko, personnalisable 344,5 → 346,3 ko, sous les budgets). Séries alternées (fr, 5 passages, charge 11 à 16) : FCP de la fiche personnalisable 5,1 et 4,6 s avant, 3,0 et 2,4 s après (fiche simple 2,4 à 2,7 s) ; 3D peinte au moins aussi tôt (7,4 s). Captures des quatre écritures, en 3D et à plat : 0 pixel différent. Nouveau groupe de 7 tests dans `e2e/performance.spec.ts` : aucune `<link rel="stylesheet">` dans le HTML des pages mesurées, vu rouge sur la fiche personnalisable avant le correctif.
+  - Relevé, non traité : `next/font/google` déclare aussi les faces cyrillique, vietnamienne et dévanagari de ces polices (jamais téléchargées, mais écrites dans le HTML de chaque fiche) ; les passer en `next/font/local` réduit au latin économiserait une partie des 4,2 ko.
+- **Tâche 6.2 finie.** `verificateur` : lint et types propres, 322 tests unitaires, compilation propre, **107 parcours navigateur sur 107** en 4,1 min (charge 12 à 19), sans relance. Poids (`poids-pages.mjs`, 390 px) : accueil 343,2 ko dont 215,9 de JS et 0 de CSS à part, catalogue 409,5 / 213,4, fiche personnalisable 352,9 / 226,0 ; aucun fichier de plus de 100 ko d'office sur l'accueil et le catalogue (three.js toujours à la demande). Captures à 390 px en fr et mg (accueil, catalogue, fiche personnalisable avec « Miora » en 3D, panier) relues par l'architecte.
+- **Budgets de poids par page** (`e2e/performance.spec.ts`, téléphone 390 px, cache vide, octets transférés ; environ 10 % au-dessus de l'état final) :
+
+  | Page | Total | Dont JS |
+  | --- | --- | --- |
+  | Accueil (fr et mg) | 371 ko | 238 ko |
+  | Catalogue | 476 | 235 |
+  | Fiche produit | 383 | 238 |
+  | Fiche personnalisable | 379 | 249 |
+  | Panier | 365 | 235 |
+  | Commande | 355 | 237 |
+  | Police du site | 64 | — |
+
+  Plus, sur les mêmes pages : aucune feuille de style à télécharger avant l'affichage. Les temps (FCP, LCP, hydratation, 3D) se mesurent à la main avec `scripts/mesure-telephone.mjs` (charge inférieure à 6, ou séries alternées) : tableau du 17/11/2026 ci-dessus, fiche personnalisable corrigée depuis à 2,4 s de FCP.
+- Restes de la 6.2, non traités : faces non latines des trois polices de personnalisation dans le HTML des fiches (ci-dessus) ; titre de carte en graisse 500 sur `/en/products` (CLS 0,007, journal du 17/11) ; remplaçant Roboto jamais vu sur un vrai téléphone Android.
+- Le propriétaire a exclu `/Users/mac/Projects` de Spotlight : une réindexation complète de son dossier personnel prenait plusieurs cœurs pendant les mesures.

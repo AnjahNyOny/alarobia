@@ -4,6 +4,11 @@ import { cache } from "react";
 import { BadgeCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { BuyBox, CustomizerShell as LazyCustomizerShell, Stage } from "@/components/customizer/lazy";
+// Déclarations des écritures de la personnalisation, importées ici et pas seulement par son code chargé à la demande :
+// Next les range alors dans la feuille de la page, écrite dans le HTML (`inlineCss`). Sinon elles arrivaient dans une
+// feuille à part, à télécharger avant le premier affichage (2 s de plus en 3G lente). Les fichiers des polices, eux,
+// ne sont toujours téléchargés que lorsqu'un texte les utilise. Contrôlé par e2e/performance.spec.ts.
+import "@/components/customizer/fonts";
 import { AddToCart } from "@/components/store/add-to-cart";
 import { Gallery } from "@/components/store/gallery";
 import { ProductCard } from "@/components/store/product-card";
