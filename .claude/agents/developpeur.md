@@ -25,7 +25,7 @@ Ne modifie pas `PROGRESS.md`, `PLAN.md` ni `CLAUDE.md`, et ne committe rien : c'
 
 ## Vérification
 
-Avant de rendre la main, lance `npm run lint`, `npx tsc --noEmit` et `npm test`, et corrige ce qui casse à cause de ton changement. Ne lance pas `npm run build` ni `npm run test:e2e` sauf si la consigne le demande : ils utilisent le port 3100 et la base `prisma/test.db`, qu'un autre agent peut occuper au même moment.
+Avant de rendre la main, lance `npm run lint`, `npx tsc --noEmit` et `npm test`, et corrige ce qui casse à cause de ton changement. Ne lance pas `npm run build` ni `npm run test:e2e` sauf si la consigne le demande : ils utilisent le port 3100 et la base PostgreSQL `alarobia_test` (schéma `public`), qu'un autre agent peut occuper au même moment.
 
 ## Rapport
 

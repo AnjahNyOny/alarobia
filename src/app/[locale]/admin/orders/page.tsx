@@ -26,7 +26,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const status = ORDER_STATUSES.find((s) => s === sp.status);
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
-  const search: Prisma.OrderWhereInput = q ? { OR: [{ number: { contains: q } }, { email: { contains: q } }, { fullName: { contains: q } }] } : {};
+  const text: Prisma.StringFilter = { contains: q, mode: "insensitive" }; // « al-1042 » trouve AL-1042
+  const search: Prisma.OrderWhereInput = q ? { OR: [{ number: text }, { email: text }, { fullName: text }] } : {};
   const where: Prisma.OrderWhereInput = { ...search, ...(status && { status }) };
 
   const [{ currency }, orders, total, counts, t, ts, tp, locale] = await Promise.all([

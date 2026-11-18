@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne sur Vercel) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
 
-**Prochaine action** : 7.1, passage à PostgreSQL (`developpeur`). En parallèle, le propriétaire peut préparer Vercel : offre Pro, base Neon et magasin Blob (étape 1 de la 7.5). Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 7.3, heures du back-office (`executant`), puis 7.2 et 7.4. En parallèle, le propriétaire peut préparer Vercel : offre Pro, base Neon et magasin Blob (étape 1 de la 7.5). Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -109,7 +109,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 ### Phase 7 — Mise en ligne, puis ce qu'une vraie boutique demande
 Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
 - [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
-- [ ] 7.1 PostgreSQL : schéma, migration initiale, recherche insensible à la casse, tests contre PostgreSQL en local, commandes simultanées
+- [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
 - [ ] 7.2 Fichiers envoyés dans Vercel Blob, envois sous 4 Mo, nettoyage par tâche planifiée
 - [ ] 7.3 Heures du back-office à l'heure de Madagascar, tests en `TZ=UTC`
 - [ ] 7.4 Réglages de production : région, migrations à la compilation, adresse du site, en-têtes de sécurité, données de départ sans données de démonstration
@@ -126,8 +126,8 @@ Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
 - [x] 5. Traduction de produit manquante : repli sur le français (test `e2e/langues.spec.ts`, fiche en malgache)
 - [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
 - [x] 7. Mobile Money déclaré mais non reçu : la commande reste « en attente », l'annulation rend le stock, le client ne peut plus déclarer ensuite (test `e2e/paiement.spec.ts`)
-- [ ] 8. Recherche et majuscules sous PostgreSQL (7.1)
-- [ ] 9. Vingt commandes simultanées sur cinq exemplaires (7.1)
+- [x] 8. Recherche et majuscules sous PostgreSQL (tests `e2e/langues.spec.ts` et `e2e/admin.spec.ts`)
+- [x] 9. Vingt commandes simultanées sur cinq exemplaires (test `src/lib/__tests__/stock.test.ts`)
 - [ ] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (7.3)
 - [ ] 11. Photo de 8 Mo envoyée par le vendeur ou par un client (7.2)
 - [ ] 12. Variable de production manquante : échec explicite (7.2, 7.4)
@@ -466,3 +466,14 @@ Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
   - PostgreSQL 17 installé par Homebrew (`brew services`, démarré à l'ouverture de session), bases `alarobia` et `alarobia_test` en collation `C.UTF-8`, utilisateur `mac` sans mot de passe en local.
 - Tâche 7.0 (`executant`) : photo fixe refaite avec « Anjah » (`public/home/tasse-anjah.jpg`, 839 × 839, 38 ko ; fenêtre 1280 × 900, échelle 2, moins d'animations, boutons de rotation masqués pour la capture, JPEG qualité 75). Cadrage relu par l'architecte contre l'ancienne : tasse, anse, ombre et fond à la même place.
   - `verificateur` (7.0) : lint et types propres, 322 tests unitaires, 54 parcours navigateur sur 54 en 4,6 min sans relance (`personnalisation`, `accessibilite`, `admin-commandes`, `parcours`, `parcours-mobile`, `performance`, budgets de poids compris), `tsconfig.json` intact.
+- Tâche 7.1 (`developpeur`) : passage à PostgreSQL.
+  - **Schéma** : `provider = "postgresql"`, `directUrl` sur `DATABASE_URL_UNPOOLED` (noms de l'intégration Neon). Colonnes obsolètes `shippingStandardCents` et `shippingExpressCents` retirées, `Order.shippingZone` sans `@map`.
+  - **Migration initiale** : `prisma/migrations/0_init`, générée sans base. `migrations.test.ts` compare migrations et schéma sur une base fantôme ; il échoue si un champ est ajouté sans migration (vu rouge).
+  - **Recherche** : `mode: "insensitive"` sur les quatre recherches, traductions comprises. Avant le correctif, sous PostgreSQL, « CAFÉ » ne trouvait rien, et « Café » et « café » trouvaient chacun un article différent. Sous SQLite, « CAFÉ » ne trouvait déjà pas « café » (casse ignorée seulement pour les lettres sans accent). Reste : « cafe » sans accent ne trouve pas « café » (extension `unaccent`, à décider).
+  - **Stock** : `reserveStock` (`src/lib/stock.ts`) réserve dans l'ordre des identifiants. Sans ce tri, deux paniers croisés s'interbloquaient (`40P01`, 3 fois sur 3 au test), ce qui aurait donné une erreur 500 au client. Vingt commandes simultanées sur cinq exemplaires : 5 passent, le stock finit à 0. Le test concurrent des codes promo passe de 5 à 20 commandes (limite de SQLite levée).
+  - **Tests** : les tests unitaires qui ont besoin d'une base prennent un schéma temporaire de `alarobia_test` (`src/test/database.ts`), supprimé à la fin. La suite navigateur utilise `alarobia_test`, schéma `public`. Seed identique compté table par table entre l'ancienne `test.db` et PostgreSQL. Base de développement `alarobia` remplie. `prisma/dev.db` et `prisma/test.db` ne servent plus (à supprimer par le propriétaire s'il le souhaite).
+- Correctifs révélés par PostgreSQL (`executant`, décisions de l'architecte) :
+  - **Caractère nul** : PostgreSQL le refuse dans un texte (22021). `/fr/products?q=caf%00e`, un e-mail de connexion ou une note de commande qui en contenait un donnait une erreur 500. Extension Prisma `nulSafe` (`src/lib/nul.ts`) qui le retire des arguments de toutes les requêtes. `src/lib/db.ts` expose `createDb()` et les types `Db` et `Tx` (le `tx` du client étendu n'est plus un `Prisma.TransactionClient`), et les tests créent leur client par la même fabrique. Vu rouge en base et dans `e2e/securite.spec.ts`.
+  - **Annulation en double** : le statut était lu hors de la transaction, donc deux « Annulée » simultanés remettaient le stock deux fois (défaut antérieur, de la phase 3). `transitionOrder` (`src/lib/order-status.ts`) conditionne l'écriture au statut lu et rend `false` sinon (nouveau message `admin.errors.orderChanged`, à relire en malgache) ; `releaseStock` remet le stock dans le même ordre fixe. Vu rouge (`[true, true]`).
+  - `CLAUDE.md` et les définitions de `developpeur` et `executant` mis à jour (PostgreSQL, migrations, ordre des verrous, `createDb`, caractère nul).
+  - `verificateur` (7.1) : lint et types propres, 340 tests unitaires, aucun schéma temporaire laissé, **122 parcours navigateur sur 122** en 11,4 min sans relance (charge 11 à 25), `tsconfig.json` intact.

@@ -16,6 +16,7 @@ import { invalid, type FormState } from "@/lib/form";
 import { getLocale, getTranslations } from "next-intl/server";
 import { makeSchemas } from "@/lib/schemas";
 import { consumePromo } from "@/lib/promo";
+import { reserveStock } from "@/lib/stock";
 import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
 
 class StockError extends Error {}
@@ -71,13 +72,8 @@ async function createOrder(formData: FormData): Promise<FormState | string> {
   try {
     orderId = await db.$transaction(async (tx) => {
       // Décrément conditionnel : deux commandes simultanées ne peuvent pas vendre le même dernier exemplaire.
-      for (const line of cart.lines) {
-        const res = await tx.product.updateMany({
-          where: { id: line.product.id, status: "ACTIVE", stock: { gte: line.quantity } },
-          data: { stock: { decrement: line.quantity } },
-        });
-        if (res.count === 0) throw new StockError(line.product.name);
-      }
+      const short = await reserveStock(tx, cart.lines.map((l) => ({ productId: l.product.id, quantity: l.quantity })));
+      if (short) throw new StockError(cart.lines.find((l) => l.product.id === short)?.product.name ?? "");
       // Même principe pour le code promo : épuisé, expiré ou coupé depuis la validation du panier, il annule tout (stock compris).
       if (cart.promo && !(await consumePromo(tx, cart.promo.code))) throw new PromoError(cart.promo.code);
       if (user) {

@@ -2,12 +2,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// PostgreSQL partout : base Homebrew en local et dans les tests, Neon en production.
+// `DATABASE_URL` sert à l'application (adresse regroupée chez Neon), `DATABASE_URL_UNPOOLED` aux migrations
+// (adresse directe). Ce sont les noms posés par l'intégration Neon de Vercel ; en local, les deux sont égales.
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-// Les statuts sont des chaînes (SQLite) ; les valeurs autorisées vivent dans src/lib/constants.ts
+// Les statuts sont des chaînes, pas des enums : les valeurs autorisées vivent dans src/lib/constants.ts.
+// Ajouter une valeur ne demande alors aucune migration.
 
 model User {
   id           String         @id @default(cuid())
@@ -183,8 +188,7 @@ model Order {
   paymentDeclaredAt DateTime?
   paidAt            DateTime? // paiement confirmé par le vendeur
   // Nom de la zone de livraison au moment de la commande (copie figée : la zone peut changer ou disparaître).
-  // La colonne garde son ancien nom pour éviter une migration destructive.
-  shippingZone      String      @map("shippingMethod")
+  shippingZone      String
   estimatedDelivery DateTime? // date promise à la commande
   subtotalCents     Int
   discountCents     Int         @default(0)
@@ -250,10 +254,6 @@ model StoreSettings {
   announcement               String @default("Livraison offerte dès 150 000 Ar d'achat")
   announcementEn             String @default("")
   announcementMg             String @default("")
-  // Obsolètes depuis les zones de livraison (phase 3.2) : plus lus ni écrits. Conservés parce que
-  // `prisma db push` refuse de supprimer une colonne remplie ; à retirer lors du passage à PostgreSQL (phase 7).
-  shippingStandardCents      Int    @default(500000)
-  shippingExpressCents       Int    @default(1000000)
   freeShippingThresholdCents Int    @default(15000000)
   // Numéros du vendeur pour le Mobile Money. Un opérateur sans numéro n'est pas proposé à la commande.
   mvolaNumber                String @default("")

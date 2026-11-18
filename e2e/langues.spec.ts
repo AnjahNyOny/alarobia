@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { watchErrors } from "./helpers";
 
 test("la racine redirige vers la langue du navigateur", async ({ browser }) => {
   for (const [locale, expected] of [["fr-FR", "/fr"], ["en-GB", "/en"], ["mg-MG", "/mg"], ["de-DE", "/fr"]] as const) {
@@ -94,6 +95,31 @@ test("catalogue : rayons et recherche dans la langue du visiteur", async ({ page
   await page.getByRole("button", { name: "Apply" }).click();
   await expect(page).toHaveURL(/\/en\/products\?category=cuisine&.*stock=1$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kitchen");
+});
+
+// Point de vigilance 8 : PostgreSQL compare `contains` à la lettre près. La recherche de l'en-tête ignore les majuscules,
+// accentuées comprises, dans le français de référence comme dans les traductions.
+// On compare les produits trouvés et pas seulement leur nombre : sans le correctif, « Café » trouve le café par son nom
+// et « café » la tasse par sa description, un article chacun.
+test("la recherche ignore les majuscules, en français et dans les traductions", async ({ page }) => {
+  const check = watchErrors(page);
+  const found = async (locale: string, q: string) => {
+    await page.goto(`/${locale}`);
+    const box = page.getByRole("banner").getByRole("searchbox");
+    await box.fill(q);
+    await box.press("Enter");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(q);
+    const count = (await page.getByRole("main").getByRole("status").textContent())?.trim();
+    const products = await page.getByRole("main").locator('a[href*="/products/"]').evaluateAll((links) => [...new Set(links.map((a) => new URL((a as HTMLAnchorElement).href).pathname))].sort());
+    return { count, products };
+  };
+  const french = [await found("fr", "CAFÉ"), await found("fr", "Café"), await found("fr", "café")];
+  expect(french[2].count).toMatch(/^[1-9]\d* articles?$/);
+  expect(french).toEqual([french[2], french[2], french[2]]);
+  const english = [await found("en", "COFFEE"), await found("en", "coffee")];
+  expect(english[1].count).toMatch(/^[1-9]\d* items?$/);
+  expect(english[0]).toEqual(english[1]);
+  check();
 });
 
 // Point de vigilance 5 : une traduction manquante retombe sur le français, sans trou à l'écran.

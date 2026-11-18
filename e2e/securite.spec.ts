@@ -67,3 +67,13 @@ test("photos du back-office : un texte renommé en .jpg est refusé, une vraie p
   expect((await accepted).status()).toBe(200);
   await expect(page.getByRole("img", { name: "Photo 1" })).toBeVisible();
 });
+
+test("caractère nul dans une recherche : la page répond, sans erreur (PostgreSQL le refuse dans un texte)", async ({ page }) => {
+  const response = await page.goto("/fr/products?q=caf%00e");
+  expect(response?.status()).toBe(200);
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.waitForURL("**/admin");
+  const admin = await page.goto("/fr/admin/products?q=%00");
+  expect(admin?.status()).toBe(200);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+});

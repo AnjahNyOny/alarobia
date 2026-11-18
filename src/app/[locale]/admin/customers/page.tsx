@@ -21,7 +21,8 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
-  const where: Prisma.UserWhereInput = { role: "CUSTOMER", ...(q && { OR: [{ name: { contains: q } }, { email: { contains: q } }] }) };
+  const text: Prisma.StringFilter = { contains: q, mode: "insensitive" }; // « rakoto » trouve Rakoto
+  const where: Prisma.UserWhereInput = { role: "CUSTOMER", ...(q && { OR: [{ name: text }, { email: text }] }) };
   const [{ currency }, users, total, t, locale] = await Promise.all([
     getSettings(),
     db.user.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * PER_PAGE, take: PER_PAGE, include: { address: { select: { city: true } }, orders: { where: { status: { in: REVENUE_STATUSES } }, select: { totalCents: true } } } }),

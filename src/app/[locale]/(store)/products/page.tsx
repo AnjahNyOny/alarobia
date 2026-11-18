@@ -48,7 +48,9 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
 
   // La recherche porte sur le français de référence et sur les traductions : « basket » doit trouver un panier.
-  const matches = (field: "name" | "tagline" | "description") => [{ [field]: { contains: q } }, { translations: { some: { [field]: { contains: q } } } }];
+  // PostgreSQL compare à la lettre près : sans `insensitive`, « CAFÉ » ne trouverait pas « café ».
+  const text: Prisma.StringFilter = { contains: q, mode: "insensitive" };
+  const matches = (field: "name" | "tagline" | "description") => [{ [field]: text }, { translations: { some: { [field]: text } } }];
   const where: Prisma.ProductWhereInput = {
     status: "ACTIVE",
     ...(category && { categoryId: category.id }),

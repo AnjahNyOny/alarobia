@@ -95,3 +95,9 @@ test("zones de livraison : création, validation, visible à la commande, la der
   await expect(page.getByRole("row", { name: /Antananarivo ville/ })).toHaveCount(1);
   check();
 });
+
+// Point de vigilance 8, côté vendeur : le filtre de la liste des produits ignore les majuscules.
+test("la recherche des produits ignore les majuscules", async ({ page }) => {
+  await page.goto("/admin/products?q=TASSE");
+  await expect(page.getByRole("row", { name: /Tasse en grès Vato/ })).toBeVisible();
+});

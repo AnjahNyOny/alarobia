@@ -1,29 +1,23 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { PrismaClient, type Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import type { Db } from "../db";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { createTestDatabase } from "@/test/database";
 import { consumePromo } from "../promo";
 
 /*
- * Base SQLite temporaire, créée depuis le schéma : la concurrence se prouve contre une vraie base,
- * pas contre une imitation. Deux transactions envoyées en même temps, comme deux commandes passées
- * à la même seconde avec un code déjà validé par leurs deux paniers.
+ * Schéma PostgreSQL temporaire, créé depuis le schéma Prisma : la concurrence se prouve contre une vraie base,
+ * pas contre une imitation. Des transactions envoyées en même temps, comme des commandes passées
+ * à la même seconde avec un code déjà validé par leurs paniers.
  */
-const dir = mkdtempSync(path.join(tmpdir(), "alarobia-promo-"));
-const url = `file:${path.join(dir, "promo.db")}`;
-let db: PrismaClient;
+let database: ReturnType<typeof createTestDatabase>;
+let db: Db;
 
 beforeAll(() => {
-  execFileSync("npx", ["prisma", "db", "push", "--skip-generate"], { env: { ...process.env, DATABASE_URL: url }, stdio: "ignore" });
-  db = new PrismaClient({ datasourceUrl: url });
+  database = createTestDatabase("promo");
+  db = database.db;
 }, 60_000);
 
-afterAll(async () => {
-  await db?.$disconnect();
-  rmSync(dir, { recursive: true, force: true });
-});
+afterAll(() => database?.drop());
 
 beforeEach(async () => {
   await db.promoCode.deleteMany();
@@ -46,11 +40,10 @@ describe("consumePromo", () => {
     expect((await db.promoCode.findUniqueOrThrow({ where: { code: "UNEFOIS" } })).usedCount).toBe(1);
   });
 
-  // Cinq et pas davantage : au-delà d'une dizaine de transactions simultanées, SQLite (un seul écrivain à la fois)
-  // fait expirer les suivantes au bout de cinq secondes, avec ou sans code promo. Limite connue de la base, pas de ce code.
-  it("ne dépasse jamais la limite, même avec cinq commandes simultanées", async () => {
+  // Vingt : sous SQLite (un seul écrivain à la fois), on s'arrêtait à cinq, les suivantes expiraient au bout de cinq secondes.
+  it("ne dépasse jamais la limite, même avec vingt commandes simultanées", async () => {
     await create({ code: "TROIS", maxUses: 3 });
-    const results = await Promise.all(Array.from({ length: 5 }, () => order("TROIS")));
+    const results = await Promise.all(Array.from({ length: 20 }, () => order("TROIS")));
     expect(results.filter(Boolean)).toHaveLength(3);
     expect((await db.promoCode.findUniqueOrThrow({ where: { code: "TROIS" } })).usedCount).toBe(3);
   });

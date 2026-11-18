@@ -4,26 +4,41 @@ Boutique en ligne pour Madagascar : objets du quotidien, prix en ariary, paiemen
 
 À lire ensuite : [PLAN.md](PLAN.md) (plan de la refonte, par phases), [PROGRESS.md](PROGRESS.md) (ce qui est fait, mesures, décisions prises et en attente), [CLAUDE.md](CLAUDE.md) (règles de code et de design, pièges connus), [docs/glossaire.md](docs/glossaire.md) (vocabulaire malgache retenu et termes à relire).
 
-**Technique** : Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind CSS v4, shadcn/ui (Base UI), Prisma et SQLite, Zod, next-intl, three.js et @react-three/fiber. Tests : Vitest, Playwright, axe. Ne pas revenir sous Next 16 : la version 15.5 donnait des erreurs d'hydratation intermittentes (voir `CLAUDE.md`).
+**Technique** : Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind CSS v4, shadcn/ui (Base UI), Prisma et PostgreSQL, Zod, next-intl, three.js et @react-three/fiber. Tests : Vitest, Playwright, axe. Ne pas revenir sous Next 16 : la version 15.5 donnait des erreurs d'hydratation intermittentes (voir `CLAUDE.md`).
 
 ## Démarrer
 
-Il faut Node 22 (`.nvmrc`) et npm, plus Google Chrome pour les tests navigateur et les scripts de mesure (ils utilisent Chrome, pas le Chromium de Playwright). La compilation télécharge trois polices sur Google Fonts : elle demande un accès à internet.
+Il faut Node 22 (`.nvmrc`) et npm, PostgreSQL 17, plus Google Chrome pour les tests navigateur et les scripts de mesure (ils utilisent Chrome, pas le Chromium de Playwright). La compilation télécharge trois polices sur Google Fonts : elle demande un accès à internet.
+
+PostgreSQL s'installe par Homebrew, avec deux bases : `alarobia` pour le développement, `alarobia_test` pour les tests. Elles sont créées en collation `C.UTF-8` (fournisseur `builtin`) : les chaînes se trient par point de code, de la même façon sur toutes les machines.
+
+```bash
+brew install postgresql@17
+brew services start postgresql@17
+export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"   # Homebrew n'installe pas psql et createdb dans le PATH
+createdb --template=template0 --encoding=UTF8 --locale-provider=builtin --builtin-locale=C.UTF-8 alarobia
+createdb --template=template0 --encoding=UTF8 --locale-provider=builtin --builtin-locale=C.UTF-8 alarobia_test
+```
+
+Puis :
 
 ```bash
 nvm use               # Node 22, d'après .nvmrc
 npm install           # dépendances, puis génération du client Prisma
 cp .env.example .env  # puis renseigner AUTH_SECRET
-npm run db:push       # crée la base SQLite prisma/dev.db
+npm run db:push       # crée les tables dans la base alarobia
 npm run db:seed       # charge les données de démonstration
 npm run dev           # http://localhost:3000
 ```
+
+Les adresses de `.env.example` se connectent sans mot de passe avec l'utilisateur `mac` : Homebrew crée un utilisateur PostgreSQL au nom du compte macOS, à mettre à la place.
 
 `/` redirige vers `/fr`, `/en` ou `/mg` : la langue choisie la dernière fois, sinon celle du navigateur, sinon le français. Pour un autre port : `npm run dev -- -p 3001`.
 
 | Variable (`.env`) | Rôle |
 | --- | --- |
-| `DATABASE_URL` | Base SQLite, chemin relatif au dossier `prisma/` (`file:./dev.db`). |
+| `DATABASE_URL` | Base PostgreSQL de l'application : `postgresql://<utilisateur>@localhost:5432/alarobia` en local. |
+| `DATABASE_URL_UNPOOLED` | Adresse directe de la même base, pour les commandes Prisma (`db push`, migrations). En local, la même que `DATABASE_URL`. |
 | `AUTH_SECRET` | Signe le cookie de session. 32 caractères au moins, sinon la connexion et l'inscription échouent : `openssl rand -base64 32`. |
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. |
 | `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. |
@@ -96,7 +111,8 @@ Les données de démonstration sont dans `prisma/catalog.mjs` et `prisma/seed.mj
 ## Organisation du code
 
 ```
-prisma/schema.prisma          modèle de données (statuts en chaînes : SQLite n'a pas d'enum)
+prisma/schema.prisma          modèle de données (statuts en chaînes, pas en enums)
+prisma/migrations/            migrations versionnées, pour la production (en local et dans les tests : prisma db push)
 prisma/catalog.mjs            données de démonstration en fr, en, mg (données seules, testées)
 prisma/seed.mjs               écrit les données de démonstration en base
 src/proxy.ts                  langue de l'adresse et premier filtre d'accès (/admin, /account)
@@ -134,9 +150,9 @@ Règles suivies partout (le détail est dans `CLAUDE.md`) :
 
 ## Tests
 
-`npm test` lance les tests unitaires (Vitest, `src/**/*.test.ts`). Ils couvrent la logique : prix, supplément et plafond, codes promo (la consommation sous condition est vérifiée sur une vraie base SQLite temporaire), lignes du panier, personnalisation (validation, mise en place du dessin, aperçu identique au fichier d'impression), contrôle des envois et nettoyage, livraison et dates promises, adresses et téléphone, paiement, formats et noms de jours dans les trois langues, mêmes clés dans les trois fichiers de messages, repli des traductions, référencement, limites de débit, contrôle de session en tête de chaque page du back-office, polices de remplacement.
+`npm test` lance les tests unitaires (Vitest, `src/**/*.test.ts`). Ils couvrent la logique : prix, supplément et plafond, codes promo et stock (consommation et réservation sous condition, vérifiées sur une vraie base PostgreSQL, commandes simultanées comprises), migrations à jour du schéma, lignes du panier, personnalisation (validation, mise en place du dessin, aperçu identique au fichier d'impression), contrôle des envois et nettoyage, livraison et dates promises, adresses et téléphone, paiement, formats et noms de jours dans les trois langues, mêmes clés dans les trois fichiers de messages, repli des traductions, référencement, limites de débit, contrôle de session en tête de chaque page du back-office, polices de remplacement. Ceux qui ont besoin d'une base créent chacun un schéma temporaire dans `alarobia_test` (ou dans la base de `TEST_DATABASE_URL`), supprimé à la fin : PostgreSQL doit tourner.
 
-`npm run test:e2e` lance les tests navigateur (Playwright, `e2e/`) sur une compilation de production. Il prépare son propre environnement sans toucher à celui de développement : base `prisma/test.db` remplie par le seed, compilation dans `.next-e2e/`, fichiers envoyés dans `uploads-test/` (qui s'accumulent d'un passage à l'autre), serveur sur le port 3100, qui doit être libre. Deux projets : `ordinateur` (1 440 × 900) et `mobile` (Pixel 7 émulé, fichiers dont le nom contient « mobile »). Les tests partagent la base et passent l'un après l'autre : la suite prend plusieurs minutes. Ils couvrent :
+`npm run test:e2e` lance les tests navigateur (Playwright, `e2e/`) sur une compilation de production. Il prépare son propre environnement sans toucher à celui de développement : base `alarobia_test` (schéma `public`) remplie par le seed, compilation dans `.next-e2e/`, fichiers envoyés dans `uploads-test/` (qui s'accumulent d'un passage à l'autre), serveur sur le port 3100, qui doit être libre. Deux projets : `ordinateur` (1 440 × 900) et `mobile` (Pixel 7 émulé, fichiers dont le nom contient « mobile »). Les tests partagent la base et passent l'un après l'autre : la suite prend plusieurs minutes. Ils couvrent :
 
 - l'achat avec et sans compte, le paiement Mobile Money déclaré mais jamais reçu, le paiement à la livraison, le changement de langue en cours de commande ;
 - la personnalisation : images refusées et acceptées, 3D et vue à plat, téléphone sans WebGL, réseau lent, prénom venu de l'accueil ;
@@ -171,7 +187,7 @@ python3 scripts/police-archivo.py <archivo.woff2>  # src/app/fonts/archivo-latin
 
 - **Paiement** : aucune liaison avec les opérateurs. Le vendeur vérifie lui-même sur son téléphone que l'argent est arrivé ; la référence saisie par le client n'est contrôlée que sur sa forme. Une API marchande Mobile Money demande un compte marchand. Les numéros Mobile Money de démonstration sont fictifs : saisir les vrais dans les réglages.
 - **E-mails et SMS** : rien n'est envoyé (confirmation, expédition). Il n'y a pas de procédure « mot de passe oublié ». La lettre d'information enregistre des adresses, mais rien ne s'en sert.
-- **Base de données** : SQLite, sur un seul serveur. Au-delà d'une dizaine de transactions simultanées, Prisma et SQLite échouent (« Socket timeout »), commandes comprises. Choix en attente : PostgreSQL (`provider` dans `prisma/schema.prisma`) ou Turso. Les colonnes marquées « obsolètes » dans le schéma se nettoient à cette occasion.
+- **Base de données** : PostgreSQL en local. La base hébergée (Neon) et l'application des migrations en production viennent avec la mise en ligne (phase 7A de `PLAN.md`).
 - **Fichiers envoyés** : écrits sur le disque local (`uploads/`). Vercel, sur lequel un envoi vers GitHub déclenche un déploiement, n'a pas de disque persistant : il faut un stockage objet, et une base hébergée. Les aperçus et fichiers d'impression sont servis à tous sous leur nom imprévisible (`/uploads/…`). Le serveur ne réencode pas les images : un envoi qui contourne le navigateur garde ses métadonnées.
 - **Limites de débit** : en mémoire, remises à zéro au redémarrage, valables pour un seul serveur. L'adresse du visiteur est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance : les limites par adresse IP se contournent alors (celles par e-mail, par compte et par commande tiennent). À régler avec l'hébergeur.
 - **Heures du back-office** : affichées dans le fuseau du serveur. Sur un serveur en UTC, elles ont 3 h de retard, et entre minuit et 3 h « aujourd'hui » est encore la veille dans le tableau de bord. Les dates de livraison promises sont calculées à l'heure de Madagascar (`madagascarTime()`, `src/lib/shipping.ts`).

@@ -627,6 +627,7 @@
       "orderInvalid": "Invalid data.",
       "orderNotFound": "Order not found.",
       "orderClosed": "A cancelled or refunded order cannot be reopened: its stock has already been put back on sale.",
+      "orderChanged": "This order was just changed. Reload the page before trying again.",
       "orderNotPending": "This order is no longer awaiting payment.",
       "emailInvalid": "Invalid email address.",
       "amountInvalid": "Invalid amount.",

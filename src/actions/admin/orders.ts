@@ -7,7 +7,7 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { ORDER_STATUSES } from "@/lib/constants";
 import type { FormState } from "@/lib/form";
-import { isMobileMoney } from "@/lib/payment";
+import { transitionOrder } from "@/lib/order-status";
 
 const VOID = ["CANCELLED", "REFUNDED"];
 
@@ -24,18 +24,8 @@ export async function updateOrder(id: string, _: FormState, formData: FormData):
   if (!order) return { error: t("orderNotFound") };
   if (VOID.includes(order.status) && !VOID.includes(status)) return { error: t("orderClosed") };
 
-  await db.$transaction(async (tx) => {
-    // Annulation ou remboursement : les articles retournent en stock, une seule fois.
-    if (!VOID.includes(order.status) && VOID.includes(status)) {
-      for (const item of order.items) {
-        if (item.productId)
-          await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
-      }
-    }
-    // Date d'encaissement : au passage à « payée », ou à la remise du colis pour un paiement à la livraison.
-    const collected = status === "PAID" || (status === "DELIVERED" && !isMobileMoney(order.paymentMethod));
-    await tx.order.update({ where: { id }, data: { status, trackingNumber: trackingNumber || null, ...(collected && !order.paidAt && { paidAt: new Date() }) } });
-  });
+  const changed = await db.$transaction((tx) => transitionOrder(tx, order, { status, trackingNumber: trackingNumber || null }));
+  if (!changed) return { error: t("orderChanged") };
   revalidatePath("/admin", "layout");
   return { ok: true, message: n("orderUpdated") };
 }

@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3100;
-const env = { DATABASE_URL: "file:./test.db", NEXT_DIST_DIR: ".next-e2e", UPLOAD_DIR: "uploads-test", NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}` };
+// Base PostgreSQL des tests, schéma `public` (les tests unitaires prennent chacun un schéma temporaire dans la même base).
+const DATABASE = "postgresql://mac@localhost:5432/alarobia_test";
+const env = { DATABASE_URL: DATABASE, DATABASE_URL_UNPOOLED: DATABASE, NEXT_DIST_DIR: ".next-e2e", UPLOAD_DIR: "uploads-test", NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}` };
 
 export default defineConfig({
   testDir: "e2e",

@@ -31,7 +31,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   const status = PRODUCT_STATUSES.find((s) => s === sp.status);
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
-  const base: Prisma.ProductWhereInput = { ...(q && { OR: [{ name: { contains: q } }, { sku: { contains: q } }] }), ...(sp.category && { categoryId: sp.category }) };
+  const text: Prisma.StringFilter = { contains: q, mode: "insensitive" }; // « TASSE » trouve « Tasse en grès »
+  const base: Prisma.ProductWhereInput = { ...(q && { OR: [{ name: text }, { sku: text }] }), ...(sp.category && { categoryId: sp.category }) };
   const where = { ...base, ...(status && { status }) };
 
   const [{ currency }, categories, products, total, counts, t, tp, tc, locale] = await Promise.all([
