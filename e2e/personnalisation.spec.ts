@@ -56,15 +56,15 @@ test.describe("personnalisation sur la fiche produit", () => {
     await page.goto("/products/tasse-en-gres-vato");
     await page.getByRole("tab", { name: "Personnaliser" }).click();
     await expect(page.locator('[data-view="3d"]')).toBeVisible();
-    await page.getByLabel("Votre texte").fill("Miora");
+    await page.getByLabel("Votre texte").fill("Anjah");
     await page.locator('label:has(input[name="couleur"][value="laterite"])').click();
-    await expect(page.getByRole("img", { name: /Latérite, « Miora »/ })).toBeVisible();
+    await expect(page.getByRole("img", { name: /Latérite, « Anjah »/ })).toBeVisible();
     await expect(page.getByText("Avec l'impression (+ 3 000 Ar)")).toBeVisible();
     await expect(page.getByText("n'est ni repris ni échangé")).toBeVisible();
 
     await page.getByRole("button", { name: "Ajouter au panier" }).click();
     const drawer = page.getByRole("dialog");
-    await expect(drawer.getByText("Personnalisé : Latérite, « Miora »")).toBeVisible();
+    await expect(drawer.getByText("Personnalisé : Latérite, « Anjah »")).toBeVisible();
     await expect(drawer.getByText("15 000 Ar").first()).toBeVisible();
     // L'aperçu remplace la photo du produit, et c'est bien un fichier de personnalisation.
     await expect(drawer.locator('img[src*="perso-"]')).toHaveCount(1);
@@ -104,7 +104,7 @@ test.describe("personnalisation sur la fiche produit", () => {
     const check = watchErrors(page);
     await page.goto("/");
     // Au repos, la page ne montre qu'une photo : rien de la personnalisation n'est chargé.
-    await expect(page.getByRole("img", { name: "Tasse rouge latérite portant le prénom Miora" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Tasse rouge latérite portant le prénom Anjah" })).toBeVisible();
     await expect(page.locator("[data-view]")).toHaveCount(0);
     await page.getByLabel("Écrivez votre prénom").fill("Tsiky");
     await expect(page.getByRole("img", { name: /Latérite, « Tsiky »/ })).toBeVisible();

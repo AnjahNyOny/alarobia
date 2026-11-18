@@ -33,7 +33,7 @@ function recorder() {
 }
 
 describe("paintLayout : le même dessin à toutes les échelles", () => {
-  const layout = layoutDesign("mug", design({ text: "Miora sy Aina", ink: "laterite", image: "perso-x.jpg", imageSize: 40, imageX: 20, imageY: 80 }), measure, 1.5);
+  const layout = layoutDesign("mug", design({ text: "Anjah sy Aina", ink: "laterite", image: "perso-x.jpg", imageSize: 40, imageX: 20, imageY: 80 }), measure, 1.5);
 
   it("peint l'image dans son cadre, à l'échelle demandée", () => {
     const { ctx, calls } = recorder();

@@ -26,14 +26,14 @@ test("un client commande une tasse à son nom, avec une image, et une tasse ordi
   // La tasse Vato : 85 en stock, aucun autre parcours ne vérifie son stock ni ne compte les commandes.
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("tab", { name: "Personnaliser" }).click();
-  await page.getByLabel("Votre texte").fill("Miora");
+  await page.getByLabel("Votre texte").fill("Anjah");
   await page.locator('label:has(input[name="couleur"][value="laterite"])').click();
   await page.getByLabel("Ajouter une image").setInputFiles({ name: "logo.png", mimeType: "image/png", buffer: PNG });
   await expect(page.getByRole("img", { name: "Votre image" })).toHaveAttribute("src", /\/uploads\/perso-.*\.png$/);
   sentImage = (await page.getByRole("img", { name: "Votre image" }).getAttribute("src")) ?? "";
-  await expect(page.getByRole("img", { name: /Latérite, « Miora »/ })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Latérite, « Anjah »/ })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("dialog").getByText(/Personnalisé : Latérite, « Miora »/)).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(/Personnalisé : Latérite, « Anjah »/)).toBeVisible();
 
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
@@ -41,7 +41,7 @@ test("un client commande une tasse à son nom, avec une image, et une tasse ordi
 
   await page.goto("/checkout");
   await page.getByLabel("Adresse e-mail").fill(EMAIL);
-  await page.getByLabel("Nom complet").fill("Miora Rakoto");
+  await page.getByLabel("Nom complet").fill("Anjah Rakoto");
   await page.getByLabel("Téléphone", { exact: true }).fill("034 12 345 67");
   await page.getByLabel("Adresse ou lot").fill("Lot II J 45");
   await page.getByLabel("Quartier").fill("Analakely");
@@ -70,7 +70,7 @@ test("le vendeur repère la commande à imprimer, puis y lit tout ce qu'il faut 
   await expect(custom).toHaveCount(1);
   await expect(custom.getByRole("img", { name: /Aperçu de l'objet personnalisé : Tasse, Latérite/ })).toBeVisible();
   // Le texte exact, l'écriture, les couleurs, la zone imprimable et la taille du fichier.
-  await expect(custom.locator("[data-print-text]")).toHaveText("Miora");
+  await expect(custom.locator("[data-print-text]")).toHaveText("Anjah");
   await expect(custom.getByText("Tasse", { exact: true })).toBeVisible();
   await expect(custom.getByText("Latérite", { exact: true })).toBeVisible();
   await expect(custom.getByText("Enseigne", { exact: true })).toBeVisible();

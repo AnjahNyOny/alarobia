@@ -43,10 +43,10 @@ describe("customizerOptions", () => {
 
 describe("cleanText", () => {
   it("retire les espaces autour et réduit les espaces répétés", () => {
-    expect(cleanText("  Miora   Rakoto ")).toBe("Miora Rakoto");
+    expect(cleanText("  Anjah   Rakoto ")).toBe("Anjah Rakoto");
   });
   it("remplace les retours à la ligne et les tabulations par une espace", () => {
-    expect(cleanText("Miora\n\tRakoto\r\n2026")).toBe("Miora Rakoto 2026");
+    expect(cleanText("Anjah\n\tRakoto\r\n2026")).toBe("Anjah Rakoto 2026");
   });
   it("retire les caractères de contrôle invisibles", () => {
     expect(cleanText("Mi\u0000o​ra‮")).toBe("Miora");
@@ -70,7 +70,7 @@ describe("textLength", () => {
 });
 
 describe("parseDesign", () => {
-  const input = { color: "laterite", text: "Miora", font: "ronde", ink: "blanc", textSize: 60, textY: 40, image: null, imageSize: 50, imageX: 50, imageY: 50 };
+  const input = { color: "laterite", text: "Anjah", font: "ronde", ink: "blanc", textSize: 60, textY: 40, image: null, imageSize: 50, imageX: 50, imageY: 50 };
 
   it("accepte un dessin complet et le rend tel quel", () => {
     expect(parseDesign(input, mug)).toEqual({ ok: true, design: input });
@@ -152,13 +152,13 @@ describe("prix d'un article personnalisé", () => {
     expect(customizedUnitPrice(1_200_000, mug, { ...design, color: "laterite" })).toBe(1_200_000);
   });
   it("ajoute le supplément dès qu'il y a un texte ou une image à imprimer", () => {
-    expect(customizedUnitPrice(1_200_000, mug, { ...design, text: "Miora" })).toBe(1_500_000);
+    expect(customizedUnitPrice(1_200_000, mug, { ...design, text: "Anjah" })).toBe(1_500_000);
     expect(customizedUnitPrice(1_200_000, mug, { ...design, image })).toBe(1_500_000);
   });
 });
 
 describe("sameDesign", () => {
-  const design = { ...defaultDesign(mug), text: "Miora" };
+  const design = { ...defaultDesign(mug), text: "Anjah" };
   it("reconnaît deux dessins identiques", () => {
     expect(sameDesign(design, { ...design })).toBe(true);
   });
@@ -175,7 +175,7 @@ describe("sameDesign", () => {
 
 describe("describeDesign", () => {
   it("résume ce qui a été choisi, pour le panier et la commande", () => {
-    expect(describeDesign({ ...defaultDesign(mug), color: "laterite", text: "Miora", image })).toEqual({ color: "laterite", text: "Miora", hasImage: true });
+    expect(describeDesign({ ...defaultDesign(mug), color: "laterite", text: "Anjah", image })).toEqual({ color: "laterite", text: "Anjah", hasImage: true });
   });
   it("lit aussi la copie figée d'une ligne de commande, et rend null si elle est illisible", () => {
     expect(describeDesign(JSON.stringify({ color: "indigo", text: "", image: null }))).toEqual({ color: "indigo", text: "", hasImage: false });
@@ -186,12 +186,12 @@ describe("describeDesign", () => {
 
 describe("readOrderDesign", () => {
   // Copie figée telle que l'écrit la commande (`src/actions/checkout.ts`) : gabarit du produit, puis le dessin complet.
-  const frozen = { template: "mug", color: "laterite", text: "Miora", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 };
+  const frozen = { template: "mug", color: "laterite", text: "Anjah", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 };
 
   it("rend le gabarit et le dessin complet d'une copie valide", () => {
     expect(readOrderDesign(JSON.stringify(frozen))).toEqual({
       template: "mug",
-      design: { color: "laterite", text: "Miora", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 },
+      design: { color: "laterite", text: "Anjah", font: "manuscrite", ink: "blanc", textSize: 70, textY: 30, image, imageSize: 40, imageX: 20, imageY: 80 },
     });
   });
   it("rend null pour une copie absente, vide ou au JSON cassé", () => {

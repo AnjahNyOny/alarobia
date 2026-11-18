@@ -201,6 +201,6 @@ npm run db:reset     # recrée la base de zéro puis la remplit
 
 ## Crédits
 
-- Photos de démonstration (`public/products/`) : Unsplash, reprises de la première version du site. La photo de la démonstration de l'accueil (`public/home/tasse-miora.jpg`) est une capture de la scène 3D du projet.
+- Photos de démonstration (`public/products/`) : Unsplash, reprises de la première version du site. La photo de la démonstration de l'accueil (`public/home/tasse-anjah.jpg`) est une capture de la scène 3D du projet.
 - Police Archivo : The Archivo Project Authors, SIL Open Font License 1.1 (`assets/fonts/OFL.txt`). Le site en utilise une version réduite (`src/app/fonts/archivo-latin.woff2`), l'image de partage deux instances fixes (`assets/fonts/`).
 - Baloo 2, Lora et Caveat (écritures de la personnalisation) : Google Fonts, téléchargées à la compilation par `next/font/google`.

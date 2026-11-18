@@ -2,14 +2,14 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 18/11/2026** : phases 0 à 5 faites et committées. Phase 6 (accessibilité, performance, sécurité, référencement, parcours complets, documentation) faite et committée. Restent en attente du propriétaire : la relecture du malgache du back-office, la validation du texte « Qui sommes-nous » (D3) et les points listés ci-dessous.
+**État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne sur Vercel) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
 
-**Prochaine action** : décisions du propriétaire (liste ci-dessous, en particulier la relecture du malgache, les conditions de retour et la mise en ligne), puis phase 7 s'il la demande. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 7.1, passage à PostgreSQL (`developpeur`). En parallèle, le propriétaire peut préparer Vercel : offre Pro, base Neon et magasin Blob (étape 1 de la 7.5). Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
-- **Pousser vers GitHub** : les commits de la phase 5 et de la phase 6 sont locaux. À pousser quand le propriétaire le demande (un envoi déclenche un déploiement Vercel).
-- **Heures du back-office** : les heures affichées (liste et détail des commandes, tableau de bord) et le découpage par jour du tableau de bord suivent le fuseau du serveur, pas celui de Madagascar. Sur un serveur en UTC (Vercel), elles ont 3 h de retard, et entre minuit et 3 h « aujourd'hui » est encore la veille. Défaut antérieur à la phase 5, non corrigé : la correction touche `src/lib/format.ts`, utilisé aussi par la boutique. Les dates de livraison promises ne sont pas concernées. À faire en tâche à part.
+- **Pousser vers GitHub** : les commits des phases 5 et 6 sont locaux. Ils partiront à l'étape 3 de la 7.5, quand le propriétaire le demandera (un envoi déclenche un déploiement Vercel).
+- **Offre Vercel** : l'offre gratuite (Hobby) est réservée à un usage non commercial. Une boutique demande l'offre Pro. Choix et paiement du propriétaire.
 - **Malgache du back-office** : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
 - **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
 
@@ -20,7 +20,6 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 - **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. Le propriétaire peut maintenant les ajouter lui-même depuis le back-office (fiche produit, carte « Personnalisation »).
 - **« Taille » dans la tâche 4.5** : compris comme la taille du texte et de l'image sur l'objet (curseurs). Si le propriétaire pensait à des tailles de produit (S, M, L, contenance), c'est un autre chantier : il n'y a pas de variantes de produit dans le modèle de données.
 - **Polices proposées au client** : Archivo étroite (« Enseigne »), Baloo 2 (« Ronde »), Lora (« Classique »), Caveat (« Manuscrite »). Choix de Claude, à changer librement.
-- **Mise en ligne** : choix de la base hébergée (Turso ou PostgreSQL) et du stockage des fichiers envoyés, nécessaires pour que le site fonctionne sur Vercel.
 
 ## Décisions prises
 
@@ -42,6 +41,8 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 15/11/2026 | Le propriétaire demande de pousser sur GitHub (`AnjahNyOny/alarobia`) pour voir le site en ligne sur Vercel. Remplace « sans pousser » de D1. La phase 4 est committée en un seul commit. |
 | 16/11/2026 | Le propriétaire autorise l'architecte à committer chaque tâche finie (vérifiée par `verificateur`), sans pousser. |
 | 16/11/2026 | Session principale passée de Fable 5.2 à Opus 5.5 (quota). Le propriétaire autorise l'architecte à modifier lui-même le code (règle de délégation assouplie dans `CLAUDE.md`). |
+| 18/11/2026 | Phase 7 commencée par la mise en ligne (7A). Hébergement sur Vercel, base PostgreSQL chez Neon, fichiers envoyés dans Vercel Blob (écartés : Turso, serveur unique). Adresse `.vercel.app` d'abord, domaine plus tard. |
+| 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
 
 ## Avancement
 
@@ -105,8 +106,16 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 - [x] 6.5 Parcours complets dans les trois langues : 12 parcours de bout en bout (client sans compte et Mobile Money puis le vendeur ; client avec compte et paiement à la livraison), en fr, en et mg, sur ordinateur et sur téléphone, avec contrôle de la langue, des liens, des débordements et des erreurs à chaque écran. Un bug trouvé et corrigé (confirmation de commande qui débordait sur téléphone). Vérifié : 322 tests unitaires, 119 parcours navigateur, les 12 nouveaux rejoués une seconde fois, lint et types propres, captures relues (journal du 18/11/2026)
 - [x] 6.6 Documentation à jour : `README.md` réécrit (personnalisation, back-office, qualité, tests, scripts, ce qu'il reste à brancher, chaque chemin et chaque commande vérifiés), `CLAUDE.md` mis à jour (carte du code, commandes de mesure, pièges des tests et des polices, limites actuelles) (journal du 18/11/2026)
 
-### Phase 7 — Avant mise en ligne
-Hors périmètre tant que non demandé. Voir `PLAN.md`.
+### Phase 7 — Mise en ligne, puis ce qu'une vraie boutique demande
+Phase 7A, mise en ligne sur Vercel (détail dans `PLAN.md`) :
+- [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
+- [ ] 7.1 PostgreSQL : schéma, migration initiale, recherche insensible à la casse, tests contre PostgreSQL en local, commandes simultanées
+- [ ] 7.2 Fichiers envoyés dans Vercel Blob, envois sous 4 Mo, nettoyage par tâche planifiée
+- [ ] 7.3 Heures du back-office à l'heure de Madagascar, tests en `TZ=UTC`
+- [ ] 7.4 Réglages de production : région, migrations à la compilation, adresse du site, en-têtes de sécurité, données de départ sans données de démonstration
+- [ ] 7.5 Mise en ligne : Vercel préparé par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
+
+7B (e-mails et SMS), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
 ## Points de vigilance (voir PLAN.md)
 
@@ -117,6 +126,11 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
 - [x] 5. Traduction de produit manquante : repli sur le français (test `e2e/langues.spec.ts`, fiche en malgache)
 - [x] 6. Gros montants en ariary à 320 px : cartes, fiche, panier, commande (3 langues) et tableaux du back-office (test `e2e/mobile-montants.spec.ts`)
 - [x] 7. Mobile Money déclaré mais non reçu : la commande reste « en attente », l'annulation rend le stock, le client ne peut plus déclarer ensuite (test `e2e/paiement.spec.ts`)
+- [ ] 8. Recherche et majuscules sous PostgreSQL (7.1)
+- [ ] 9. Vingt commandes simultanées sur cinq exemplaires (7.1)
+- [ ] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (7.3)
+- [ ] 11. Photo de 8 Mo envoyée par le vendeur ou par un client (7.2)
+- [ ] 12. Variable de production manquante : échec explicite (7.2, 7.4)
 
 ## Journal
 
@@ -447,3 +461,8 @@ Hors périmètre tant que non demandé. Voir `PLAN.md`.
   - Écarts trouvés en vérifiant et corrigés : `MAX_ORDER_CENTS` est défini dans `src/lib/constants.ts` (réexporté par `pricing.ts`) ; le banc `stress-hydratation.mjs` était documenté sur `/aide`, adresse disparue depuis la 1.1, qui mesurait en fait la page 404 (`/fr/help` désormais, dans `CLAUDE.md` et l'en-tête du script) ; le commentaire du point d'envoi parlait d'un nettoyage « hebdomadaire », le script dit « chaque jour ».
   - Relevés, non traités (voir « Décisions en attente » pour les deux premiers) : conditions de retour contradictoires avec la personnalisation ; lettre d'information qui promet des envois et une désinscription inexistants ; `uploads-test/` s'accumule d'un passage de la suite à l'autre (environ 580 fichiers) ; `public/editorial/hero.jpg` et les SVG de Create Next App dans `public/` ne servent plus ; « 27 produits sur 28 » (5.1) : le catalogue de démonstration en compte 27, le 28e venait sans doute d'un test sur la base de développement ; licences de Baloo 2, Lora et Caveat non indiquées dans le dépôt (Google Fonts).
 - **Phase 6 terminée.** Reste la phase 7 (avant une vraie mise en ligne), hors périmètre tant que le propriétaire ne la demande pas, et les décisions en attente ci-dessus.
+- **Phase 7 commencée** (mise en ligne, 7A). Choix du propriétaire : Vercel avec PostgreSQL (Neon) et Vercel Blob, adresse `.vercel.app` d'abord. Phase 7A détaillée dans `PLAN.md` (tâches 7.0 à 7.5, points de vigilance 8 à 12) ; 7B à 7D seulement esquissées.
+  - Relevés qui fixent le découpage : le projet Vercel existe (`anjahnyonys-projects/alarobia`, dernier déploiement de la phase 4 réussi), mais en ligne la base SQLite et `uploads/` sont des fichiers sur un disque que Vercel ne garde pas ; Vercel limite tout corps de requête à 4,5 Mo, alors que les envois acceptent 5 Mo ; les quatre recherches (`contains`) deviendraient sensibles à la casse sous PostgreSQL ; le seed crée des numéros Mobile Money fictifs, des clients et des avis inventés, à ne jamais charger en production.
+  - PostgreSQL 17 installé par Homebrew (`brew services`, démarré à l'ouverture de session), bases `alarobia` et `alarobia_test` en collation `C.UTF-8`, utilisateur `mac` sans mot de passe en local.
+- Tâche 7.0 (`executant`) : photo fixe refaite avec « Anjah » (`public/home/tasse-anjah.jpg`, 839 × 839, 38 ko ; fenêtre 1280 × 900, échelle 2, moins d'animations, boutons de rotation masqués pour la capture, JPEG qualité 75). Cadrage relu par l'architecte contre l'ancienne : tasse, anse, ombre et fond à la même place.
+  - `verificateur` (7.0) : lint et types propres, 322 tests unitaires, 54 parcours navigateur sur 54 en 4,6 min sans relance (`personnalisation`, `accessibilite`, `admin-commandes`, `parcours`, `parcours-mobile`, `performance`, budgets de poids compris), `tsconfig.json` intact.

@@ -93,7 +93,7 @@ test("personnalisation de la tasse : 3D puis à plat", async ({ page }) => {
   await expect(page.locator('[data-view="3d"]')).toHaveAccessibleName(/.+/);
   // Le contenu d'un canevas WebGL échappe à axe ; son cadre porte un nom (role="img") et la vue à plat sert d'alternative.
   await expect(page.locator('[data-view="3d"] canvas')).toBeVisible();
-  await page.getByLabel("Votre texte").fill("Miora");
+  await page.getByLabel("Votre texte").fill("Anjah");
   await expectAccessible(page, "personnalisation en 3D");
   await page.getByRole("button", { name: "Voir à plat" }).click();
   await expect(page.locator('[data-view="flat"]')).toBeVisible();

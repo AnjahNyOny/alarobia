@@ -260,7 +260,7 @@ export function readOrderDesign(raw: string | null | undefined): { template: Tem
 export type DesignSummary = { color: ColorKey; text: string; hasImage: boolean };
 
 /**
- * Résumé affichable d'un dessin (« Latérite, « Miora », avec image »). Accepte aussi la copie figée
+ * Résumé affichable d'un dessin (« Latérite, « Anjah », avec image »). Accepte aussi la copie figée
  * d'une ligne de commande (JSON) ; rend null si elle est absente ou illisible.
  */
 export function describeDesign(input: { color: string; text: string; image: string | null } | string | null | undefined): DesignSummary | null {

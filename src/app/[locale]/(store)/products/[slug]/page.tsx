@@ -105,7 +105,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const today = madagascarTime();
   const operators = availablePaymentMethods(settings).filter(isMobileMoney).map((method) => OPERATOR_NAME[method]);
   const custom = customizerOptions(product);
-  // Prénom écrit sur la démonstration de l'accueil (« ?perso=Miora ») : coupé à la longueur que le produit accepte.
+  // Prénom écrit sur la démonstration de l'accueil (« ?perso=Anjah ») : coupé à la longueur que le produit accepte.
   const { perso } = await searchParams;
   const initialText = custom && typeof perso === "string" ? graphemes(cleanText(perso)).slice(0, custom.textMax).join("") : "";
   const photos = product.images.map((i) => i.url);

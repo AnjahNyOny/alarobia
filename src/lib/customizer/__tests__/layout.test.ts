@@ -41,9 +41,9 @@ describe("layoutDesign : zone", () => {
 
 describe("layoutDesign : texte", () => {
   it("place un texte court sur une ligne, centré, à la taille demandée", () => {
-    const { text } = layoutDesign("mug", design({ text: "Miora", textSize: 50, textY: 50 }), measure);
+    const { text } = layoutDesign("mug", design({ text: "Anjah", textSize: 50, textY: 50 }), measure);
     expect(text?.lines).toHaveLength(1);
-    expect(text?.lines[0]).toMatchObject({ text: "Miora", x: zone.width / 2 });
+    expect(text?.lines[0]).toMatchObject({ text: "Anjah", x: zone.width / 2 });
     expect(text?.lines[0].y).toBeCloseTo(zone.height / 2);
     expect(text?.size).toBeCloseTo((0.08 + 0.26 * 0.5) * (zone.height - 2 * margin));
   });
@@ -53,19 +53,19 @@ describe("layoutDesign : texte", () => {
     expect(large.size).toBeGreaterThan(small.size * 3);
   });
   it("monte en haut de la zone à 0 et descend en bas à 100, sans en sortir", () => {
-    const top = layoutDesign("mug", design({ text: "Miora", textY: 0 }), measure).text!;
-    const bottom = layoutDesign("mug", design({ text: "Miora", textY: 100 }), measure).text!;
+    const top = layoutDesign("mug", design({ text: "Anjah", textY: 0 }), measure).text!;
+    const bottom = layoutDesign("mug", design({ text: "Anjah", textY: 100 }), measure).text!;
     expect(top.lines[0].y - top.lineHeight / 2).toBeCloseTo(margin);
     expect(bottom.lines[0].y + bottom.lineHeight / 2).toBeCloseTo(zone.height - margin);
   });
   it("porte la police et la teinte de l'encre choisies", () => {
-    const { text } = layoutDesign("mug", design({ text: "Miora", font: "manuscrite", color: "laterite", ink: "blanc" }), measure);
+    const { text } = layoutDesign("mug", design({ text: "Anjah", font: "manuscrite", color: "laterite", ink: "blanc" }), measure);
     expect(text).toMatchObject({ font: "manuscrite", color: "#f7f5f0" });
   });
   it("passe à la ligne entre les mots quand le texte est trop large", () => {
-    const layout = layoutDesign("mug", design({ text: "Bon anniversaire Miora", textSize: 100 }), measure);
+    const layout = layoutDesign("mug", design({ text: "Bon anniversaire Anjah", textSize: 100 }), measure);
     expect(layout.text!.lines.length).toBeGreaterThan(1);
-    expect(layout.text!.lines.map((l) => l.text).join(" ")).toBe("Bon anniversaire Miora");
+    expect(layout.text!.lines.map((l) => l.text).join(" ")).toBe("Bon anniversaire Anjah");
     expectInsideZone(layout);
   });
   it("réduit le corps d'un mot trop long pour la zone plutôt que de le couper", () => {
@@ -127,7 +127,7 @@ describe("layoutDesign : image", () => {
 
 describe("layoutDesign : tous les gabarits", () => {
   it("garde texte et image dans la zone pour toutes les combinaisons de réglages", () => {
-    const texts = ["A", "Miora", "Bon anniversaire Miora", "Andriamanantenasoa20", "🌺 L'île d’Aina 🌺"];
+    const texts = ["A", "Anjah", "Bon anniversaire Anjah", "Andriamanantenasoa20", "🌺 L'île d’Aina 🌺"];
     const steps = [0, 50, 100];
     for (const template of TEMPLATES)
       for (const text of texts)

@@ -254,7 +254,7 @@ async function checkoutTotals(page: Page, t: Translate) {
 
 /** Un mot de la langue pour trouver le café par la recherche de l'en-tête. */
 const COFFEE_WORD: Record<Locale, string> = { fr: "café", en: "coffee", mg: "kafe" };
-const FIRST_NAME: Record<Locale, string> = { fr: "Miora", en: "Tiana", mg: "Fanja" };
+const FIRST_NAME: Record<Locale, string> = { fr: "Anjah", en: "Tiana", mg: "Fanja" };
 
 export async function guestMobileMoney({ browser, page, locale, device }: { browser: Browser; page: Page; locale: Locale; device: Device }) {
   const t = translator(locale);

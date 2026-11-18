@@ -3,7 +3,7 @@ import { downloadName, itemFile } from "../order-files";
 
 const print = "perso-0b9f6c1e-7a52-4c1d-9e0f-3a1b2c3d4e5f.png";
 const image = "perso-11111111-2222-4333-8444-555555555555.jpg";
-const customization = JSON.stringify({ template: "mug", color: "laterite", text: "Miora", font: "enseigne", ink: "blanc", textSize: 50, textY: 50, image, imageSize: 60, imageX: 50, imageY: 50 });
+const customization = JSON.stringify({ template: "mug", color: "laterite", text: "Anjah", font: "enseigne", ink: "blanc", textSize: 50, textY: 50, image, imageSize: 60, imageX: 50, imageY: 50 });
 
 describe("itemFile", () => {
   it("rend le nom du fichier d'impression désigné par la ligne de commande", () => {
