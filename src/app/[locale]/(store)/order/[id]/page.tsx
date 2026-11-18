@@ -31,7 +31,8 @@ export default async function ConfirmationPage({ params }: { params: Promise<{ i
           <Check className="size-5" aria-hidden />
         </span>
         <h1 className="display mt-6 text-4xl md:text-5xl">{to("thanks")}</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        {/* break-words : l'adresse e-mail du client, d'un seul tenant, déborderait de l'écran d'un téléphone. */}
+        <p className="mt-4 text-lg break-words text-muted-foreground">
           {to.rich("number", { number: order.number, b: (chunks) => <span className="font-medium whitespace-nowrap text-foreground">{chunks}</span> })} {awaiting ? t("confirmationMobile", { operator: OPERATOR_NAME[order.paymentMethod as MobileMoney] }) : isMobileMoney(order.paymentMethod) ? "" : t("confirmationCod")} {to("notify", { email: order.email })}
         </p>
         <div className="mt-7 flex flex-wrap gap-3">
