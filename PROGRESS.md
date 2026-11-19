@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 19/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) en cours** : 7.0 à 7.3 faites, détail dans `PLAN.md`.
+**État au 19/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) en cours** : 7.0 à 7.4 faites, détail dans `PLAN.md`.
 
-**Prochaine action** : tâche 7.4 (réglages de production ; `PLAN.md` complété le 19/11 : moteur de Prisma pour Netlify, audit des dépendances, en-tête d'adresse du client). Ensuite 7.5 avec le propriétaire. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : tâche 7.4b (textes justes quand le catalogue est presque vide), puis 7.5 avec le propriétaire. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -45,6 +45,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 18/11/2026 | Aucune option payante (refus de l'offre Pro de Vercel) : hébergement sur l'offre gratuite de Netlify, fichiers dans Netlify Blobs, base sur l'offre gratuite de Neon, nettoyage quotidien par GitHub Actions. Remplace Vercel et Vercel Blob dans la décision précédente. Écartés : Vercel gratuit (usage commercial interdit), Cloudflare (code du serveur limité à 3 Mo, autre pilote Prisma). |
 | 18/11/2026 | Retours : « sauf article personnalisé » ajouté aux trois textes qui promettaient 30 jours sans condition (fiche, aide, conditions de vente), en fr, en et mg. Validé par le propriétaire. |
 | 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
+| 19/11/2026 | Catalogue de départ en production : `init-production.mjs` crée les 27 produits **en brouillon**, sauf la tasse personnalisable (`tasse-en-gres-vato`), en ligne pour le contrôle de l'envoi d'image (7.5). Le propriétaire publie ensuite les produits qu'il garde, après avoir corrigé prix et stock. Écarté : tout publier puis retirer à la main. |
 
 ## Avancement
 
@@ -114,7 +115,8 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
 - [x] 7.2 Fichiers envoyés dans Netlify Blobs (`src/lib/storage.ts`, seul module qui touche aux envois ; disque en local et dans les tests), envois sous 4 Mo, photos du vendeur réduites à 2048 px dans le navigateur, nettoyage quotidien par GitHub Actions (`/api/cron/nettoyage`, `.github/workflows/nettoyage.yml`), ancien script supprimé. Vérifié : lint et types propres, 415 tests unitaires, 129 parcours navigateur, compilation propre
 - [x] 7.3 Heures à l'heure de Madagascar : instants (commandes, paiements, avis, inscriptions) et tableau de bord par jour de Madagascar, fin des codes promo à 23:59:59 à Antananarivo, année du pied de page ; tests unitaires en `TZ=UTC` sous trois fuseaux, suite navigateur avec le serveur en UTC et le navigateur à Antananarivo. Vérifié : lint et types propres, 365 tests unitaires, 123 parcours navigateur
-- [ ] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), adresse du site et du client sur Netlify, en-têtes de sécurité, données de départ sans données de démonstration
+- [x] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), moteur Prisma pour les fonctions Netlify, adresse du site (`URL` en repli) et du client (`x-nf-client-connection-ip`), en-têtes de sécurité, `prisma/init-production.mjs` (produits en brouillon sauf la tasse, aucune donnée inventée), catalogue écrit par un module partagé avec le seed. Vérifié : lint et types propres, 438 tests unitaires, 134 parcours navigateur, compilation propre, en-têtes contrôlés sur une compilation de production
+- [ ] 7.4b Boutique de départ : moyens de paiement annoncés selon les numéros saisis, rayon vide, tableau de bord sans commande (ajoutée le 19/11/2026)
 - [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
 
 7B (e-mails et SMS), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
@@ -132,7 +134,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 9. Vingt commandes simultanées sur cinq exemplaires (test `src/lib/__tests__/stock.test.ts`)
 - [x] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (tests `src/lib/__tests__/format.test.ts` et `e2e/heure-madagascar.spec.ts`)
 - [x] 11. Photo de 8 Mo envoyée par le vendeur ou par un client : réduite à 2048 × 1536 et envoyée sous 4 Mo, ou refusée avec son motif (tests `e2e/admin-produits.spec.ts` et `e2e/personnalisation.spec.ts`)
-- [ ] 12. Variable de production manquante : échec explicite. Fait en 7.2 : Netlify Blobs injoignable (`storage.test.ts`), `CRON_SECRET` absent (503, `cleanup.test.ts`). Reste la 7.4
+- [x] 12. Variable de production manquante : échec explicite qui la nomme. Netlify Blobs injoignable (`storage.test.ts`), `CRON_SECRET` (`cleanup.test.ts`), `AUTH_SECRET` (`auth-secret.test.ts`), variables de `init-production.mjs` (`init-production.test.ts`) ; `DATABASE_URL` et `DATABASE_URL_UNPOOLED` vides : message de Prisma qui les nomme (relevé à la main) ; `NEXT_PUBLIC_SITE_URL` : repli sur `URL` (`seo.test.ts`)
 
 ## Journal
 
@@ -588,3 +590,19 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - **Schéma temporaire oublié** : `nettoyage_f37d254f4e95` restait dans `alarobia_test`. Ni `cleanup.test.ts` (deux passages seul) ni la suite complète n'en laissent : reste d'un passage interrompu pendant l'écriture du test. Supprimé.
 - **Relevé, non traité** : un AVIF de plus de 4 Mo est refusé dans le navigateur alors que Chrome sait le décoder (`reduceImage` ne connaît que JPEG, PNG, WebP et HEIC). Rare pour des photos de produits.
 - `verificateur` (7.2) : lint et types propres, 415 tests unitaires (32 fichiers), compilation propre sans avertissement, **129 parcours navigateur sur 129** en 4,8 min sans relance (charge 2,5 à 9,7), `tsconfig.json` intact, port 3100 libre. `node:fs` n'apparaît plus que dans `storage.ts` et l'image de partage ; plus aucune mention de l'ancien script.
+- Commit `4d9d729` (7.2).
+- **Tâche 7.4** (`developpeur`) : réglages de production.
+  - `netlify.toml` : `npx prisma migrate deploy && npm run build`, rien d'autre (l'adaptateur Next.js de Netlify s'applique seul).
+  - **Moteur de Prisma** : `binaryTargets = ["native", "rhel-openssl-3.0.x"]`. Le moteur rhel (17,5 Mo) figure dans les 34 traces de fichiers (`.nft.json`) des pages et routes qui lisent la base ; les 10 autres ne la lisent pas. `outputFileTracingIncludes` inutile. À surveiller en 7.5 : chaque fonction embarquera aussi le moteur d'Ubuntu (environ 18 Mo).
+  - `siteBase()` : `NEXT_PUBLIC_SITE_URL`, puis `URL` (fournie par Netlify), puis localhost ; lue côté serveur seulement (vérifié). `clientIp()` : `x-nf-client-connection-ip` d'abord. Netlify garde explicitement cet en-tête vers les fonctions ; qu'un client ne puisse pas l'imposer reste à vérifier en ligne (7.5).
+  - **En-têtes de sécurité** sur toutes les adresses (`headers()` de `next.config.ts`) : 5 tests dans `e2e/securite.spec.ts` (boutique, back-office, route API, `/uploads/…`, 404), vus rouges ; contrôlés aussi par `curl` sur une compilation de production (redirection `/` → `/fr`, `robots.txt`, `sitemap.xml`).
+  - **`prisma/init-production.mjs`** : exige `DATABASE_URL` avant de créer le client Prisma (sinon Prisma lirait le `.env` du projet et écrirait dans la base de développement), `ADMIN_EMAIL` valide et `ADMIN_PASSWORD` de 12 caractères ; refuse une base non vide ; tout en une transaction (délai de 300 s, pour la latence depuis Madagascar) ; affiche l'hôte et la base visés, sans identifiants ; mot de passe haché en coût 12, comme les comptes du site. 14 tests sur un schéma temporaire (script en processus enfant), dont la contre-épreuve sans le contrôle « base non vide ».
+  - **Décision du propriétaire appliquée** : 26 produits en brouillon, la tasse `tasse-en-gres-vato` en ligne ; sans produit à ce slug, le script échoue.
+  - **Catalogue partagé** : `prisma/write-catalog.mjs` (zones, rayons, produits) appelé par `seed.mjs` et `init-production.mjs`, sans tirage pseudo-aléatoire. Sortie du seed identique à l'octet (16 tables, 598 lignes, `Date.now()` figé, identifiants remplacés par des clés naturelles ; exclus : `id`, sel bcrypt, `createdAt` posés par la base, `updatedAt`). Contre-épreuve : un tirage de plus change 11 avis.
+  - **`npm audit fix`** sans `--force` : `typescript-eslint` 8.72.2 → 8.73.0, `minimatch` (sous ESLint) 11.0.9, `ignore` 7.0.16. Restent 7 alertes (3 élevées, 4 modérées), aussi avec `--omit=dev` : `deepmerge-ts` par le CLI Prisma, `minimatch` par le CLI shadcn, corrigées seulement par Prisma 7 et shadcn 1. Ni l'un ni l'autre n'est importé par le code servi (les fonctions n'embarquent que les fichiers tracés).
+  - **Point 12** : `AUTH_SECRET` absent ne « stoppe » pas le serveur comme le disait le plan : connexion et inscription échouent en 500 avec le nom de la variable dans les journaux, et un visiteur déjà connecté paraît simplement déconnecté.
+  - Documentation : `.env.example` (provenance de chaque variable), README (section « Mise en ligne », « Produits de départ », limites de débit réécrites).
+  - **Choix du sous-agent, gardés** : `ADMIN_EMAIL` en minuscules ; titulaire Mobile Money laissé à « Alarobia » (le vendeur le change avec ses numéros dans les réglages).
+- **Captures d'une base remplie par `init-production.mjs`** (une seule fiche en ligne), relues par l'architecte : aucune erreur ni débordement, mais deux textes faux qui resteront après la publication des produits : l'accueil promet le Mobile Money alors qu'aucun numéro n'est saisi, et un rayon vide dit « Essayez un autre mot ou retirez un filtre » sans recherche ni filtre. Tableau de bord sans commande peu lisible. D'où la tâche **7.4b**, ajoutée au plan. Temporaire, non traité : rayons à « 0 article », même carte dans « Nouveautés » et « Les plus demandés ».
+- `verificateur` (7.4) : lint et types propres, 438 tests unitaires (34 fichiers), aucun schéma temporaire restant, compilation propre, **134 parcours navigateur sur 134** en 5,5 min sans relance (charge 3,5 à 14,5), `tsconfig.json` intact, ports libres.
+

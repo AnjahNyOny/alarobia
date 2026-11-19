@@ -1,6 +1,7 @@
 /**
- * Limitation de débit, en mémoire et sur fenêtre glissante. Suffisant pour un seul serveur ; à remplacer
- * par un stockage partagé si la boutique tourne un jour sur plusieurs machines (phase 7).
+ * Limitation de débit, en mémoire et sur fenêtre glissante. Sur Netlify, chaque instance de fonction tient ses
+ * propres compteurs : les limites y sont plus lâches. Décidé pour la mise en ligne (PLAN.md, « Ce que la phase 7A ne
+ * fait pas ») ; à remplacer par un stockage partagé si des abus apparaissent.
  *
  * Les opérateurs mobiles malgaches font sortir beaucoup de clients par la même adresse : les limites
  * par adresse sont larges, et on compte les échecs plutôt que les appels quand c'est possible.
@@ -88,9 +89,19 @@ export async function withRateLimit<T>(checks: readonly Check[], attempt: () => 
 }
 
 /**
- * Adresse du visiteur. Derrière un proxy de confiance, c'est la première adresse de x-forwarded-for ;
- * sans proxy, cet en-tête peut être forgé (à traiter avec l'hébergement, phase 7). `null` si elle est inconnue.
+ * Adresse du visiteur. `null` si elle est inconnue.
+ * - Sur Netlify : `x-nf-client-connection-ip`, posé par Netlify. C'est le seul en-tête que Netlify dit garder vers les
+ *   fonctions pour l'adresse du client (https://answers.netlify.com/t/upcoming-change-stripping-exposed-netlify-headers-from-function-and-proxy-requests/52665).
+ *   Qu'il soit écrasé quand le client l'envoie lui-même n'est écrit nulle part dans la documentation : à vérifier en ligne
+ *   (PLAN.md, 7.5), en l'envoyant avec une fausse adresse et en regardant quelle adresse la limite compte.
+ * - Ailleurs (local, tests navigateur) : la première adresse de x-forwarded-for, puis x-real-ip. Sans proxy de confiance
+ *   devant le serveur, un client peut les forger et contourner les limites par adresse.
  */
 export function clientIp(headers: Headers): string | null {
-  return headers.get("x-forwarded-for")?.split(",")[0].trim() || headers.get("x-real-ip")?.trim() || null;
+  return (
+    headers.get("x-nf-client-connection-ip")?.trim() ||
+    headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    headers.get("x-real-ip")?.trim() ||
+    null
+  );
 }

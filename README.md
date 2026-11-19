@@ -40,7 +40,7 @@ Les adresses de `.env.example` se connectent sans mot de passe avec l'utilisateu
 | `DATABASE_URL` | Base PostgreSQL de l'application : `postgresql://<utilisateur>@localhost:5432/alarobia` en local. |
 | `DATABASE_URL_UNPOOLED` | Adresse directe de la même base, pour les commandes Prisma (`db push`, migrations). En local, la même que `DATABASE_URL`. |
 | `AUTH_SECRET` | Signe le cookie de session. 32 caractères au moins, sinon la connexion et l'inscription échouent : `openssl rand -base64 32`. |
-| `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. |
+| `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. Vide, le site prend `URL`, l'adresse que Netlify fournit lui-même, puis `http://localhost:3000`. |
 | `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. Sur Netlify, les envois vont dans Netlify Blobs et cette variable ne sert pas. |
 | `CRON_SECRET` | Facultative en local. Protège la route du nettoyage quotidien (`/api/cron/nettoyage`), qui répond 503 sans elle : `openssl rand -base64 32`. |
 
@@ -93,7 +93,7 @@ Les données de démonstration sont dans `prisma/catalog.mjs` et `prisma/seed.mj
 
 - **Accessibilité** : contrôle axe (WCAG 2.1 A et AA) sur toutes les pages de la boutique, de l'espace client et du back-office, états ouverts compris (tiroir, menus, personnalisation, formulaire refusé) ; taille des cibles tactiles sur téléphone ; parcours au clavier seul (`e2e/clavier.spec.ts`). La 3D ne bouge pas seule si le visiteur a demandé moins d'animations.
 - **Performance** : budgets de poids par page sur téléphone (total, JavaScript, police) et aucune feuille de style à télécharger avant l'affichage, contrôlés par `e2e/performance.spec.ts`. Les temps en 3G lente se mesurent à la main avec `scripts/mesure-telephone.mjs` ; les relevés sont dans `PROGRESS.md`. La feuille CSS est écrite dans le HTML (`experimental.inlineCss`), la police Archivo est réduite aux graisses et largeurs utilisées, et ses polices de remplacement sont calibrées pour éviter tout décalage de mise en page. three.js (environ 240 ko compressés) n'est jamais chargé d'office : seulement à l'ouverture de la personnalisation, ou au premier contact avec la démonstration de l'accueil.
-- **Sécurité** : session dans un cookie signé `httpOnly`, relue en base à chaque requête ; les actions serveur réservées et chaque page du back-office revérifient la session. Limites de débit, en mémoire (voir « Ce qu'il reste à brancher ») :
+- **Sécurité** : session dans un cookie signé `httpOnly`, relue en base à chaque requête ; les actions serveur réservées et chaque page du back-office revérifient la session. En-têtes `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` et `Permissions-Policy` sur toutes les adresses (`next.config.ts`, contrôlés par `e2e/securite.spec.ts`). Limites de débit, en mémoire (voir « Ce qu'il reste à brancher ») :
 
   | Action | Limite |
   | --- | --- |
@@ -115,7 +115,10 @@ Les données de démonstration sont dans `prisma/catalog.mjs` et `prisma/seed.mj
 prisma/schema.prisma          modèle de données (statuts en chaînes, pas en enums)
 prisma/migrations/            migrations versionnées, pour la production (en local et dans les tests : prisma db push)
 prisma/catalog.mjs            données de démonstration en fr, en, mg (données seules, testées)
-prisma/seed.mjs               écrit les données de démonstration en base
+prisma/write-catalog.mjs      écrit en base les zones de livraison, rayons et produits de catalog.mjs (partagé)
+prisma/seed.mjs               écrit les données de démonstration en base (vide d'abord toutes les tables)
+prisma/init-production.mjs    données de départ de la production, une seule fois (voir « Mise en ligne »)
+netlify.toml                  compilation sur Netlify : migrations, puis next build
 src/proxy.ts                  langue de l'adresse et premier filtre d'accès (/admin, /account)
 src/actions/                  actions serveur : toute écriture en base passe par ici (admin/ pour le back-office)
 src/app/[locale]/(store)/     boutique et espace client
@@ -151,7 +154,7 @@ Règles suivies partout (le détail est dans `CLAUDE.md`) :
 
 ## Tests
 
-`npm test` lance les tests unitaires (Vitest, `src/**/*.test.ts`). Ils couvrent la logique : prix, supplément et plafond, codes promo et stock (consommation et réservation sous condition, vérifiées sur une vraie base PostgreSQL, commandes simultanées comprises), migrations à jour du schéma, lignes du panier, personnalisation (validation, mise en place du dessin, aperçu identique au fichier d'impression), contrôle des envois et nettoyage, livraison et dates promises, adresses et téléphone, paiement, formats et noms de jours dans les trois langues, mêmes clés dans les trois fichiers de messages, repli des traductions, référencement, limites de débit, contrôle de session en tête de chaque page du back-office, polices de remplacement. Ceux qui ont besoin d'une base créent chacun un schéma temporaire dans `alarobia_test` (ou dans la base de `TEST_DATABASE_URL`), supprimé à la fin : PostgreSQL doit tourner.
+`npm test` lance les tests unitaires (Vitest, `src/**/*.test.ts`). Ils couvrent la logique : prix, supplément et plafond, codes promo et stock (consommation et réservation sous condition, vérifiées sur une vraie base PostgreSQL, commandes simultanées comprises), migrations à jour du schéma, lignes du panier, personnalisation (validation, mise en place du dessin, aperçu identique au fichier d'impression), contrôle des envois et nettoyage, livraison et dates promises, adresses et téléphone, paiement, formats et noms de jours dans les trois langues, mêmes clés dans les trois fichiers de messages, repli des traductions, référencement, limites de débit, contrôle de session en tête de chaque page du back-office, polices de remplacement, secret de session absent ou trop court, données de départ de la production (`init-production.mjs` lancé contre une base temporaire). Ceux qui ont besoin d'une base créent chacun un schéma temporaire dans `alarobia_test` (ou dans la base de `TEST_DATABASE_URL`), supprimé à la fin : PostgreSQL doit tourner.
 
 `npm run test:e2e` lance les tests navigateur (Playwright, `e2e/`) sur une compilation de production. Il prépare son propre environnement sans toucher à celui de développement : base `alarobia_test` (schéma `public`) remplie par le seed, compilation dans `.next-e2e/`, fichiers envoyés dans `uploads-test/` (qui s'accumulent d'un passage à l'autre), serveur sur le port 3100, qui doit être libre. Deux projets : `ordinateur` (1 440 × 900) et `mobile` (Pixel 7 émulé, fichiers dont le nom contient « mobile »). Les tests partagent la base et passent l'un après l'autre : la suite prend plusieurs minutes. Ils couvrent :
 
@@ -190,18 +193,51 @@ curl -H "Authorization: Bearer $CRON_SECRET" "http://localhost:3001/api/cron/net
 
 En production, le flux de travail GitHub Actions `.github/workflows/nettoyage.yml` l'appelle chaque jour à 4 h, heure d'Antananarivo. Il lit deux secrets du dépôt, `SITE_URL` et `CRON_SECRET` (la même valeur que sur Netlify), et se lance aussi à la main depuis l'onglet Actions, avec ou sans essai à blanc. Le dépôt étant public, ses journaux le sont aussi : le flux n'y écrit que des nombres, jamais les noms des fichiers. GitHub met en pause les tâches planifiées d'un dépôt public sans activité depuis 60 jours : il faut alors les réactiver depuis l'onglet Actions.
 
+## Mise en ligne
+
+La boutique tourne sur l'offre gratuite de Netlify, avec une base PostgreSQL sur l'offre gratuite de Neon et les fichiers envoyés dans Netlify Blobs (rien à créer : le magasin vient avec le site). Aucune option payante : au-delà des quotas gratuits, Netlify met le site en pause jusqu'au mois suivant, sans facturer. Les étapes, dans l'ordre et avec qui fait quoi, sont dans `PLAN.md` (tâche 7.5).
+
+**Variables**, à définir dans Netlify pour le contexte « Production » seulement (le détail de chacune est dans `.env.example`) :
+
+| Variable | Provenance |
+| --- | --- |
+| `DATABASE_URL` | Neon : adresse regroupée (*pooler*), pour l'application |
+| `DATABASE_URL_UNPOOLED` | Neon : adresse directe, pour les migrations |
+| `AUTH_SECRET` | À générer : `openssl rand -base64 32` |
+| `CRON_SECRET` | À générer : `openssl rand -base64 32` ; la même valeur dans les secrets du dépôt GitHub |
+| `NEXT_PUBLIC_SITE_URL` | L'adresse `.netlify.app` du site, puis le domaine. Sans elle, le site prend `URL`, fournie par Netlify |
+
+Les secrets du dépôt GitHub `SITE_URL` et `CRON_SECRET` servent au nettoyage quotidien (section précédente). Une variable changée sur Netlify ne compte qu'à la mise en ligne suivante.
+
+**Compilation** (`netlify.toml`) : `npx prisma migrate deploy && npm run build`. Les migrations de `prisma/migrations/` sont appliquées à la base Neon par l'adresse directe à chaque compilation, avant celle de Next ; une migration qui échoue arrête la mise en ligne. Node 22 vient de `.nvmrc`, le reste est laissé à l'adaptateur Next.js de Netlify. Le client Prisma embarque le moteur des fonctions Netlify (`binaryTargets` dans `prisma/schema.prisma` : compilation sous Ubuntu, fonctions sous Amazon Linux).
+
+**Données de départ**, une seule fois, après la première mise en ligne, depuis sa machine :
+
+```bash
+node --env-file=.env.production.local prisma/init-production.mjs
+```
+
+`.env.production.local` (ignoré par git) contient `DATABASE_URL` et `DATABASE_URL_UNPOOLED` (toutes deux l'adresse directe de Neon), `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins). Le script refuse de tourner, avec un message, si l'une manque ou si la base contient déjà un utilisateur, un produit ou une commande ; il écrit tout dans une seule transaction. Il crée :
+
+- les réglages de la boutique, sans numéro Mobile Money : seul le paiement à la livraison est proposé tant que le vendeur n'a pas saisi les siens dans le back-office (Réglages) ; adresse de contact `ADMIN_EMAIL` ;
+- les quatre zones de livraison, les six rayons et les 27 produits de `prisma/catalog.mjs` avec leurs traductions, photos et réglages de personnalisation. Tous sont en brouillon, sauf la tasse personnalisable, en ligne pour le contrôle de la mise en ligne : le vendeur corrige les autres (prix, stock, photos) et les met en ligne depuis le back-office ;
+- le compte administrateur.
+
+Il ne crée ni client, ni avis, ni commande, ni code promo, ni abonné. Ne jamais lancer `npm run db:seed` sur la base de production : il la vide puis la remplit de données de démonstration.
+
+**À vérifier en ligne** (`PLAN.md`, 7.5) : le moteur de Prisma dans les fonctions (sa présence dans les traces de fichiers de Next a été vérifiée en local), la collation de la base Neon, et l'adresse du visiteur : sur Netlify, les limites par adresse lisent `x-nf-client-connection-ip`, posé par Netlify, mais rien dans sa documentation ne dit qu'un client ne peut pas l'imposer.
+
 ## Ce qu'il reste à brancher avant une vraie mise en ligne
 
-- **Paiement** : aucune liaison avec les opérateurs. Le vendeur vérifie lui-même sur son téléphone que l'argent est arrivé ; la référence saisie par le client n'est contrôlée que sur sa forme. Une API marchande Mobile Money demande un compte marchand. Les numéros Mobile Money de démonstration sont fictifs : saisir les vrais dans les réglages.
+- **Paiement** : aucune liaison avec les opérateurs. Le vendeur vérifie lui-même sur son téléphone que l'argent est arrivé ; la référence saisie par le client n'est contrôlée que sur sa forme. Une API marchande Mobile Money demande un compte marchand. Les numéros Mobile Money des données de démonstration sont fictifs ; en production, `init-production.mjs` les laisse vides : saisir les vrais dans les réglages pour proposer le Mobile Money.
 - **E-mails et SMS** : rien n'est envoyé (confirmation, expédition). Il n'y a pas de procédure « mot de passe oublié ». La lettre d'information enregistre des adresses, mais rien ne s'en sert.
-- **Base de données** : PostgreSQL en local. La base hébergée (Neon) et l'application des migrations en production viennent avec la mise en ligne (phase 7A de `PLAN.md`).
 - **Fichiers envoyés** : sur le disque en local et dans les tests (`uploads/`, `uploads-test/`), dans Netlify Blobs sur Netlify (`src/lib/storage.ts`, seul module qui y touche). Un envoi pèse 4 Mo au plus, parce qu'une fonction Netlify refuse toute requête de plus de 6 Mo et que le fichier y arrive encodé en Base64 ; le navigateur réduit les photos à 2048 px avant l'envoi. Les aperçus et fichiers d'impression sont servis à tous sous leur nom imprévisible (`/uploads/…`). Le serveur ne réencode pas les images : un envoi qui contourne le navigateur garde ses métadonnées.
-- **Limites de débit** : en mémoire, remises à zéro au redémarrage, valables pour un seul serveur. L'adresse du visiteur est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance : les limites par adresse IP se contournent alors (celles par e-mail, par compte et par commande tiennent). À régler avec l'hébergeur.
+- **Limites de débit** : en mémoire, donc comptées par instance de fonction sur Netlify (plus lâches) et remises à zéro au redémarrage ; un stockage partagé si des abus apparaissent. Sur Netlify, l'adresse du visiteur est lue dans `x-nf-client-connection-ip`, posé par Netlify ; qu'un client ne puisse pas l'imposer reste à vérifier en ligne (voir « Mise en ligne »). Ailleurs, elle est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance. Si l'adresse est forgeable, les limites par adresse IP se contournent ; celles par e-mail, par compte et par commande tiennent.
 - **Montants** : 20 000 000 Ar au plus par prix, tarif ou commande (`MAX_ORDER_CENTS`), parce que les colonnes de montant sont des entiers 32 bits. Au-delà, passer ces colonnes en BigInt.
 - **CSP** : aucune politique de sécurité du contenu pour l'instant. Elle devra autoriser le `<style>` en ligne écrit par `experimental.inlineCss` (`next.config.ts`), option expérimentale à revérifier à chaque mise à jour de Next.
 - **Malgache** : rédigé par Claude, à faire relire par un locuteur natif (termes incertains dans `docs/glossaire.md` et `PROGRESS.md`). Les caractéristiques des produits de démonstration ne sont pas traduites en malgache.
 - **Textes à valider** : mentions légales et CGV (modèle à compléter : éditeur, hébergeur) ; modalités de remboursement des retours (Mobile Money sous 5 jours ouvrés, reprise « convenue avec vous » : hypothèses à confirmer) ; page « Qui sommes-nous », proposée par Claude.
-- **Comptes de démonstration** : supprimer `admin@alarobia.example`, `client@alarobia.example` et les codes promo de démonstration. Ne jamais lancer `npm run db:seed` sur la base de production : il la vide.
+- **Produits de départ** : en production, 26 des 27 produits de démonstration arrivent en brouillon, avec des prix et des stocks inventés (certains ne sont pas des objets du quotidien malgache) : à corriger ou supprimer avant de les mettre en ligne. Aucun compte ni code promo de démonstration n'y est créé.
 
 ## Commandes utiles
 

@@ -1,5 +1,10 @@
+// Sur Netlify, la compilation tourne sous Ubuntu et les fonctions sous Amazon Linux : sans la cible
+// "rhel-openssl-3.0.x", la compilation réussit mais toute page qui lit la base échoue en ligne (moteur introuvable).
+// Sources : https://www.prisma.io/docs/orm/v6/prisma-client/deployment/serverless/deploy-to-netlify et
+// https://answers.netlify.com/t/new-builds-are-breaking-in-runtime-with-prisma-errors/107755. "native" sert en local.
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 // PostgreSQL partout : base Homebrew en local et dans les tests, Neon en production.

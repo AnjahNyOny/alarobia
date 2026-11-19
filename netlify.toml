@@ -1,0 +1,9 @@
+# Compilation Netlify (offre gratuite). Node 22 vient de .nvmrc ; le reste (dossier publié, fonctions) est laissé à
+# l'adaptateur Next.js de Netlify, qui s'applique et se met à jour seul.
+#
+# Les migrations passent à chaque compilation, avant celle de Next : la base Neon a le schéma du code déployé, et une
+# migration qui échoue arrête la mise en ligne au lieu de servir un site qui ne correspond plus à sa base.
+# `prisma migrate deploy` se connecte par DATABASE_URL_UNPOOLED (directUrl de prisma/schema.prisma), l'adresse directe
+# de Neon : les migrations ne passent pas par le regroupement de connexions.
+[build]
+  command = "npx prisma migrate deploy && npm run build"

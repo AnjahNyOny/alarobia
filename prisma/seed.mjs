@@ -1,12 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { categories, customers as customerSeeds, products, promoCodes, settings, shippingZones } from "./catalog.mjs";
+import { customers as customerSeeds, promoCodes, settings, shippingZones } from "./catalog.mjs";
+import { writeCatalog, writeShippingZones } from "./write-catalog.mjs";
 
 const db = new PrismaClient();
-const img = (name) => `/products/${name}.jpg`;
-
-const slugify = (s) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 // Même règle que src/lib/shipping.ts : jours ouvrés, pas de livraison le dimanche.
 function addBusinessDays(from, days) {
@@ -41,7 +38,7 @@ async function main() {
   await db.shippingZone.deleteMany();
   await db.storeSettings.deleteMany();
   await db.storeSettings.create({ data: { id: 1, ...settings } });
-  await db.shippingZone.createMany({ data: shippingZones.map((z, position) => ({ ...z, position })) });
+  await writeShippingZones(db);
 
   const adminHash = await bcrypt.hash("admin1234", 10);
   const clientHash = await bcrypt.hash("client1234", 10);
@@ -62,43 +59,9 @@ async function main() {
     customers.at(-1).zone = shippingZones[zone];
   }
 
-  const translations = (record, fields) => ({
-    create: ["en", "mg"].map((locale) => ({ locale, ...Object.fromEntries(fields.map((f) => [f, record[locale]?.[f] ?? ""])) })),
-  });
-
-  const cats = {};
-  for (const [i, c] of categories.entries())
-    cats[c.slug] = await db.category.create({
-      data: { slug: c.slug, name: c.name, description: c.description, image: img(c.image), position: i, translations: translations(c, ["name", "description"]) },
-    });
-
-  const created = [];
-  for (const [i, p] of products.entries()) {
-    created.push(
-      await db.product.create({
-        data: {
-          name: p.name, tagline: p.tagline, description: p.description, details: p.details, stock: p.stock, featured: p.featured ?? false,
-          slug: slugify(p.name),
-          sku: `AL-${p.category.slice(0, 3).toUpperCase()}-${String(i + 1).padStart(3, "0")}`,
-          // Montants en unités mineures : 1 Ar = 100.
-          priceCents: p.priceAr * 100,
-          compareAtCents: p.compareAtAr ? p.compareAtAr * 100 : null,
-          categoryId: cats[p.category].id,
-          createdAt: new Date(Date.now() - (products.length - i) * 2 * 864e5),
-          ...(p.custom && {
-            customTemplate: p.custom.template,
-            customColors: p.custom.colors.join(","),
-            customTextMax: p.custom.textMax,
-            customImage: p.custom.image,
-            customSurchargeCents: p.custom.surchargeAr * 100,
-          }),
-          images: { create: p.images.map((n, position) => ({ url: img(n), position })) },
-          translations: translations(p, ["name", "tagline", "description", "details"]),
-        },
-        include: { images: true },
-      })
-    );
-  }
+  // Rayons et produits, partagés avec init-production.mjs. Aucun tirage de rand() dedans : la suite des tirages
+  // (avis, commandes) reste la même.
+  const created = await writeCatalog(db);
 
   const comments = [
     [5, "Conforme à la description, la qualité est au rendez-vous. Livraison rapide et colis soigné."],

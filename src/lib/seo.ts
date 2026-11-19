@@ -5,9 +5,14 @@ import { defaultLocale, isLocale, locales, type Locale } from "@/i18n/routing";
  * Les pages et le plan du site (src/app/sitemap.ts) passent tous par ici : ils ne peuvent pas diverger.
  */
 
-/** Adresse publique du site, sans barre finale. */
-export function siteBase(configured: string | undefined = process.env.NEXT_PUBLIC_SITE_URL) {
-  return (configured || "http://localhost:3000").replace(/\/+$/, "");
+/**
+ * Adresse publique du site, sans barre finale : `NEXT_PUBLIC_SITE_URL` (domaine choisi), sinon `URL`, l'adresse principale
+ * que Netlify donne à la compilation et aux fonctions (https://docs.netlify.com/configure-builds/environment-variables/),
+ * sinon le serveur local. Lue côté serveur seulement (métadonnées, plan du site, robots.txt) : aucun composant client
+ * ne l'importe, sinon `URL`, qui n'est pas préfixée NEXT_PUBLIC_, y serait vide.
+ */
+export function siteBase(configured: string | undefined = process.env.NEXT_PUBLIC_SITE_URL, platform: string | undefined = process.env.URL) {
+  return (configured || platform || "http://localhost:3000").replace(/\/+$/, "");
 }
 
 /** Adresse absolue d'un chemin commun (« /products/tasse », « » pour l'accueil) dans une langue. */

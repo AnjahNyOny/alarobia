@@ -1,16 +1,33 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { catalogPath, jsonLdScript, languageAlternates, localizedUrl, openGraphBase, pageAlternates, schemaPrice, siteBase } from "../seo";
 
 const BASE = "https://alarobia.mg";
 
 describe("siteBase", () => {
+  afterEach(() => vi.unstubAllEnvs());
   it("retire la barre finale de l'adresse configurée", () => {
     expect(siteBase("https://alarobia.mg/")).toBe("https://alarobia.mg");
     expect(siteBase("https://alarobia.mg")).toBe("https://alarobia.mg");
   });
   it("retombe sur le serveur local sans adresse configurée", () => {
-    expect(siteBase(undefined)).toBe("http://localhost:3000");
-    expect(siteBase("")).toBe("http://localhost:3000");
+    expect(siteBase(undefined, undefined)).toBe("http://localhost:3000");
+    expect(siteBase("", "")).toBe("http://localhost:3000");
+  });
+  it("préfère l'adresse configurée à celle que donne Netlify", () => {
+    expect(siteBase("https://alarobia.mg", "https://alarobia.netlify.app")).toBe("https://alarobia.mg");
+  });
+  it("se rabat sur l'adresse principale que donne Netlify (URL) quand NEXT_PUBLIC_SITE_URL est vide, sans barre finale", () => {
+    expect(siteBase(undefined, "https://alarobia.netlify.app/")).toBe("https://alarobia.netlify.app");
+    expect(siteBase("", "https://alarobia.netlify.app")).toBe("https://alarobia.netlify.app");
+  });
+  it("lit par défaut NEXT_PUBLIC_SITE_URL, puis URL, puis le serveur local", () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://alarobia.mg/");
+    vi.stubEnv("URL", "https://alarobia.netlify.app");
+    expect(siteBase()).toBe("https://alarobia.mg");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    expect(siteBase()).toBe("https://alarobia.netlify.app");
+    vi.stubEnv("URL", "");
+    expect(siteBase()).toBe("http://localhost:3000");
   });
 });
 

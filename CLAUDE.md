@@ -63,6 +63,7 @@ npm test                 # tests unitaires (Vitest)
 npm run test:e2e         # tests navigateur (Playwright) : compile en production sur le port 3100, base alarobia_test
 npm run db:reset         # recrée la base et recharge les données de démonstration (efface tout)
 npm run db:seed
+node --env-file=.env.production.local prisma/init-production.mjs   # une seule fois, sur la base de production neuve (refuse sinon)
 node scripts/poids-pages.mjs        # poids transféré des pages, contre un serveur de production (lire l'en-tête)
 node scripts/mesure-telephone.mjs   # temps en 3G lente sur téléphone ralenti (FCP, LCP, CLS, hydratation, 3D)
 ```
@@ -77,6 +78,9 @@ Next.js 16 (App Router, Server Actions), React 19, TypeScript, Tailwind v4, shad
 prisma/schema.prisma     modèle de données (statuts en chaînes, pas d'enum)
 prisma/migrations/       migrations appliquées en production (prisma migrate deploy)
 prisma/seed.mjs          données de démonstration, déterministes
+prisma/write-catalog.mjs zones, rayons et produits de catalog.mjs, écrits pour seed.mjs et init-production.mjs (aucun tirage aléatoire dedans)
+prisma/init-production.mjs  données de départ de la production : réglages sans Mobile Money, catalogue en brouillon sauf la tasse, compte admin
+netlify.toml             compilation Netlify : migrations puis next build
 src/actions/             actions serveur : toute écriture en base passe par ici
 src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, promo (code consommé sous condition), schemas Zod, format, localize (repli sur le français), address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées), storage (seul module qui lit ou écrit les envois : disque en local, Netlify Blobs en ligne), cleanup (nettoyage des personnalisations abandonnées), rate-limit (limites de débit, en mémoire), seo (canonique, hreflang), stock (réservation à la commande, remise en stock)
 src/lib/customizer/      mise en place du dessin (layout), tracé sur canevas (paint), objet vu à plat (flat) : fonctions pures, testées
@@ -135,6 +139,7 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Débordement horizontal** : dans un test en émulation mobile, comparer `scrollWidth` à `clientWidth` (`innerWidth` s'élargit avec le contenu et masque le défaut). Deux causes déjà rencontrées : une colonne de grille ou un `fieldset` sans `min-w-0`, et un `sr-only` dans un conteneur `overflow-x-auto` qui n'est pas `relative`.
 - **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar), défini dans `src/lib/constants.ts` et réexporté par `src/lib/pricing.ts`.
 - **Dates de livraison** : partir de `madagascarTime()` (`src/lib/shipping.ts`), jamais de `new Date()` seul : le serveur peut tourner dans un autre fuseau.
+- **Moteur de Prisma** : `binaryTargets` garde `rhel-openssl-3.0.x` (fonctions Netlify sous Amazon Linux). Sans lui, la compilation réussit mais toute page qui lit la base échoue en ligne.
 - **Schéma Prisma** : `db push` en local et dans les tests ; en production, `prisma migrate deploy` applique `prisma/migrations/`. Tout changement de schéma demande sa migration (`prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url <schéma temporaire de alarobia_test> --script`), sinon `migrations.test.ts` échoue. La base de production contient de vraies commandes : ajouter des colonnes avec une valeur par défaut, ne jamais en supprimer une remplie sans migration de données.
 - **PostgreSQL** : `contains` respecte la casse, une recherche passe toujours `mode: "insensitive"`. Une transaction qui écrit plusieurs produits les prend dans l'ordre des identifiants (`src/lib/stock.ts`), sinon deux commandes croisées s'interbloquent (`40P01`). Un test unitaire qui a besoin d'une base prend un schéma temporaire avec `createTestDatabase()` (`src/test/database.ts`). Tout client Prisma se crée par `createDb()` (`src/lib/db.ts`), et une fonction qui reçoit une transaction prend `tx: Tx`. `createDb()` applique l'extension `nulSafe` (`src/lib/nul.ts`) : PostgreSQL refuse le caractère nul dans un texte (erreur 500 sinon), l'extension le retire des arguments de toutes les requêtes. Les requêtes brutes (`$queryRaw`) n'en profitent pas.
 - **Constante exportée d'un fichier `"use client"`** : importée dans un composant serveur, elle arrive sous forme de référence, pas de valeur, et toute comparaison échoue en silence. Les valeurs lues des deux côtés vont dans `src/lib/` (exemple : `src/lib/customizer/demo.ts`).

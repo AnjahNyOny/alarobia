@@ -77,3 +77,65 @@ test("caractère nul dans une recherche : la page répond, sans erreur (PostgreS
   expect(admin?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
+
+/*
+ * En-têtes de sécurité, posés sur toutes les adresses par `headers()` dans next.config.ts : pages de la boutique et du
+ * back-office, routes API, fichiers envoyés, page introuvable. Chacun doit être présent une seule fois (pas de doublon
+ * entre next.config.ts et une route qui poserait le sien). Pas de CSP pour l'instant (PLAN.md, « Ce que la phase 7A ne fait pas »).
+ */
+const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-frame-options": "DENY",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+};
+
+function expectSecurityHeaders(headers: { name: string; value: string }[], what: string) {
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    const values = headers.filter((h) => h.name.toLowerCase() === name).map((h) => h.value);
+    expect(values, `${what} : ${name}`).toEqual([value]);
+  }
+}
+
+test.describe("en-têtes de sécurité", () => {
+  test("sur une page de la boutique", async ({ request }) => {
+    const response = await request.get("/fr/products");
+    expect(response.status()).toBe(200);
+    expectSecurityHeaders(response.headersArray(), "/fr/products");
+  });
+
+  test("sur une page du back-office", async ({ page }) => {
+    await login(page, ADMIN.email, ADMIN.password);
+    await page.waitForURL("**/admin");
+    const response = await page.goto("/fr/admin/products");
+    expect(response?.status()).toBe(200);
+    expectSecurityHeaders(await response!.headersArray(), "/fr/admin/products");
+  });
+
+  test("sur une route API, méthode refusée comprise", async ({ request }) => {
+    const response = await request.get("/api/customizer/upload");
+    expect(response.status()).toBe(405);
+    expectSecurityHeaders(response.headersArray(), "GET /api/customizer/upload");
+  });
+
+  test("sur un fichier envoyé (/uploads/…)", async ({ request }) => {
+    // Adresse propre au test : son envoi ne compte pas dans la limite de débit partagée par la suite.
+    const sent = await request.post("/api/customizer/upload", {
+      headers: { "x-forwarded-for": "198.51.100.41" },
+      multipart: { file: { name: "bougie.jpg", mimeType: "image/jpeg", buffer: await readFile(path.join(process.cwd(), "public/products/bougie.jpg")) } },
+    });
+    expect(sent.status()).toBe(200);
+    expectSecurityHeaders(sent.headersArray(), "POST /api/customizer/upload");
+    const { url } = (await sent.json()) as { url: string };
+    const file = await request.get(url);
+    expect(file.status()).toBe(200);
+    expect(file.headers()["content-type"]).toBe("image/jpeg");
+    expectSecurityHeaders(file.headersArray(), url);
+  });
+
+  test("sur une page introuvable", async ({ request }) => {
+    const response = await request.get("/fr/cette-page-n-existe-pas");
+    expect(response.status()).toBe(404);
+    expectSecurityHeaders(response.headersArray(), "/fr/cette-page-n-existe-pas");
+  });
+});

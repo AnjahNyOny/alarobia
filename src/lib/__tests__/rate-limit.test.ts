@@ -152,6 +152,16 @@ describe("withRateLimit : seuls les échecs comptent", () => {
 });
 
 describe("clientIp", () => {
+  it("sur Netlify, lit d'abord x-nf-client-connection-ip, posé par Netlify, avant x-forwarded-for et x-real-ip", () => {
+    const headers = new Headers({ "x-nf-client-connection-ip": "197.149.1.20", "x-forwarded-for": "6.6.6.6, 10.0.0.1", "x-real-ip": "7.7.7.7" });
+    expect(clientIp(headers)).toBe("197.149.1.20");
+  });
+  it("retire les espaces autour de x-nf-client-connection-ip", () => {
+    expect(clientIp(new Headers({ "x-nf-client-connection-ip": " 2c0f:f4c0::1 " }))).toBe("2c0f:f4c0::1");
+  });
+  it("ignore un x-nf-client-connection-ip vide et passe à x-forwarded-for", () => {
+    expect(clientIp(new Headers({ "x-nf-client-connection-ip": " ", "x-forwarded-for": "197.149.1.20" }))).toBe("197.149.1.20");
+  });
   it("prend la première adresse de x-forwarded-for", () => {
     expect(clientIp(new Headers({ "x-forwarded-for": "197.149.1.20, 10.0.0.1" }))).toBe("197.149.1.20");
   });
