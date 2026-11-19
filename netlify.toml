@@ -7,3 +7,17 @@
 # de Neon : les migrations ne passent pas par le regroupement de connexions.
 [build]
   command = "npx prisma migrate deploy && npm run build"
+
+# Compilation annulée (code 0) quand un envoi ne change que des fichiers sans effet sur le site : les .md de la racine,
+# docs/, e2e/, .claude/, .github/, playwright*.config.ts et scripts/ (aucun n'est lu par la compilation ; Tailwind y
+# trouve tout au plus des classes qu'aucun composant n'emploie). Tout le reste compile (code 1).
+# - On compare au dernier commit compilé (CACHED_COMMIT_REF). Netlify ne garde pas le cache d'une compilation annulée
+#   ou échouée (son équipe, https://answers.netlify.com/t/custom-ignore-scripts-and-admin-triggered-builds/79345) :
+#   des envois annulés à la suite s'additionnent, et le premier qui touche au site compile tout ce qui précède.
+# - Sans cache (premier déploiement, « Clear cache and deploy », cache illisible), Netlify donne
+#   CACHED_COMMIT_REF = COMMIT_REF (https://docs.netlify.com/build/configure-builds/environment-variables/) : on
+#   compile toujours dans ce cas, de même si CACHED_COMMIT_REF manque ou n'est pas dans le dépôt cloné.
+# - Un déploiement relancé depuis l'interface après un envoi annulé est annulé aussi. Pour le forcer (variable
+#   changée) : « Clear cache and deploy », ou un build hook, que `ignore` n'annule jamais
+#   (https://docs.netlify.com/build/configure-builds/ignore-builds/).
+  ignore = '''if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then false; else git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- . ':(exclude,glob)*.md' ':(exclude)docs' ':(exclude)e2e' ':(exclude).claude' ':(exclude).github' ':(exclude,glob)playwright*.config.ts' ':(exclude)scripts'; fi'''

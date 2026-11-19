@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { ADMIN, CLIENT, login, watchErrors } from "./helpers";
+import { ADMIN, CLIENT, expectSecurityHeaders, login, watchErrors } from "./helpers";
 
 test("connexion : après huit échecs sur un compte, même le bon mot de passe est refusé ; les autres comptes passent", async ({ page }) => {
   // Une inscription et onze connexions, chacune avec un calcul bcrypt volontairement lent.
@@ -79,24 +79,9 @@ test("caractère nul dans une recherche : la page répond, sans erreur (PostgreS
 });
 
 /*
- * En-têtes de sécurité, posés sur toutes les adresses par `headers()` dans next.config.ts : pages de la boutique et du
- * back-office, routes API, fichiers envoyés, page introuvable. Chacun doit être présent une seule fois (pas de doublon
- * entre next.config.ts et une route qui poserait le sien). Pas de CSP pour l'instant (PLAN.md, « Ce que la phase 7A ne fait pas »).
+ * En-têtes de sécurité (`expectSecurityHeaders`, helpers.ts) sur toutes les adresses : pages de la boutique et du
+ * back-office, routes API, fichiers envoyés, page introuvable.
  */
-const SECURITY_HEADERS = {
-  "x-content-type-options": "nosniff",
-  "referrer-policy": "strict-origin-when-cross-origin",
-  "x-frame-options": "DENY",
-  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
-};
-
-function expectSecurityHeaders(headers: { name: string; value: string }[], what: string) {
-  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-    const values = headers.filter((h) => h.name.toLowerCase() === name).map((h) => h.value);
-    expect(values, `${what} : ${name}`).toEqual([value]);
-  }
-}
-
 test.describe("en-têtes de sécurité", () => {
   test("sur une page de la boutique", async ({ request }) => {
     const response = await request.get("/fr/products");

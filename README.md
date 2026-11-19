@@ -118,7 +118,7 @@ prisma/catalog.mjs            données de démonstration en fr, en, mg (données
 prisma/write-catalog.mjs      écrit en base les zones de livraison, rayons et produits de catalog.mjs (partagé)
 prisma/seed.mjs               écrit les données de démonstration en base (vide d'abord toutes les tables)
 prisma/init-production.mjs    données de départ de la production, une seule fois (voir « Mise en ligne »)
-netlify.toml                  compilation sur Netlify : migrations, puis next build
+netlify.toml                  compilation sur Netlify : migrations, puis next build ; envois sans effet sur le site ignorés
 src/proxy.ts                  langue de l'adresse et premier filtre d'accès (/admin, /account)
 src/actions/                  actions serveur : toute écriture en base passe par ici (admin/ pour le back-office)
 src/app/[locale]/(store)/     boutique et espace client
@@ -211,6 +211,8 @@ Les secrets du dépôt GitHub `SITE_URL` et `CRON_SECRET` servent au nettoyage q
 
 **Compilation** (`netlify.toml`) : `npx prisma migrate deploy && npm run build`. Les migrations de `prisma/migrations/` sont appliquées à la base Neon par l'adresse directe à chaque compilation, avant celle de Next ; une migration qui échoue arrête la mise en ligne. Node 22 vient de `.nvmrc`, le reste est laissé à l'adaptateur Next.js de Netlify. Le client Prisma embarque le moteur des fonctions Netlify (`binaryTargets` dans `prisma/schema.prisma` : compilation sous Ubuntu, fonctions sous Amazon Linux).
 
+**Envois ignorés** (clé `ignore` de `netlify.toml`) : chaque mise en ligne réussie coûte 15 des 300 crédits mensuels de l'offre gratuite. Un envoi qui ne change que des fichiers sans effet sur le site (les `.md` de la racine, `docs/`, `e2e/`, `.claude/`, `.github/`, `playwright*.config.ts`, `scripts/`) n'est pas compilé ; tout autre changement l'est, et les envois ignorés à la suite sont rattrapés par le prochain qui touche au site. Le premier déploiement compile toujours : sans cache, Netlify donne le même commit à `CACHED_COMMIT_REF` et à `COMMIT_REF`, et la commande compile dans ce cas. Relancé depuis l'interface après un envoi ignoré, un déploiement est ignoré lui aussi : pour forcer une mise en ligne (une variable changée, par exemple), « Clear cache and deploy », ou un build hook.
+
 **Données de départ**, une seule fois, après la première mise en ligne, depuis sa machine :
 
 ```bash
@@ -226,6 +228,25 @@ node --env-file=.env.production.local prisma/init-production.mjs
 Il ne crée ni client, ni avis, ni commande, ni code promo, ni abonné. Ne jamais lancer `npm run db:seed` sur la base de production : il la vide puis la remplit de données de démonstration.
 
 **À vérifier en ligne** (`PLAN.md`, 7.5) : le moteur de Prisma dans les fonctions (sa présence dans les traces de fichiers de Next a été vérifiée en local), la collation de la base Neon, et l'adresse du visiteur : sur Netlify, les limites par adresse lisent `x-nf-client-connection-ip`, posé par Netlify, mais rien dans sa documentation ne dit qu'un client ne peut pas l'imposer.
+
+**Contrôle en ligne** (`e2e/production.spec.ts`, configuration à part `playwright.production.config.ts`, sans serveur lancé) :
+
+```bash
+PROD_URL=https://<nom>.netlify.app PROD_ADMIN_EMAIL=<e-mail> PROD_ADMIN_PASSWORD=<mot de passe> PROD_CRON_SECRET=<CRON_SECRET> npm run test:prod
+```
+
+Les variables se donnent sur la ligne de commande, jamais dans un fichier `.env`. Sans `PROD_URL`, rien ne se lance ; sans l'une des trois autres, le test qui en a besoin est sauté et le dit. Le contrôle vérifie :
+
+- l'accueil, le catalogue, la fiche de la tasse et l'aide en fr, en et mg : réponse 200, aucune erreur de page ni de console, aucune réponse 5xx (ce qui prouve aussi que Prisma lit la base depuis les fonctions) ;
+- l'envoi d'une petite image sur la fiche de la tasse (onglet « Personnaliser »), puis sa relecture par `/uploads/…` : mêmes octets que ceux envoyés, donc Netlify Blobs écrit et relit ;
+- la connexion au back-office (un seul essai, à cause des limites de débit) et la liste des produits ;
+- les en-têtes de sécurité, l'adresse canonique et les `hreflang` de l'accueil et de la fiche, qui doivent commencer par `PROD_URL` (sinon `NEXT_PUBLIC_SITE_URL` est mal réglée) ;
+- l'adresse du client, par la route de diagnostic `GET /api/cron/adresse` (ci-dessous) ;
+- `GET /api/cron/nettoyage` sans secret : 401 attendu, un 503 voudrait dire que `CRON_SECRET` manque sur Netlify.
+
+Il ne fait rien d'autre sur le site : ni panier, ni commande, ni modification dans le back-office, ni nettoyage (celui-ci se lance depuis GitHub). L'image envoyée sera effacée par le nettoyage au bout de sept jours. Pas de trace Playwright : elle garderait le mot de passe et le secret en clair dans `test-results/`. Contre la compilation locale (`npm run build`, puis `npx next start -p 3100` avec `CRON_SECRET` défini et `NEXT_PUBLIC_SITE_URL=http://localhost:3100` à la compilation), tout passe sauf le test de l'adresse : sans Netlify, l'en-tête envoyé par le client est pris tel quel.
+
+**Route de diagnostic** `GET /api/cron/adresse`, protégée comme le nettoyage (`Authorization: Bearer <CRON_SECRET>`, 401 avec un mauvais secret, 503 sans `CRON_SECRET`, jamais en cache) : elle renvoie ce que le serveur a reçu pour la requête de l'appelant, et rien d'autre : `{ clientIp, nfClientConnectionIp, forwardedFor, realIp }`, l'adresse retenue par les limites de débit et les valeurs brutes de `x-nf-client-connection-ip`, `x-forwarded-for` et `x-real-ip`. Le contrôle l'appelle avec de faux `x-nf-client-connection-ip` et `x-forwarded-for` : si `clientIp` vaut l'un d'eux, un client peut choisir son adresse et contourner les limites par adresse. Elle ne sert qu'à ce contrôle et peut être retirée ensuite.
 
 ## Ce qu'il reste à brancher avant une vraie mise en ligne
 
@@ -250,6 +271,7 @@ npx tsc --noEmit     # vérification des types
 npm test             # tests unitaires (Vitest)
 npm run test:watch   # tests unitaires, relancés à chaque modification
 npm run test:e2e     # tests navigateur (Playwright), sur une compilation de production, port 3100
+npm run test:prod    # contrôle du site en ligne (PROD_URL=… ; voir « Mise en ligne »)
 npm run db:push      # applique le schéma Prisma à la base
 npm run db:seed      # vide la base puis charge les données de démonstration
 npm run db:reset     # recrée la base de zéro puis la remplit

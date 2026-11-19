@@ -10,6 +10,25 @@ export function watchErrors(page: Page) {
   return () => expect(errors, "aucune erreur navigateur ou serveur").toEqual([]);
 }
 
+/**
+ * En-têtes de sécurité, posés sur toutes les adresses par `headers()` dans next.config.ts. Pas de CSP pour l'instant
+ * (PLAN.md, « Ce que la phase 7A ne fait pas »). Contrôlés en local (`securite.spec.ts`) et en ligne (`production.spec.ts`).
+ */
+export const SECURITY_HEADERS = {
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-frame-options": "DENY",
+  "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
+};
+
+/** Chaque en-tête de sécurité est présent une seule fois (pas de doublon entre next.config.ts et une route qui poserait le sien). */
+export function expectSecurityHeaders(headers: { name: string; value: string }[], what: string) {
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    const values = headers.filter((h) => h.name.toLowerCase() === name).map((h) => h.value);
+    expect(values, `${what} : ${name}`).toEqual([value]);
+  }
+}
+
 export async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Adresse e-mail").fill(email);
