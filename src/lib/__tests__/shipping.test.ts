@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deliveryWindow, estimateDelivery, madagascarTime, sameDay, weekFrom, zoneName } from "../shipping";
+import { deliveryWindow, endOfMadagascarDay, estimateDelivery, madagascarTime, sameDay, weekFrom, zoneName } from "../shipping";
 
 const d = (day: number) => new Date(2026, 10, day, 15, 30); // novembre 2026 : le 13 est un vendredi
 const zone = (minDays: number, maxDays: number) => ({ minDays, maxDays });
@@ -41,6 +41,26 @@ describe("madagascarTime", () => {
   it("donne la date et l'heure à Madagascar (UTC+3), quel que soit le fuseau du serveur", () => {
     const local = madagascarTime(new Date("2026-11-14T22:30:00Z")); // déjà dimanche 15 à Antananarivo
     expect([local.getFullYear(), local.getMonth(), local.getDate(), local.getHours(), local.getMinutes(), local.getDay()]).toEqual([2026, 10, 15, 1, 30, 0]);
+  });
+});
+
+describe("endOfMadagascarDay", () => {
+  // Date saisie dans le back-office (champ type="date") : un code valable « jusqu'au 30 » l'est jusqu'à 23:59:59 à Antananarivo,
+  // soit 20:59:59 UTC, quel que soit le fuseau du serveur.
+  for (const tz of ["UTC", "America/New_York", "Pacific/Kiritimati"]) {
+    it(`fin du jour à Madagascar (serveur en ${tz})`, () => {
+      const saved = process.env.TZ;
+      process.env.TZ = tz;
+      try {
+        expect(endOfMadagascarDay("2026-11-30").toISOString()).toBe("2026-11-30T20:59:59.000Z");
+      } finally {
+        process.env.TZ = saved;
+      }
+    });
+  }
+  it("rend une date invalide pour une saisie qui n'est pas une date", () => {
+    expect(Number.isNaN(endOfMadagascarDay("30/11/2026").getTime())).toBe(true);
+    expect(Number.isNaN(endOfMadagascarDay("").getTime())).toBe(true);
   });
 });
 

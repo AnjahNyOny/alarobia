@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { LogoMark } from "@/components/logo";
 import { Link } from "@/i18n/navigation";
+import { madagascarTime } from "@/lib/shipping";
 import type { ShellData } from "./header";
 import { LanguageSwitcher } from "./language-switcher";
 import { NewsletterForm } from "./newsletter-form";
@@ -66,7 +67,7 @@ export function Footer({ settings, categories }: Pick<ShellData, "settings" | "c
       </div>
       <div className="border-t border-primary-foreground/20">
         <div className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-5 text-[0.8125rem] text-primary-foreground/75">
-          <p>{t("rights", { year: new Date().getFullYear(), name: settings.storeName })}</p>
+          <p>{t("rights", { year: madagascarTime().getFullYear(), name: settings.storeName })}</p>
           <LanguageSwitcher />
         </div>
       </div>

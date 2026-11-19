@@ -6,7 +6,7 @@ import { ConfirmAction, ToggleAction } from "@/components/admin/actions";
 import { PromoForm } from "@/components/admin/small-forms";
 import { Card, EmptyState, PageHeader, td, th } from "@/components/admin/ui";
 import { db } from "@/lib/db";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatMoment, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth";
@@ -51,7 +51,7 @@ export default async function PromosPage() {
                         </td>
                         <td className={cn(td, "tabular-nums")}>{p.type === "PERCENT" ? t("percent", { value: p.value }) : formatPrice(p.value, currency, locale)}</td>
                         <td className={cn(td, "tabular-nums")}>{p.usedCount}{p.maxUses != null && <span className="text-muted-foreground"> / {p.maxUses}</span>}</td>
-                        <td className={cn(td, expired ? "text-destructive" : "text-muted-foreground")}>{p.expiresAt ? (expired ? t("expired", { date: formatDate(p.expiresAt, locale, "medium") }) : formatDate(p.expiresAt, locale, "medium")) : t("noLimit")}</td>
+                        <td className={cn(td, expired ? "text-destructive" : "text-muted-foreground")}>{p.expiresAt ? (expired ? t("expired", { date: formatMoment(p.expiresAt, locale, "medium") }) : formatMoment(p.expiresAt, locale, "medium")) : t("noLimit")}</td>
                         <td className={td}><ToggleAction checked={p.active} action={togglePromo.bind(null, p.id)} label={t("toggle", { code: p.code })} /></td>
                         <td className={td}>
                           <ConfirmAction action={deletePromo.bind(null, p.id)} title={t("confirmTitle", { code: p.code })} description={t("confirmDescription")}>

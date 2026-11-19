@@ -21,7 +21,7 @@ import { cardInclude, discountPercent, ratingOf, wishedIds } from "@/lib/catalog
 import { LOW_STOCK_THRESHOLD, REVENUE_STATUSES } from "@/lib/constants";
 import { cleanText, customizerOptions, graphemes, type CustomizerOptions } from "@/lib/customization";
 import { db } from "@/lib/db";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatDate, formatMoment, formatPrice } from "@/lib/format";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
 import { availablePaymentMethods, isMobileMoney, OPERATOR_NAME } from "@/lib/payment";
 import { shippingCost } from "@/lib/pricing";
@@ -324,7 +324,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
                       </span>
                     )}
                     <time dateTime={r.createdAt.toISOString()} className="ml-auto text-[0.8125rem] text-muted-foreground">
-                      {formatDate(r.createdAt, locale)}
+                      {formatMoment(r.createdAt, locale)}
                     </time>
                   </div>
                   <p className="mt-3 max-w-2xl leading-relaxed">{r.comment}</p>

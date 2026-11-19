@@ -1,9 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_DATABASE_URL } from "./e2e/database";
 
 const PORT = 3100;
 // Base PostgreSQL des tests, schéma `public` (les tests unitaires prennent chacun un schéma temporaire dans la même base).
-const DATABASE = "postgresql://mac@localhost:5432/alarobia_test";
-const env = { DATABASE_URL: DATABASE, DATABASE_URL_UNPOOLED: DATABASE, NEXT_DIST_DIR: ".next-e2e", UPLOAD_DIR: "uploads-test", NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}` };
+const DATABASE = E2E_DATABASE_URL;
+// Serveur en UTC, comme la production (fonctions Netlify) : ni la machine (EST) ni Madagascar. Le navigateur, lui, est à Antananarivo, comme les clients.
+const env = { DATABASE_URL: DATABASE, DATABASE_URL_UNPOOLED: DATABASE, NEXT_DIST_DIR: ".next-e2e", UPLOAD_DIR: "uploads-test", NEXT_PUBLIC_SITE_URL: `http://localhost:${PORT}`, TZ: "UTC" };
 
 export default defineConfig({
   testDir: "e2e",
@@ -13,7 +15,7 @@ export default defineConfig({
   retries: 0,
   reporter: [["list"]],
   timeout: 60_000,
-  use: { baseURL: `http://localhost:${PORT}`, locale: "fr-FR", channel: "chrome", trace: "retain-on-failure" },
+  use: { baseURL: `http://localhost:${PORT}`, locale: "fr-FR", timezoneId: "Indian/Antananarivo", channel: "chrome", trace: "retain-on-failure" },
   projects: [
     { name: "ordinateur", use: { viewport: { width: 1440, height: 900 } }, testIgnore: /mobile/ },
     { name: "mobile", use: { ...devices["Pixel 7"], channel: "chrome" }, testMatch: /mobile/ },

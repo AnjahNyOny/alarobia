@@ -7,7 +7,7 @@ import { ConfirmAction, ToggleAction } from "@/components/admin/actions";
 import { Card, EmptyState, PageHeader, Tabs } from "@/components/admin/ui";
 import { Stars } from "@/components/store/stars";
 import { db } from "@/lib/db";
-import { formatDate } from "@/lib/format";
+import { formatMoment } from "@/lib/format";
 import { requireAdmin } from "@/lib/auth";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -55,7 +55,7 @@ export default async function ReviewsPage({ searchParams }: { searchParams: Prom
                     <Stars value={r.rating} />
                     <span className="font-medium">{r.user.name}</span>
                     <span className="text-muted-foreground">{t("on")} <Link href={`/products/${r.product.slug}`} className="underline underline-offset-4 hover:text-foreground">{r.product.name}</Link></span>
-                    <span className="text-xs text-muted-foreground">{formatDate(r.createdAt, locale, "medium")}</span>
+                    <span className="text-xs text-muted-foreground">{formatMoment(r.createdAt, locale, "medium")}</span>
                   </div>
                   <p className={`mt-2 text-sm leading-relaxed ${r.status === "HIDDEN" ? "text-muted-foreground" : ""}`}>{r.comment}</p>
                 </div>

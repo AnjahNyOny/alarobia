@@ -8,13 +8,13 @@ import { Card, EmptyState, PageHeader, td, th } from "@/components/admin/ui";
 import { OrderStatus } from "@/components/order-status";
 import { LOW_STOCK_THRESHOLD, REVENUE_STATUSES } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
+import { calendarDayKey, formatDate, formatDateTime, formatPrice, madagascarDayKey } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
+import { madagascarInstant, madagascarTime } from "@/lib/shipping";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth";
 
 const PERIODS = [7, 30, 90];
-const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.dashboard");
@@ -47,9 +47,13 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const days = PERIODS.includes(Number((await searchParams).p)) ? Number((await searchParams).p) : 30;
   const [{ currency }, locale, t, tc] = await Promise.all([getSettings(), getLocale(), getTranslations("admin.dashboard"), getTranslations("admin.common")]);
   const price = (cents: number) => formatPrice(cents, currency, locale);
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
-  const prevStart = new Date(start.getTime() - days * 864e5);
+  // Les jours sont ceux de Madagascar, quel que soit le fuseau du serveur (UTC en production) : `today`, `firstDay` et
+  // `prevFirstDay` sont des dates du calendrier malgache, `start` et `prevStart` les instants de leur minuit à Antananarivo.
+  const today = madagascarTime();
+  const firstDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1));
+  const prevFirstDay = new Date(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate() - days);
+  const start = madagascarInstant(firstDay);
+  const prevStart = madagascarInstant(prevFirstDay);
 
   const [orders, newCustomers, prevCustomers, toShip, pending, lowStock, recent] = await Promise.all([
     db.order.findMany({ where: { createdAt: { gte: prevStart }, status: { in: REVENUE_STATUSES } }, select: { createdAt: true, totalCents: true, items: { select: { productId: true, name: true, imageUrl: true, quantity: true, priceCents: true } } } }),
@@ -71,14 +75,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   const byDay = new Map<string, { revenueCents: number; orders: number }>();
   for (const o of cur) {
-    const e = byDay.get(dayKey(o.createdAt)) ?? { revenueCents: 0, orders: 0 };
+    const key = madagascarDayKey(o.createdAt);
+    const e = byDay.get(key) ?? { revenueCents: 0, orders: 0 };
     e.revenueCents += o.totalCents;
     e.orders += 1;
-    byDay.set(dayKey(o.createdAt), e);
+    byDay.set(key, e);
   }
   const series = Array.from({ length: days }, (_, i) => {
-    const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    return { date: d.toISOString(), label: formatDate(d, locale, "short"), ...(byDay.get(dayKey(d)) ?? { revenueCents: 0, orders: 0 }) };
+    const d = new Date(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate() + i);
+    const key = calendarDayKey(d);
+    return { date: key, label: formatDate(d, locale, "short"), ...(byDay.get(key) ?? { revenueCents: 0, orders: 0 }) };
   });
 
   const top = new Map<string, { name: string; imageUrl: string | null; quantity: number; revenueCents: number }>();
@@ -95,7 +101,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("range", { start: formatDate(start, locale), end: formatDate(now, locale) })}>
+      <PageHeader title={t("title")} description={t("range", { start: formatDate(firstDay, locale), end: formatDate(today, locale) })}>
         <div className="inline-flex rounded-lg border bg-card p-0.5" role="group" aria-label={t("period")}>
           {PERIODS.map((p) => (
             <Link key={p} href={p === 30 ? "/admin" : `/admin?p=${p}`} aria-current={p === days ? "true" : undefined} className={cn("rounded-md px-3 py-1.5 text-sm transition-colors", p === days ? "bg-primary font-medium text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>

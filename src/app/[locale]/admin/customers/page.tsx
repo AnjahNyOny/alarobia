@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Card, EmptyState, PageHeader, Pagination, SearchForm, td, th } from "@/components/admin/ui";
 import { REVENUE_STATUSES } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatMoment, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth";
@@ -60,7 +60,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
                         <p className="text-xs text-muted-foreground">{u.email}</p>
                       </td>
                       <td className={cn(td, "text-muted-foreground")}>{u.address?.city ?? "—"}</td>
-                      <td className={cn(td, "text-muted-foreground")}>{formatDate(u.createdAt, locale, "medium")}</td>
+                      <td className={cn(td, "text-muted-foreground")}>{formatMoment(u.createdAt, locale, "medium")}</td>
                       <td className={cn(td, "text-right tabular-nums")}>{u.orders.length}</td>
                       <td className={cn(td, "text-right font-medium tabular-nums")}>{formatPrice(u.orders.reduce((s, o) => s + o.totalCents, 0), currency, locale)}</td>
                     </tr>

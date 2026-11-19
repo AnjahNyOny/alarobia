@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatMoment, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 
 export default async function AccountOrdersPage() {
@@ -36,7 +36,7 @@ export default async function AccountOrdersPage() {
             <Link href={`/account/orders/${o.id}`} className="grid gap-x-6 gap-y-1.5 py-4 hover:bg-muted/60 sm:grid-cols-[1.4fr_1fr_auto] sm:items-center sm:px-3">
               <div>
                 <p className="font-medium underline underline-offset-4">{o.number}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">{t("orderLine", { date: formatDate(o.createdAt, locale), count: o._count.items })}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{t("orderLine", { date: formatMoment(o.createdAt, locale), count: o._count.items })}</p>
               </div>
               <div>
                 <OrderStatus status={o.status} />

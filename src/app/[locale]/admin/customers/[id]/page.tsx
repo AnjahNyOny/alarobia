@@ -7,7 +7,7 @@ import { OrderStatus } from "@/components/order-status";
 import { REVENUE_STATUSES } from "@/lib/constants";
 import { addressLines } from "@/lib/address";
 import { db } from "@/lib/db";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatMoment, formatPrice } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth";
@@ -31,7 +31,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
   ];
   return (
     <>
-      <PageHeader title={user.name} description={t("since", { date: formatDate(user.createdAt, locale) })} back={{ href: "/admin/customers", label: t("title") }} />
+      <PageHeader title={user.name} description={t("since", { date: formatMoment(user.createdAt, locale) })} back={{ href: "/admin/customers", label: t("title") }} />
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
         <div className="grid content-start gap-4">
           <dl className="grid grid-cols-3 divide-x rounded-lg border bg-card">
@@ -60,7 +60,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                     {user.orders.map((o) => (
                       <tr key={o.id} className="hover:bg-muted/40">
                         <td className={td}><Link href={`/admin/orders/${o.id}`} className="font-medium underline-offset-4 hover:underline">{o.number}</Link></td>
-                        <td className={cn(td, "text-muted-foreground")}>{formatDate(o.createdAt, locale, "medium")}</td>
+                        <td className={cn(td, "text-muted-foreground")}>{formatMoment(o.createdAt, locale, "medium")}</td>
                         <td className={td}><OrderStatus status={o.status} /></td>
                         <td className={cn(td, "text-right tabular-nums")}>{formatPrice(o.totalCents, currency, locale)}</td>
                       </tr>

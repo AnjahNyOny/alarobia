@@ -1,3 +1,5 @@
+import { madagascarTime } from "./shipping";
+
 export type FormatLocale = "fr" | "en" | "mg";
 
 const NBSP = "\u00a0";
@@ -33,11 +35,22 @@ const STYLES: Record<DateStyle, Intl.DateTimeFormatOptions> = {
   weekday: { weekday: "long", day: "numeric", month: "long" },
 };
 
+/** Jour de la semaine d'une date du calendrier malgache (voir `formatDate`). */
 export function weekdayName(date: Date, locale: string = "fr") {
   if (locale === "mg") return MG_WEEKDAYS[date.getDay()];
   return new Intl.DateTimeFormat(intlLocale(locale), { weekday: "long" }).format(date);
 }
 
+/*
+ * Deux sortes de dates :
+ * - les dates du calendrier malgache, dont les champs locaux (`getDate()`, `getHours()`…) valent déjà l'heure de Madagascar :
+ *   « aujourd'hui » tiré de `madagascarTime()`, dates de livraison promises (`estimateDelivery(madagascarTime(), zone)`,
+ *   `Order.estimatedDelivery`), jours de la frise. `formatDate` les écrit telles quelles ;
+ * - les instants (`createdAt`, `paidAt`, `paymentDeclaredAt`), à écrire à l'heure de Madagascar quel que soit le fuseau du
+ *   serveur (UTC en production) : `formatMoment` et `formatDateTime`. Passer un instant à `formatDate` donnerait le jour du serveur.
+ */
+
+/** Date du calendrier malgache → texte. Pour un instant, `formatMoment`. */
 export function formatDate(date: Date, locale: string = "fr", style: DateStyle = "long") {
   if (locale === "mg") {
     const month = MG_MONTHS[date.getMonth()];
@@ -50,9 +63,27 @@ export function formatDate(date: Date, locale: string = "fr", style: DateStyle =
   return new Intl.DateTimeFormat(locale === "en" ? "en-US" : "fr-FR", STYLES[style]).format(date);
 }
 
-export function formatDateTime(date: Date, locale: string = "fr") {
-  const time = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-  return `${formatDate(date, locale, "medium")}, ${time}`;
+/** Instant → sa date à Madagascar (« 17 novembre 2026 »). */
+export function formatMoment(instant: Date, locale: string = "fr", style: DateStyle = "long") {
+  return formatDate(madagascarTime(instant), locale, style);
+}
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Instant → sa date et son heure à Madagascar (« 17 nov. 2026, 23:30 »). */
+export function formatDateTime(instant: Date, locale: string = "fr") {
+  const wall = madagascarTime(instant);
+  return `${formatDate(wall, locale, "medium")}, ${pad(wall.getHours())}:${pad(wall.getMinutes())}`;
+}
+
+/** Clé « AAAA-MM-JJ » d'une date du calendrier malgache, pour regrouper par jour. */
+export function calendarDayKey(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** Clé « AAAA-MM-JJ » du jour à Madagascar où tombe un instant : une commande de 23 h 30 à Antananarivo compte pour ce jour-là. */
+export function madagascarDayKey(instant: Date) {
+  return calendarDayKey(madagascarTime(instant));
 }
 
 /** Devise telle qu'on l'écrit dans un libellé de champ : « Prix de vente (Ar) ». */

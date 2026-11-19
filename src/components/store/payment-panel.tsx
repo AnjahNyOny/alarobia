@@ -1,5 +1,5 @@
 import { useLocale, useTranslations } from "next-intl";
-import { formatDate, formatPrice } from "@/lib/format";
+import { formatMoment, formatPrice } from "@/lib/format";
 import { isMobileMoney, merchantNumber, OPERATOR_NAME, paymentState, type MerchantNumbers } from "@/lib/payment";
 import { CopyButton } from "./copy-button";
 import { PaymentReferenceForm } from "./payment-reference-form";
@@ -37,7 +37,7 @@ export function PaymentPanel({ order, settings }: { order: PanelOrder; settings:
 
   const operator = OPERATOR_NAME[order.paymentMethod];
   if (state === "received")
-    return <p className="rounded-sm border px-4 py-3.5">{order.paidAt ? t("received", { date: formatDate(order.paidAt, locale, "long") }) : t("receivedNoDate")}</p>;
+    return <p className="rounded-sm border px-4 py-3.5">{order.paidAt ? t("received", { date: formatMoment(order.paidAt, locale, "long") }) : t("receivedNoDate")}</p>;
 
   const number = merchantNumber(order.paymentMethod, settings);
   return (
@@ -64,7 +64,7 @@ export function PaymentPanel({ order, settings }: { order: PanelOrder; settings:
           <p className="font-medium before:mr-1.5 before:content-[counter(etape)'.']">{t("step3")}</p>
           {state === "declared" && order.paymentReference && (
             <p role="status" className="rounded-sm bg-muted px-3.5 py-3 text-sm">
-              {t("declared", { reference: order.paymentReference, date: formatDate(order.paymentDeclaredAt ?? new Date(), locale, "long") })}
+              {t("declared", { reference: order.paymentReference, date: formatMoment(order.paymentDeclaredAt ?? new Date(), locale, "long") })}
             </p>
           )}
           <PaymentReferenceForm orderId={order.id} current={order.paymentReference} />

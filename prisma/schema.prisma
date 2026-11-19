@@ -4,7 +4,7 @@ generator client {
 
 // PostgreSQL partout : base Homebrew en local et dans les tests, Neon en production.
 // `DATABASE_URL` sert à l'application (adresse regroupée chez Neon), `DATABASE_URL_UNPOOLED` aux migrations
-// (adresse directe). Ce sont les noms posés par l'intégration Neon de Vercel ; en local, les deux sont égales.
+// (adresse directe). Le propriétaire les copie depuis Neon dans les variables du site Netlify ; en local, les deux sont égales.
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")

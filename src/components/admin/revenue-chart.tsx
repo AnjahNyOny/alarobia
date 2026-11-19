@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatPrice } from "@/lib/format";
 
-/** `label` arrive déjà formaté dans la langue de l'interface (jour et mois courts). */
+/** `label` arrive déjà formaté dans la langue de l'interface (jour et mois courts) ; `date` est la clé du jour à Madagascar (« 2026-11-18 »). */
 type Point = { date: string; label: string; revenueCents: number; orders: number };
 
 function ChartTooltip({ active, payload, currency }: { active?: boolean; payload?: { payload: Point }[]; currency: string }) {

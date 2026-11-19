@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { endOfMadagascarDay } from "@/lib/shipping";
 import { requireAdmin } from "@/lib/auth";
 import { parseAmountToCents } from "@/lib/format";
 import { invalid, type FormState } from "@/lib/form";
@@ -36,7 +37,8 @@ export async function createPromo(_: FormState, formData: FormData): Promise<For
     return { fieldErrors: { value: d.type === "PERCENT" ? t("promoPercentInvalid") : t("amountInvalid") } };
   const maxUses = d.maxUses ? Number(d.maxUses) : null;
   if (maxUses != null && (!Number.isInteger(maxUses) || maxUses < 1)) return { fieldErrors: { maxUses: t("promoMaxUsesInvalid") } };
-  const expiresAt = d.expiresAt ? new Date(`${d.expiresAt}T23:59:59`) : null;
+  // Fin du jour à Antananarivo, pas à l'heure du serveur (UTC en production) : sinon le code resterait valable 3 h de trop.
+  const expiresAt = d.expiresAt ? endOfMadagascarDay(d.expiresAt) : null;
   if (expiresAt && Number.isNaN(expiresAt.getTime())) return { fieldErrors: { expiresAt: t("dateInvalid") } };
   if (await db.promoCode.findUnique({ where: { code: d.code } })) return { fieldErrors: { code: t("promoCodeTaken") } };
 
