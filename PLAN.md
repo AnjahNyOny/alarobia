@@ -263,7 +263,7 @@ La phase est découpée en sous-phases indépendantes. **7A met la boutique en l
 ### Contraintes propres à la phase 7A
 
 - **Quotas gratuits** : Netlify compte en crédits (300 par mois sur l'offre gratuite). Au-delà, le site se met en pause jusqu'au mois suivant, sans jamais facturer. Chaque mise en ligne en consomme : on n'envoie sur GitHub que des lots finis et vérifiés.
-- **Région** : la base Neon est créée dans la région des fonctions Netlify du site (relevée à la création du site), pour que chaque requête n'ait pas à traverser un océan.
+- **Région** : la base Neon est créée dans la région des fonctions Netlify du site, pour que chaque requête n'ait pas à traverser un océan. Par défaut, fonctions et Netlify Blobs sont tous deux en `us-east-2` (Ohio) : Neon en `aws-us-east-2`. Si le propriétaire change la région des fonctions, passer la même `region` à `getStore` avant le premier envoi en ligne (les données écrites ne changent pas de région).
 - **En local et dans les tests** : PostgreSQL 17 (Homebrew), installé le 18/11/2026.
   - Bases `alarobia` (développement) et `alarobia_test` (tests), créées en collation `C.UTF-8` (fournisseur `builtin`).
   - Utilisateur `mac`, sans mot de passe : `postgresql://mac@localhost:5432/<base>`.

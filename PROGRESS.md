@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
 
-**Prochaine action** : 7.2, fichiers envoyés dans Netlify Blobs (`developpeur`), puis 7.4. En parallèle, le propriétaire peut faire l'étape 1 de la 7.5 : débrancher l'ancien projet Vercel de GitHub, créer la base sur neon.tech, générer les deux secrets. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : reprendre la tâche 7.2, **en cours et non committée** (point de reprise détaillé à la fin du journal du 18/11/2026). Ensuite 7.4, puis 7.5 avec le propriétaire. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -112,7 +112,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
 - [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
-- [ ] 7.2 Fichiers envoyés dans Netlify Blobs, envois sous 4 Mo, nettoyage quotidien par GitHub Actions
+- [ ] 7.2 Fichiers envoyés dans Netlify Blobs, envois sous 4 Mo, nettoyage quotidien par GitHub Actions (**en cours**, voir le point de reprise)
 - [x] 7.3 Heures à l'heure de Madagascar : instants (commandes, paiements, avis, inscriptions) et tableau de bord par jour de Madagascar, fin des codes promo à 23:59:59 à Antananarivo, année du pied de page ; tests unitaires en `TZ=UTC` sous trois fuseaux, suite navigateur avec le serveur en UTC et le navigateur à Antananarivo. Vérifié : lint et types propres, 365 tests unitaires, 123 parcours navigateur
 - [ ] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), adresse du site et du client sur Netlify, en-têtes de sécurité, données de départ sans données de démonstration
 - [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
@@ -514,3 +514,75 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
   - **Limite de débit écartée** : les fichiers de l'ajout ont été enregistrés, et 25 envois sur 60 seulement avaient eu lieu avant ce test. Aucune erreur serveur.
   - **Correctif, dans les tests seulement** : `CART_ADD_TIMEOUT` (15 s, `e2e/helpers.ts`) sur la première attente qui suit chacun des 23 ajouts au panier de `e2e/`. Le délai global de Playwright reste à 5 s. Règle et piège notés dans `CLAUDE.md`, dont `--repeat-each=5` sur `personnalisation.spec.ts`, qui bute sur la limite d'envois.
 - `verificateur` (7.3, retours et délais) : lint et types propres, 365 tests unitaires, **123 parcours navigateur sur 123** en 13,1 min sans relance (charge 14 à 16, swap 9,9 à 10,9 Go), `tsconfig.json` intact. Captures des nouveaux textes de retours (fiche en mg à 320 px et en fr à 1440 px, aide à 390 px, conditions en en à 390 px) : aucun débordement, relues par l'architecte.
+- Commits du soir : `d059641` (7.3), `e671f8f` (retours), `7f30518` (délais des tests).
+
+### Point de reprise (18/11/2026, soir) : tâche 7.2 en cours
+
+Travail arrêté à un point stable, à la demande du propriétaire. **Les fichiers de la 7.2 sont modifiés dans l'arbre de travail, non committés.**
+- **État des contrôles** : lint et types propres, 389 tests unitaires verts (31 fichiers). La suite navigateur n'a pas été relancée depuis ces changements.
+- **Processus** : aucun ne tourne (ports 3100 et 3001 libres).
+
+**Fait (`developpeur`, à relire par l'architecte avant de continuer)**
+- **`src/lib/storage.ts`** : les cinq fonctions du plan. `readUpload` rend `Uint8Array<ArrayBuffer>`, plus précis, sinon `new Response` ne passe pas `tsc`. Netlify Blobs sur Netlify, le disque ailleurs. Sur Netlify, une panne donne une erreur explicite, jamais de repli sur le disque.
+- **`src/lib/cleanup.ts`** : `MAX_AGE_DAYS`, `staleFiles`, `cleanupCustomizations({ dryRun, now })`.
+- **Route `/api/cron/nettoyage`** :
+  - 503 si `CRON_SECRET` manque, vérifié avant le 401 ;
+  - 401 si le secret est faux (comparaison en temps constant) ;
+  - `?dry-run=1` pour un essai à blanc ;
+  - réponse `{ dryRun, abandoned, files }`, avec `no-store`.
+- **Lectures et écritures** : les deux points d'envoi, `/uploads/[name]` (avec `Netlify-CDN-Cache-Control`), la route de téléchargement du vendeur et `src/actions/customizer.ts` passent tous par `storage.ts`. `grep -rn "node:fs" src`, tests mis à part, ne trouve plus que `storage.ts` et `opengraph-image.tsx`.
+- **Taille des envois** : `MAX_UPLOAD_BYTES` = 4 Mo, avec les textes « 4 Mo » dans les trois langues.
+- **Dépendance** : `@netlify/blobs` `^11.1.9`, la dernière stable, qui demande Node ≥ 22.12. Raison : stockage des envois sur Netlify, seul stockage gratuit sans compte de plus.
+- **Tests, tous vus rouges puis verts** :
+  - `storage.test.ts` (15) : disque et Blobs imités ;
+  - `cleanup.test.ts` (10) : `staleFiles`, nettoyage sur un vrai schéma temporaire, la route ;
+  - `uploads-route.test.ts` (2) ;
+  - `upload.test.ts` : 4 Mo + 1 octet refusé.
+
+**Reste à faire, dans cet ordre**
+1. **`send-image.ts`** : renommer `prepare` en `reduceImage` et l'exporter. Y déplacer `canvasBlob`, aujourd'hui dans `texture.ts`, et corriger l'import dans `controls.tsx`. La raison : `texture.ts` importe `fonts.ts`, donc les trois polices `next/font/google`, qui ne doivent pas arriver dans le back-office.
+2. **`image-uploader.tsx`** :
+   - réduire chaque photo du vendeur avec `reduceImage` ;
+   - si la réduction échoue (AVIF, faux JPEG, HEIC), envoyer l'original s'il fait 4 Mo ou moins, et laisser le serveur trancher : `securite.spec.ts` attend une réponse 415 pour « faux.jpg » ;
+   - au-delà de 4 Mo, refuser dans le navigateur avec `errors.tooLarge`.
+3. **Tests navigateur** (point 11) :
+   - photo de 8 Mo depuis `admin-produits.spec.ts` : vérifier la taille envoyée, la taille servie et les dimensions 2048 × 1536 ;
+   - image de 8 Mo sur la fiche (`personnalisation.spec.ts`), avec son propre `x-forwarded-for` ;
+   - adapter le test « plus de 5 Mo » en 4 Mo ;
+   - envoi direct trop lourd : 413 et son message.
+
+   Image de test : dégradé 4000 × 3000 avec du bruit, en JPEG à 0,92. Un bruit d'amplitude 110 donne 6,8 Mo ; pour 8 Mo, monter vers 150 à 200, ou la qualité à 0,95. Script d'essai : `bruit.mjs` dans le dossier temporaire de la session (peut avoir disparu).
+4. **`.github/workflows/nettoyage.yml`** : `schedule "0 1 * * *"` et `workflow_dispatch`, `curl --fail` avec les secrets `SITE_URL` et `CRON_SECRET`.
+5. **Supprimer `scripts/nettoyer-personnalisations.mjs`** (plus rien ne l'importe), puis :
+   - mettre à jour `README.md` (lignes ~169-170, 182, 191, et `CRON_SECRET` dans le tableau des variables ligne ~44) ;
+   - mettre à jour le commentaire de `Customization` dans `prisma/schema.prisma` (lignes ~104-108, commentaire seulement) ;
+   - vérifier que `grep -rn "nettoyer-personnalisations" .` ne trouve plus rien.
+6. **Taille du fichier d'impression, à mesurer** : `controls.tsx` essaie des PNG de 1600, puis 1200, puis 900 px, et saute tout essai de plus de 4 Mo. Le fichier ne dépasse donc jamais 4 Mo, mais avec une photo détaillée, le sac (le plus grand gabarit) retombera plus souvent à 1200 px. À mesurer et à noter.
+7. Lint, types, `npm test`, puis **toute** la suite `npm run test:e2e` (`verificateur`), relecture du diff, commit.
+
+**Établi pendant la 7.2 (sources citées dans `storage.ts`)**
+- **API de `@netlify/blobs`** :
+  - `getStore({ name: "uploads", consistency: "strong" })` ;
+  - `set(key, ArrayBuffer, { metadata })` ;
+  - `getWithMetadata(key, { type: "arrayBuffer" })` ;
+  - `getMetadata(key)` ;
+  - `list({ prefix })`, qui parcourt toutes les pages ;
+  - `delete(key)`.
+
+  Les métadonnées passent en JSON dans un en-tête de 2 Ko au plus, donc `uploadedAt` est enregistré en texte ISO.
+- **Signe « sur Netlify »** : `SITE_ID` ou le contexte Blobs (`NETLIFY_BLOBS_CONTEXT`). `NETLIFY=true` n'est garanti qu'à la compilation. Si le contexte manque, `getStore` lève `MissingBlobsEnvironmentError`, reconnue par son `name`, la classe n'étant pas exportée.
+- **Limites des fonctions Netlify** : 6 Mo en tampon pour une requête ou une réponse, 20 Mo en flux. Un envoi binaire passe en Base64, d'où environ 4,5 Mo utiles.
+- **Région** : Blobs et fonctions sont en `us-east-2` par défaut, donc Neon en `aws-us-east-2` (ajouté au plan).
+- **Next.js et Blobs** : pas de page officielle qui confirme l'usage de `@netlify/blobs` dans une route Next.js, mais l'adaptateur Netlify utilise lui-même Blobs dans la même fonction. Le contrôle en ligne de la 7.5 (envoi puis relecture) doit le confirmer.
+
+**Relevé pendant la 7.2, non traité**
+- `npm audit` signale 13 vulnérabilités (10 modérées, 3 élevées) après l'installation. Il n'a pas été vérifié si elles existaient avant : à regarder en 7.4.
+- **Nettoyage à l'échelle** : `listUploads("perso-")` lit les métadonnées de tous les fichiers de personnalisation, y compris ceux des commandes, conservés pour toujours. Avec quelques milliers de fichiers, la fonction (limitée à 60 s) peut ralentir.
+- **Blobs injoignable** : le client voit le message générique « réseau », et le serveur journalise l'erreur explicite.
+
+**En attente du propriétaire** (rien ne presse avant la 7.5) :
+- débrancher l'ancien projet Vercel de GitHub ;
+- générer `AUTH_SECRET` et `CRON_SECRET` ;
+- créer les comptes gratuits Netlify et Neon, sans créer ni site ni base ;
+- lire les conditions de Netlify sur l'usage commercial ;
+- confirmer les hypothèses de remboursement (Mobile Money sous 5 jours ouvrés, reprise « convenue avec vous »).
