@@ -416,6 +416,15 @@ Ordre revu le 19/11/2026 : Netlify compile dès qu'un site est créé depuis un 
 
 **Livrable 7A** : la boutique tourne gratuitement sur son adresse `.netlify.app`, et les commandes, les comptes et les images survivent d'un déploiement à l'autre.
 
+### 7.6 Aperçus sur une branche, sans crédits (proposé par le propriétaire le 19/11/2026)
+Une mise en ligne de production coûte 15 crédits ; un déploiement de branche ou un aperçu, 0 crédit par déploiement (seules les visites comptent). Sources : https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/ et https://docs.netlify.com/environment-variables/overview/. On travaille donc sur une branche `preview`, vérifiée en ligne gratuitement, et `main` ne reçoit que les lots validés.
+- **Base à part, avant tout envoi de `preview`** : branche Neon `preview` (offre gratuite : 10 branches par projet), créée depuis la base de production. Ses deux adresses vont sur Netlify comme valeurs du contexte « Branch deploys » (et « Deploy Previews ») de `DATABASE_URL` et `DATABASE_URL_UNPOOLED` ; les valeurs actuelles ne restent que pour « Production ». Sinon la compilation d'un aperçu appliquerait ses migrations à la base de production, et l'aperçu y écrirait comptes et commandes.
+- **Secrets** : un `AUTH_SECRET` distinct pour les contextes autres que la production ; `CRON_SECRET` aussi.
+- **Images** : le magasin Netlify Blobs du site est commun à tous les déploiements. Hors production, écrire dans un magasin à part (`uploads-preview`), d'après le contexte de déploiement ; vérifier comment le connaître dans une fonction (`CONTEXT` à l'exécution, ou valeur figée à la compilation).
+- **Pas d'indexation** des adresses d'aperçu (`X-Robots-Tag: noindex` hors production ; vérifier d'abord si Netlify le pose déjà).
+- **Netlify** : déploiements de branche limités à `preview` (configuration du site, branches et contextes de déploiement). Adresse : `https://preview--alarobia-shop.netlify.app`.
+- **Façon de travailler** : vérifications locales, envoi sur `preview` (0 crédit), contrôle en ligne (`PROD_URL=https://preview--alarobia-shop.netlify.app npm run test:prod`), puis fusion dans `main` (15 crédits) quand le lot est validé. `CLAUDE.md` à mettre à jour selon ce que le propriétaire autorise pour les envois sur `preview`.
+
 ### Ce que la phase 7A ne fait pas (décidé)
 - **Limites de débit partagées** : elles restent en mémoire, donc comptées par instance de fonction, ce qui les rend plus lâches. À revoir avec un stockage partagé si des abus apparaissent.
 - **Politique CSP** : elle demande des nonces, incompatibles avec la mise en cache statique des pages. Plus tard.

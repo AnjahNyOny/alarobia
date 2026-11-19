@@ -118,6 +118,8 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.4b Boutique de départ (ajoutée le 19/11/2026) : moyens de paiement annoncés selon les numéros saisis (accueil, aide, « Qui sommes-nous », fiche), rayon vide, catalogue vide, Promotions sans prix réduit, tableau de bord sans commande ; fr, en, mg. Vérifié : lint et types propres, 443 tests unitaires, 141 parcours navigateur, compilation propre, captures relues
 - [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle. Étape 0 faite le 19/11/2026 (route de diagnostic, `npm run test:prod`, clé `ignore` de `netlify.toml`)
 
+- [ ] 7.6 Aperçus sur une branche `preview`, sans crédits : base Neon à part, secrets distincts, images à part, pas d'indexation (proposé par le propriétaire le 19/11/2026)
+
 7B (e-mails et SMS), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
 ## Points de vigilance (voir PLAN.md)
