@@ -503,7 +503,7 @@
     "backToPhotos": "Revenir aux photos",
     "upload": {
       "missing": "Aucune image reçue. Choisissez un fichier et réessayez.",
-      "tooLarge": "Cette image dépasse 5 Mo. Choisissez-en une plus légère.",
+      "tooLarge": "Cette image dépasse 4 Mo. Choisissez-en une plus légère.",
       "heic": "Ce format de photo d'iPhone (HEIC) n'est pas accepté. Envoyez une capture d'écran de la photo, ou réglez l'appareil photo sur « Le plus compatible ».",
       "type": "Ce fichier n'est pas une image JPG, PNG ou WebP.",
       "dimensions": "Cette image est trop grande. Elle ne doit pas dépasser 4096 pixels de côté.",
@@ -911,7 +911,7 @@
       "remove": "Retirer la photo {n}",
       "uploading": "Envoi en cours…",
       "add": "Ajouter des photos",
-      "hint": "Glissez-les ici ou cliquez. JPG, PNG, WebP ou AVIF, 5 Mo max. Format portrait 4:5 conseillé.",
+      "hint": "Glissez-les ici ou cliquez. JPG, PNG, WebP ou AVIF, 4 Mo max. Format portrait 4:5 conseillé.",
       "failed": "{file} : {error}",
       "offline": "{file} : envoi impossible. Vérifiez votre connexion.",
       "errors": {
@@ -919,7 +919,7 @@
         "forbidden": "Accès refusé.",
         "missing": "Aucun fichier reçu.",
         "type": "Format accepté : JPG, PNG, WebP ou AVIF.",
-        "tooLarge": "Image trop lourde (5 Mo maximum)."
+        "tooLarge": "Image trop lourde (4 Mo maximum)."
       }
     },
     "products": {

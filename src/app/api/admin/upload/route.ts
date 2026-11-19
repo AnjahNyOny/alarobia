@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
-import { checkAdminUpload, MAX_UPLOAD_BYTES, type AdminUploadError } from "@/lib/upload";
-import { uploadDir, uploadPath } from "@/lib/upload-dir";
+import { saveUpload } from "@/lib/storage";
+import { checkAdminUpload, IMAGE_MIME, MAX_UPLOAD_BYTES, type AdminUploadError } from "@/lib/upload";
 
 const REFUSED: Record<AdminUploadError, { error: string; status: number }> = {
   missing: { error: "Aucun fichier reçu.", status: 400 },
   type: { error: "Format accepté : JPG, PNG, WebP ou AVIF.", status: 415 },
-  tooLarge: { error: "Image trop lourde (5 Mo maximum).", status: 413 },
+  tooLarge: { error: "Image trop lourde (4 Mo maximum).", status: 413 },
 };
 const refuse = (code: AdminUploadError) => NextResponse.json({ error: REFUSED[code].error, code }, { status: REFUSED[code].status });
 
@@ -29,10 +28,8 @@ export async function POST(req: Request) {
   const checked = checkAdminUpload(bytes);
   if (!checked.ok) return refuse(checked.error);
 
-  // Le nom est généré côté serveur : rien de ce que fournit le client n'atteint le système de fichiers.
+  // Le nom est généré côté serveur : rien de ce que fournit le client n'atteint le stockage.
   const name = `${randomUUID()}.${checked.ext}`;
-  const dir = uploadDir();
-  await mkdir(dir, { recursive: true });
-  await writeFile(uploadPath(name), bytes);
+  await saveUpload(name, bytes, IMAGE_MIME[checked.ext]);
   return NextResponse.json({ url: `/uploads/${name}` });
 }

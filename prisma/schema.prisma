@@ -103,9 +103,9 @@ model Product {
 }
 
 // Ce qu'un client a dessiné sur un produit personnalisable. Créée à l'ajout au panier (le panier n'en garde
-// que l'identifiant), figée dans la ligne de commande à l'achat. Les fichiers sont dans le dossier des envois,
-// sous un nom généré par le serveur (perso-<uuid>.<ext>). Sans commande au bout de sept jours, la ligne et
-// ses fichiers sont supprimés par scripts/nettoyer-personnalisations.mjs.
+// que l'identifiant), figée dans la ligne de commande à l'achat. Les fichiers sont dans le stockage des envois
+// (src/lib/storage.ts), sous un nom généré par le serveur (perso-<uuid>.<ext>). Sans commande au bout de sept
+// jours, la ligne et ses fichiers sont supprimés par le nettoyage quotidien (src/lib/cleanup.ts).
 model Customization {
   id        String    @id @default(cuid())
   productId String

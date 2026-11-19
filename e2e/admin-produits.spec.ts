@@ -1,5 +1,7 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, heavyPhoto, login, naturalSize, sentBytes, UPLOAD_LIMIT, watchErrors } from "./helpers";
 
 // Produits et rayon choisis parce qu'aucune autre spec ne les vérifie (base partagée, rechargée une fois au début).
 // Thé noir Matinée : traduit en anglais ; en malgache, les caractéristiques manquent.
@@ -146,4 +148,98 @@ test("les textes du back-office ne sont envoyés qu'aux pages du back-office", a
     expect(html, url).toContain("customizer");
     expect(html, url).not.toContain(marker);
   }
+});
+
+test.describe("photos de produits (point de vigilance 11)", () => {
+  test("une photo de téléphone de 8 Mo est réduite à 2048 px dans le navigateur, puis envoyée sous 4 Mo", async ({ page }) => {
+    const check = watchErrors(page);
+    await page.goto("/admin/products/new");
+    const photo = await heavyPhoto(page);
+    expect(photo.length).toBeGreaterThan(8 * 1024 * 1024);
+
+    const answered = page.waitForResponse((r) => r.url().endsWith("/api/admin/upload"));
+    await page.locator('input[type="file"]').setInputFiles({ name: "IMG_2041.jpg", mimeType: "image/jpeg", buffer: photo });
+    const response = await answered;
+    // Le corps envoyé est la photo réduite (une centaine de ko au moins), pas l'original.
+    const sent = await sentBytes(response.request());
+    expect(sent).toBeGreaterThan(100_000);
+    expect(sent).toBeLessThan(UPLOAD_LIMIT);
+    expect(response.status()).toBe(200);
+
+    const { url } = await response.json();
+    const served = await page.request.get(url);
+    expect(served.status()).toBe(200);
+    expect((await served.body()).length).toBeLessThan(UPLOAD_LIMIT);
+    expect(await naturalSize(page, url)).toEqual({ width: 2048, height: 1536 });
+    await expect(page.getByRole("img", { name: "Photo 1" })).toBeVisible();
+    check();
+  });
+
+  test("une photo que le navigateur ne sait pas réduire (AVIF) et qui dépasse 4 Mo est refusée sans être envoyée", async ({ page }) => {
+    const check = watchErrors(page);
+    await page.goto("/admin/products/new");
+    const sent: string[] = [];
+    page.on("request", (r) => r.url().endsWith("/api/admin/upload") && sent.push(r.url()));
+    // Signature AVIF, puis du vide jusqu'à 4 Mo + 1 octet : le navigateur ne la réduit pas (format inconnu de `reduceImage`).
+    const avif = Buffer.concat([Buffer.from([0, 0, 0, 28]), Buffer.from("ftypavif")]);
+    const heavy = Buffer.concat([avif, Buffer.alloc(UPLOAD_LIMIT + 1 - avif.length)]);
+    await page.locator('input[type="file"]').setInputFiles({ name: "export.avif", mimeType: "image/avif", buffer: heavy });
+    await expect(page.getByText("export.avif : Image trop lourde (4 Mo maximum).")).toBeVisible();
+    expect(sent).toEqual([]);
+    await expect(page.getByRole("img", { name: "Photo 1" })).toHaveCount(0);
+    check();
+  });
+
+  test("une photo HEIC de plus de 4 Mo, illisible hors Safari, est refusée pour son format, sans être envoyée", async ({ page }) => {
+    const check = watchErrors(page);
+    await page.goto("/admin/products/new");
+    const sent: string[] = [];
+    page.on("request", (r) => r.url().endsWith("/api/admin/upload") && sent.push(r.url()));
+    // Signature HEIC, puis du vide : Chrome ne sait pas la décoder. Le poids n'est pas le vrai problème, le format l'est.
+    const heic = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftypheic")]);
+    const heavy = Buffer.concat([heic, Buffer.alloc(UPLOAD_LIMIT + 1 - heic.length)]);
+    await page.locator('input[type="file"]').setInputFiles({ name: "IMG_0042.HEIC", mimeType: "image/heic", buffer: heavy });
+    await expect(page.getByText("IMG_0042.HEIC : Format accepté : JPG, PNG, WebP ou AVIF.")).toBeVisible();
+    expect(sent).toEqual([]);
+    check();
+  });
+
+  test("un envoi direct de plus de 4 Mo est refusé avec son motif", async ({ page }) => {
+    // Une vraie photo, alourdie à 4 Mo + 1 octet : seul le poids peut la faire refuser.
+    const photo = await readFile(path.join(process.cwd(), "public/products/bougie.jpg"));
+    const heavy = Buffer.concat([photo, Buffer.alloc(UPLOAD_LIMIT + 1 - photo.length)]);
+    const res = await page.request.post("/api/admin/upload", { multipart: { file: { name: "lourde.jpg", mimeType: "image/jpeg", buffer: heavy } } });
+    expect(res.status()).toBe(413);
+    expect(await res.json()).toEqual({ error: "Image trop lourde (4 Mo maximum).", code: "tooLarge" });
+  });
+});
+
+test("le back-office ne reçoit pas les polices de la personnalisation", async ({ page }) => {
+  const CUSTOMIZER_FONTS = /Baloo 2|Lora|Caveat/;
+  // Familles et fichiers des @font-face de toutes les feuilles de la page, écrites dans le HTML ou liées.
+  const faces = () =>
+    page.evaluate(() =>
+      [...document.styleSheets]
+        .flatMap((sheet) => [...sheet.cssRules])
+        .filter((rule): rule is CSSFontFaceRule => rule instanceof CSSFontFaceRule)
+        .map((rule) => ({ family: rule.style.getPropertyValue("font-family"), src: rule.style.getPropertyValue("src") })),
+    );
+
+  // Témoin : la fiche d'un produit personnalisable déclare bien les trois polices.
+  await page.goto("/products/tasse-en-gres-vato");
+  const store = (await faces()).filter((f) => CUSTOMIZER_FONTS.test(f.family));
+  expect(new Set(store.map((f) => f.family.replaceAll('"', "")))).toEqual(new Set(["Baloo 2", "Baloo 2 Fallback", "Lora", "Lora Fallback", "Caveat", "Caveat Fallback"]));
+  const files = store.flatMap((f) => [...f.src.matchAll(/url\("?([^")]+)"?\)/g)].map((m) => new URL(m[1], page.url()).pathname));
+  expect(files.length).toBeGreaterThan(0);
+
+  const downloaded: string[] = [];
+  page.on("request", (r) => r.resourceType() === "font" && downloaded.push(new URL(r.url()).pathname));
+  await page.goto("/admin/products/new");
+  await page.waitForLoadState("networkidle");
+  const html = await (await page.request.get("/fr/admin/products/new")).text();
+  expect(html).toContain("@font-face");
+  const declared = new Set(html.match(/@font-face\s*\{[^}]*\}/g)?.map((rule) => rule.match(/font-family:([^;]+)/)?.[1].replace(/[\\"]/g, "")));
+  expect([...declared].filter((family) => family && CUSTOMIZER_FONTS.test(family))).toEqual([]);
+  expect((await faces()).filter((f) => CUSTOMIZER_FONTS.test(f.family))).toEqual([]);
+  expect(downloaded.filter((file) => files.includes(file))).toEqual([]);
 });

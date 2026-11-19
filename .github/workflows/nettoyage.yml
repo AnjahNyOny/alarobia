@@ -1,0 +1,52 @@
+# Nettoyage quotidien des personnalisations jamais commandées depuis plus de sept jours, et de leurs fichiers
+# (route GET /api/cron/nettoyage, logique dans src/lib/cleanup.ts). Gratuit et indépendant de l'hébergeur.
+#
+# Secrets du dépôt à créer (Settings > Secrets and variables > Actions) :
+#   SITE_URL     adresse du site en ligne, par exemple https://alarobia.netlify.app
+#   CRON_SECRET  la même valeur que la variable CRON_SECRET du site sur Netlify
+#
+# Le dépôt est public, ses journaux aussi : on n'y affiche que des nombres, jamais les noms des fichiers
+# (ils ouvrent l'accès aux images des clients par /uploads/<nom>).
+name: Nettoyage quotidien
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # 01:00 UTC, 04:00 à Antananarivo
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Essai à blanc : compter ce qui partirait, sans rien supprimer"
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: nettoyage
+  cancel-in-progress: false
+
+jobs:
+  nettoyage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Appeler la route de nettoyage
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+        run: |
+          if [ -z "$SITE_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::error::Secrets du dépôt manquants : SITE_URL et CRON_SECRET (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          url="${SITE_URL%/}/api/cron/nettoyage"
+          if [ "$DRY_RUN" = "1" ]; then url="$url?dry-run=1"; fi
+
+          # --fail-with-body : en cas de refus, la réponse dit pourquoi (secret faux, CRON_SECRET absent du site).
+          if ! body=$(curl --fail-with-body --silent --show-error --max-time 120 --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer $CRON_SECRET" "$url"); then
+            echo "::error::Nettoyage refusé ou en échec : $(echo "$body" | jq -r '.error? // empty' 2>/dev/null || true)"
+            exit 1
+          fi
+          echo "$body" | jq '{essai_a_blanc: .dryRun, personnalisations_abandonnees: .abandoned, fichiers: (.files | length)}'

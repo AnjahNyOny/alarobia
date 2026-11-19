@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
+**État au 19/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) en cours** : 7.0 à 7.3 faites, détail dans `PLAN.md`.
 
-**Prochaine action** : reprendre la tâche 7.2, **en cours et non committée** (point de reprise détaillé à la fin du journal du 18/11/2026). Ensuite 7.4, puis 7.5 avec le propriétaire. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : tâche 7.4 (réglages de production ; `PLAN.md` complété le 19/11 : moteur de Prisma pour Netlify, audit des dépendances, en-tête d'adresse du client). Ensuite 7.5 avec le propriétaire. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -112,7 +112,7 @@ Verdict du propriétaire : fonctionnel, mais visuellement « comme tous les site
 Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
 - [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
-- [ ] 7.2 Fichiers envoyés dans Netlify Blobs, envois sous 4 Mo, nettoyage quotidien par GitHub Actions (**en cours**, voir le point de reprise)
+- [x] 7.2 Fichiers envoyés dans Netlify Blobs (`src/lib/storage.ts`, seul module qui touche aux envois ; disque en local et dans les tests), envois sous 4 Mo, photos du vendeur réduites à 2048 px dans le navigateur, nettoyage quotidien par GitHub Actions (`/api/cron/nettoyage`, `.github/workflows/nettoyage.yml`), ancien script supprimé. Vérifié : lint et types propres, 415 tests unitaires, 129 parcours navigateur, compilation propre
 - [x] 7.3 Heures à l'heure de Madagascar : instants (commandes, paiements, avis, inscriptions) et tableau de bord par jour de Madagascar, fin des codes promo à 23:59:59 à Antananarivo, année du pied de page ; tests unitaires en `TZ=UTC` sous trois fuseaux, suite navigateur avec le serveur en UTC et le navigateur à Antananarivo. Vérifié : lint et types propres, 365 tests unitaires, 123 parcours navigateur
 - [ ] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), adresse du site et du client sur Netlify, en-têtes de sécurité, données de départ sans données de démonstration
 - [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
@@ -131,8 +131,8 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 8. Recherche et majuscules sous PostgreSQL (tests `e2e/langues.spec.ts` et `e2e/admin.spec.ts`)
 - [x] 9. Vingt commandes simultanées sur cinq exemplaires (test `src/lib/__tests__/stock.test.ts`)
 - [x] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (tests `src/lib/__tests__/format.test.ts` et `e2e/heure-madagascar.spec.ts`)
-- [ ] 11. Photo de 8 Mo envoyée par le vendeur ou par un client (7.2)
-- [ ] 12. Variable de production manquante : échec explicite (7.2, 7.4)
+- [x] 11. Photo de 8 Mo envoyée par le vendeur ou par un client : réduite à 2048 × 1536 et envoyée sous 4 Mo, ou refusée avec son motif (tests `e2e/admin-produits.spec.ts` et `e2e/personnalisation.spec.ts`)
+- [ ] 12. Variable de production manquante : échec explicite. Fait en 7.2 : Netlify Blobs injoignable (`storage.test.ts`), `CRON_SECRET` absent (503, `cleanup.test.ts`). Reste la 7.4
 
 ## Journal
 
@@ -518,7 +518,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 
 ### Point de reprise (18/11/2026, soir) : tâche 7.2 en cours
 
-Travail arrêté à un point stable, à la demande du propriétaire. **Les fichiers de la 7.2 sont modifiés dans l'arbre de travail, non committés.**
+Travail arrêté à un point stable, à la demande du propriétaire. Repris et fini le 19/11/2026 (voir le journal de ce jour).
 - **État des contrôles** : lint et types propres, 389 tests unitaires verts (31 fichiers). La suite navigateur n'a pas été relancée depuis ces changements.
 - **Processus** : aucun ne tourne (ports 3100 et 3001 libres).
 
@@ -539,26 +539,7 @@ Travail arrêté à un point stable, à la demande du propriétaire. **Les fichi
   - `uploads-route.test.ts` (2) ;
   - `upload.test.ts` : 4 Mo + 1 octet refusé.
 
-**Reste à faire, dans cet ordre**
-1. **`send-image.ts`** : renommer `prepare` en `reduceImage` et l'exporter. Y déplacer `canvasBlob`, aujourd'hui dans `texture.ts`, et corriger l'import dans `controls.tsx`. La raison : `texture.ts` importe `fonts.ts`, donc les trois polices `next/font/google`, qui ne doivent pas arriver dans le back-office.
-2. **`image-uploader.tsx`** :
-   - réduire chaque photo du vendeur avec `reduceImage` ;
-   - si la réduction échoue (AVIF, faux JPEG, HEIC), envoyer l'original s'il fait 4 Mo ou moins, et laisser le serveur trancher : `securite.spec.ts` attend une réponse 415 pour « faux.jpg » ;
-   - au-delà de 4 Mo, refuser dans le navigateur avec `errors.tooLarge`.
-3. **Tests navigateur** (point 11) :
-   - photo de 8 Mo depuis `admin-produits.spec.ts` : vérifier la taille envoyée, la taille servie et les dimensions 2048 × 1536 ;
-   - image de 8 Mo sur la fiche (`personnalisation.spec.ts`), avec son propre `x-forwarded-for` ;
-   - adapter le test « plus de 5 Mo » en 4 Mo ;
-   - envoi direct trop lourd : 413 et son message.
-
-   Image de test : dégradé 4000 × 3000 avec du bruit, en JPEG à 0,92. Un bruit d'amplitude 110 donne 6,8 Mo ; pour 8 Mo, monter vers 150 à 200, ou la qualité à 0,95. Script d'essai : `bruit.mjs` dans le dossier temporaire de la session (peut avoir disparu).
-4. **`.github/workflows/nettoyage.yml`** : `schedule "0 1 * * *"` et `workflow_dispatch`, `curl --fail` avec les secrets `SITE_URL` et `CRON_SECRET`.
-5. **Supprimer `scripts/nettoyer-personnalisations.mjs`** (plus rien ne l'importe), puis :
-   - mettre à jour `README.md` (lignes ~169-170, 182, 191, et `CRON_SECRET` dans le tableau des variables ligne ~44) ;
-   - mettre à jour le commentaire de `Customization` dans `prisma/schema.prisma` (lignes ~104-108, commentaire seulement) ;
-   - vérifier que `grep -rn "nettoyer-personnalisations" .` ne trouve plus rien.
-6. **Taille du fichier d'impression, à mesurer** : `controls.tsx` essaie des PNG de 1600, puis 1200, puis 900 px, et saute tout essai de plus de 4 Mo. Le fichier ne dépasse donc jamais 4 Mo, mais avec une photo détaillée, le sac (le plus grand gabarit) retombera plus souvent à 1200 px. À mesurer et à noter.
-7. Lint, types, `npm test`, puis **toute** la suite `npm run test:e2e` (`verificateur`), relecture du diff, commit.
+**Reste à faire** : fait le 19/11/2026 (étapes 1 à 7 du point de reprise ; voir le journal).
 
 **Établi pendant la 7.2 (sources citées dans `storage.ts`)**
 - **API de `@netlify/blobs`** :
@@ -576,7 +557,7 @@ Travail arrêté à un point stable, à la demande du propriétaire. **Les fichi
 - **Next.js et Blobs** : pas de page officielle qui confirme l'usage de `@netlify/blobs` dans une route Next.js, mais l'adaptateur Netlify utilise lui-même Blobs dans la même fonction. Le contrôle en ligne de la 7.5 (envoi puis relecture) doit le confirmer.
 
 **Relevé pendant la 7.2, non traité**
-- `npm audit` signale 13 vulnérabilités (10 modérées, 3 élevées) après l'installation. Il n'a pas été vérifié si elles existaient avant : à regarder en 7.4.
+- `npm audit` signale 13 vulnérabilités (10 modérées, 3 élevées) après l'installation. Vérifié le 19/11 : elles existaient avant (voir le journal du 19/11).
 - **Nettoyage à l'échelle** : `listUploads("perso-")` lit les métadonnées de tous les fichiers de personnalisation, y compris ceux des commandes, conservés pour toujours. Avec quelques milliers de fichiers, la fonction (limitée à 60 s) peut ralentir.
 - **Blobs injoignable** : le client voit le message générique « réseau », et le serveur journalise l'erreur explicite.
 
@@ -586,3 +567,24 @@ Travail arrêté à un point stable, à la demande du propriétaire. **Les fichi
 - créer les comptes gratuits Netlify et Neon, sans créer ni site ni base ;
 - lire les conditions de Netlify sur l'usage commercial ;
 - confirmer les hypothèses de remboursement (Mobile Money sous 5 jours ouvrés, reprise « convenue avec vous »).
+
+### 19/11/2026
+- **Reprise de la 7.2.** Relecture par l'architecte du travail du 18/11 (`storage.ts`, `cleanup.ts`, route de nettoyage, routes d'envoi et de lecture, action du panier) : conforme au plan, rien à corriger.
+- Étapes 1 à 3 et mesure (`developpeur`) :
+  - `reduceImage` (ex-`prepare`) exportée par `send-image.ts`, avec `canvasBlob` déplacée depuis `texture.ts` : le back-office réduit ses photos sans recevoir les polices de la personnalisation. Test unitaire `admin-fonts.test.ts`, qui suit les imports de tous les modules du back-office jusqu'à `next/font/google` (vu rouge sur l'état intermédiaire), et test navigateur sur la page produit du back-office (aucune `@font-face` de Baloo 2, Lora ou Caveat, aucun de leurs fichiers téléchargé).
+  - `image-uploader.tsx` : chaque photo est réduite à 2048 px. Si le navigateur ne sait pas la réduire, l'original part s'il fait 4 Mo ou moins et le serveur tranche (« faux.jpg » donne toujours 415) ; au-delà, rien n'est envoyé.
+  - Tests navigateur : photo de 9,2 Mo (4000 × 3000, générée dans la page, rien dans le dépôt) depuis le back-office et depuis la fiche, envoyée sous 4 Mo et servie en 2048 × 1536 (le premier vu rouge contre l'ancien composant : 9 657 328 octets envoyés) ; AVIF de plus de 4 Mo refusé sans envoi ; envoi direct de 4 Mo + 1 octet refusé (413) sur les deux points d'envoi. Limite écrite en dur dans les tests (`UPLOAD_LIMIT`) : relever `MAX_UPLOAD_BYTES` doit les faire échouer.
+- **Retouche de l'architecte** : hors Safari, un HEIC de plus de 4 Mo affichait « trop lourde » ; il affiche maintenant « Format accepté : JPG, PNG, WebP ou AVIF », qui dit quoi faire. Test vu rouge puis vert.
+- **Choix retenu, à corriger si le propriétaire voit les choses autrement** : les photos du vendeur sont toujours réencodées (JPEG à 0,86, 2048 px au plus), même petites : légère perte, mais la position GPS et les autres métadonnées disparaissent. Un PNG reste un PNG s'il tient dans 4 Mo.
+- **Fichier d'impression, mesuré** (dessin et encodage réels dans Chrome, image en taille maximale) : avec de vraies photos, toujours 1600 px et 2,6 Mo au plus (pire cas : la tasse avec une photo en paysage, pas le sac) ; avec une photo bruitée (pire cas), deux cas retombent à 1200 px (tasse 4:3, sac 3:4), jamais à 900. Encodage de 15 à 62 ms sur ordinateur. Servi par une fonction, un fichier de 4 Mo passe à 5,6 Mo en Base64, sous les 6 Mo de Netlify, marge courte.
+- Étapes 4 et 5 (architecte) :
+  - `.github/workflows/nettoyage.yml` : chaque jour à 01:00 UTC (04:00 à Antananarivo) et à la main avec essai à blanc. Secrets absents, mauvais secret, `CRON_SECRET` absent du site : échec avec un message qui le dit. Essayé contre un serveur factice dans les cinq cas.
+  - **Le dépôt GitHub est public**, ses journaux d'Actions aussi : le flux n'affiche que des nombres, jamais les noms des fichiers, qui ouvrent l'accès aux images des clients. GitHub met en pause les tâches planifiées d'un dépôt public après 60 jours sans activité (noté dans le README).
+  - `scripts/nettoyer-personnalisations.mjs` supprimé ; README (section « Nettoyage quotidien », `CRON_SECRET`, limite de 4 Mo), commentaire du schéma et `CLAUDE.md` (carte du code, règle des fichiers envoyés, limites actuelles) à jour. Passages périmés du README corrigés au passage : fichiers envoyés et Vercel, heures du back-office (réglées en 7.3), retours des articles personnalisés (réglés le 18/11).
+- **Audit des dépendances** : les 13 alertes de `npm audit` existaient avant `@netlify/blobs` (fichiers de verrouillage comparés), qui n'en ajoute aucune. Toutes viennent d'outils de développement ou de compilation (CLI Prisma par `deepmerge-ts`, CLI shadcn et ESLint par `minimatch`). Correctifs par versions majeures seulement (Prisma 7, shadcn 1) : consigne ajoutée à la 7.4.
+- **Recherches pour la 7.4, ajoutées à `PLAN.md`** :
+  - le guide Prisma pour Netlify demande `binaryTargets = ["native", "rhel-openssl-3.0.x"]` : la compilation tourne sous Ubuntu, les fonctions sous Amazon Linux, et sans ce réglage toute page qui lit la base échouerait en ligne ;
+  - `x-nf-client-connection-ip` : seul en-tête que le personnel de Netlify garantit pour l'adresse du client, mais aucune page officielle trouvée qui dise qu'un client ne peut pas l'imposer : à contrôler en ligne en 7.5.
+- **Schéma temporaire oublié** : `nettoyage_f37d254f4e95` restait dans `alarobia_test`. Ni `cleanup.test.ts` (deux passages seul) ni la suite complète n'en laissent : reste d'un passage interrompu pendant l'écriture du test. Supprimé.
+- **Relevé, non traité** : un AVIF de plus de 4 Mo est refusé dans le navigateur alors que Chrome sait le décoder (`reduceImage` ne connaît que JPEG, PNG, WebP et HEIC). Rare pour des photos de produits.
+- `verificateur` (7.2) : lint et types propres, 415 tests unitaires (32 fichiers), compilation propre sans avertissement, **129 parcours navigateur sur 129** en 4,8 min sans relance (charge 2,5 à 9,7), `tsconfig.json` intact, port 3100 libre. `node:fs` n'apparaît plus que dans `storage.ts` et l'image de partage ; plus aucune mention de l'ancien script.

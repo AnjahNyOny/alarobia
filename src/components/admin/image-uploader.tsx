@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, ArrowRight, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { reduceImage } from "@/components/customizer/send-image";
+import { MAX_UPLOAD_BYTES } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 
 /** Codes renvoyés par /api/admin/upload, traduits dans `admin.photos.errors`. */
@@ -25,9 +27,18 @@ export function ImageUploader({ initial }: { initial: string[] }) {
     if (list.length === 0) return;
     setUploading(true);
     for (const file of list) {
-      const body = new FormData();
-      body.set("file", file);
       try {
+        // Photo réduite à 2048 px dans le navigateur, comme l'image d'un client : une photo de téléphone de 8 Mo passe sous la limite d'envoi.
+        // Ce que le navigateur ne sait pas réduire (AVIF, HEIC hors Safari, fichier qui n'est pas une image) part tel quel s'il tient
+        // dans la limite, et le serveur tranche ; au-delà, l'hébergeur le refuserait sans explication, on s'arrête ici.
+        const reduced = await reduceImage(file);
+        if (!reduced.ok && file.size > MAX_UPLOAD_BYTES) {
+          // Un HEIC que le navigateur ne lit pas (hors Safari) serait refusé pour son format même allégé : c'est ce qu'il faut dire.
+          toast.error(t("failed", { file: file.name, error: t(reduced.error === "heic" ? "errors.type" : "errors.tooLarge") }));
+          continue;
+        }
+        const body = new FormData();
+        body.set("file", reduced.ok ? reduced.blob : file, file.name);
         const res = await fetch("/api/admin/upload", { method: "POST", body });
         const json = await res.json();
         if (!res.ok) toast.error(t("failed", { file: file.name, error: isUploadError(json.code) ? t(`errors.${json.code}`) : t("errors.unknown") }));

@@ -503,7 +503,7 @@
     "backToPhotos": "Hiverina amin'ny sary",
     "upload": {
       "missing": "Tsy nisy sary voaray. Misafidiana rakitra dia andramo indray.",
-      "tooLarge": "Mihoatra ny 5 Mo ity sary ity. Misafidiana maivana kokoa.",
+      "tooLarge": "Mihoatra ny 4 Mo ity sary ity. Misafidiana maivana kokoa.",
       "heic": "Tsy ekena ity karazana sarin'ny iPhone ity (HEIC). Alefaso ny sarin'ny efijery misy azy, na ataovy « Le plus compatible » ny fakantsary.",
       "type": "Tsy sary JPG, PNG na WebP ity rakitra ity.",
       "dimensions": "Lehibe loatra ity sary ity. Tsy tokony hihoatra ny 4096 piksely ny lafiny.",
@@ -911,7 +911,7 @@
       "remove": "Esory ny sary {n}",
       "uploading": "Mandefa…",
       "add": "Hanampy sary",
-      "hint": "Sintony eto na tsindrio. JPG, PNG, WebP na AVIF, 5 Mo farafahabetsany. Tsara kokoa ny sary mitsangana 4:5.",
+      "hint": "Sintony eto na tsindrio. JPG, PNG, WebP na AVIF, 4 Mo farafahabetsany. Tsara kokoa ny sary mitsangana 4:5.",
       "failed": "{file}: {error}",
       "offline": "{file}: tsy lasa. Hamarino ny fifandraisanao.",
       "errors": {
@@ -919,7 +919,7 @@
         "forbidden": "Tsy mahazo miditra.",
         "missing": "Tsy nisy rakitra voaray.",
         "type": "Endrika ekena: JPG, PNG, WebP na AVIF.",
-        "tooLarge": "Mavesatra loatra ny sary (5 Mo farafahabetsany)."
+        "tooLarge": "Mavesatra loatra ny sary (4 Mo farafahabetsany)."
       }
     },
     "products": {

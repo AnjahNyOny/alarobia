@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CART_ADD_TIMEOUT, watchErrors } from "./helpers";
+import { CART_ADD_TIMEOUT, heavyPhoto, naturalSize, sentBytes, UPLOAD_LIMIT, watchErrors } from "./helpers";
 
 // Images minimales mais réelles : un PNG d'un pixel, et de quoi tromper un contrôle fait sur le nom ou le type annoncé.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
@@ -36,8 +36,9 @@ test.describe("envoi d'image par un visiteur (point de vigilance 2)", () => {
     expect(await res.json()).toEqual({ error: "heic" });
   });
 
-  test("un fichier de plus de 5 Mo est refusé", async ({ request }) => {
-    const heavy = Buffer.concat([PNG, Buffer.alloc(5 * 1024 * 1024)]);
+  test("un fichier de plus de 4 Mo est refusé", async ({ request }) => {
+    // 4 Mo + 1 octet : la limite tient compte de l'hébergeur (requête de 6 Mo au plus, fichier encodé en Base64).
+    const heavy = Buffer.concat([PNG, Buffer.alloc(UPLOAD_LIMIT + 1 - PNG.length)]);
     const res = await request.post(UPLOAD, { multipart: { file: { name: "photo.png", mimeType: "image/png", buffer: heavy } } });
     expect(res.status()).toBe(413);
     expect(await res.json()).toEqual({ error: "tooLarge" });
@@ -137,6 +138,34 @@ test.describe("personnalisation sur la fiche produit", () => {
     await expect(page.getByRole("alert").filter({ hasText: "Ce fichier n'est pas une image JPG, PNG ou WebP." })).toBeVisible();
     await page.getByLabel("Ajouter une image").setInputFiles({ name: "IMG_0042.HEIC", mimeType: "image/heic", buffer: HEIC });
     await expect(page.getByRole("alert").filter({ hasText: "format de photo d'iPhone (HEIC)" })).toBeVisible();
+    check();
+  });
+
+  test("une photo de téléphone de 8 Mo est réduite à 2048 px dans le navigateur, puis envoyée sous 4 Mo (point de vigilance 11)", async ({ page }) => {
+    // Adresse propre au test : ses envois ne comptent pas dans la limite de débit partagée par la suite (60 envois en 10 min).
+    await page.setExtraHTTPHeaders({ "x-forwarded-for": "198.51.100.11" });
+    const check = watchErrors(page);
+    await page.goto("/products/tasse-en-gres-vato");
+    await page.getByRole("tab", { name: "Personnaliser" }).click();
+    const photo = await heavyPhoto(page);
+    expect(photo.length).toBeGreaterThan(8 * 1024 * 1024);
+
+    const answered = page.waitForResponse((r) => r.url().endsWith(UPLOAD));
+    await page.getByLabel("Ajouter une image").setInputFiles({ name: "IMG_2041.jpg", mimeType: "image/jpeg", buffer: photo });
+    const response = await answered;
+    // Le corps envoyé est la photo réduite (une centaine de ko au moins), pas l'original.
+    const sent = await sentBytes(response.request());
+    expect(sent).toBeGreaterThan(100_000);
+    expect(sent).toBeLessThan(UPLOAD_LIMIT);
+    expect(response.status()).toBe(200);
+
+    const body = await response.json();
+    expect(body).toMatchObject({ width: 2048, height: 1536 });
+    const served = await page.request.get(body.url);
+    expect(served.status()).toBe(200);
+    expect((await served.body()).length).toBeLessThan(UPLOAD_LIMIT);
+    expect(await naturalSize(page, body.url)).toEqual({ width: 2048, height: 1536 });
+    await expect(page.getByRole("img", { name: "Votre image" })).toHaveAttribute("src", body.url);
     check();
   });
 

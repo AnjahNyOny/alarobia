@@ -1,22 +1,20 @@
-import { readFile } from "node:fs/promises";
-import { uploadPath } from "@/lib/upload-dir";
+import { readUpload } from "@/lib/storage";
 
-const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp", avif: "image/avif" };
+/** Un an : le nom d'un envoi est généré une fois pour toutes, son contenu ne change jamais. */
+const FOREVER = "public, max-age=31536000, immutable";
 
 export async function GET(_: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
-  const match = /^[\w-]+\.(jpg|png|webp|avif)$/.exec(name);
-  if (!match) return new Response("Introuvable", { status: 404 });
-  try {
-    const file = await readFile(uploadPath(name));
-    return new Response(new Uint8Array(file), {
-      headers: {
-        "Content-Type": TYPES[match[1]],
-        "Cache-Control": "public, max-age=31536000, immutable",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  } catch {
-    return new Response("Introuvable", { status: 404 });
-  }
+  if (!/^[\w-]+\.(jpg|png|webp|avif)$/.test(name)) return new Response("Introuvable", { status: 404 });
+  const file = await readUpload(name);
+  if (!file) return new Response("Introuvable", { status: 404 });
+  return new Response(file.bytes, {
+    headers: {
+      "Content-Type": file.contentType,
+      "Cache-Control": FOREVER,
+      // Sur Netlify, le réseau garde la réponse : les demandes suivantes ne relancent ni la fonction ni la lecture du magasin.
+      "Netlify-CDN-Cache-Control": FOREVER,
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

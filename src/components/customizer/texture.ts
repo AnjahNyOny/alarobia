@@ -102,7 +102,3 @@ export function paintFlat(canvas: HTMLCanvasElement, template: Template, design:
     fontCss,
   });
 }
-
-export function canvasBlob(canvas: HTMLCanvasElement, type: "image/png" | "image/jpeg" | "image/webp", quality?: number) {
-  return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("export du canevas impossible"))), type, quality));
-}

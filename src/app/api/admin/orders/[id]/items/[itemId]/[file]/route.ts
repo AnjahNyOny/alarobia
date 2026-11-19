@@ -1,8 +1,7 @@
-import { readFile } from "node:fs/promises";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { downloadName, ITEM_FILES, itemFile } from "@/lib/order-files";
-import { uploadPath } from "@/lib/upload-dir";
+import { readUpload } from "@/lib/storage";
 
 /**
  * Téléchargement, par le vendeur, d'un fichier d'un article personnalisé : `print` (fichier d'impression)
@@ -11,7 +10,6 @@ import { uploadPath } from "@/lib/upload-dir";
  * tout ce qui n'existe pas, la réponse est la même : 404, sans redirection, pour ne rien révéler.
  */
 
-const TYPES: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" };
 const notFound = () => new Response("Introuvable", { status: 404, headers: { "Cache-Control": "private, no-store" } });
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string; itemId: string; file: string }> }) {
@@ -31,15 +29,11 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   if (!name) return notFound();
   const extension = name.slice(name.lastIndexOf(".") + 1);
 
-  let bytes: Buffer;
-  try {
-    bytes = await readFile(uploadPath(name));
-  } catch {
-    return notFound();
-  }
-  return new Response(new Uint8Array(bytes), {
+  const stored = await readUpload(name);
+  if (!stored) return notFound();
+  return new Response(stored.bytes, {
     headers: {
-      "Content-Type": TYPES[extension] ?? "application/octet-stream",
+      "Content-Type": stored.contentType,
       "Content-Disposition": `attachment; filename="${downloadName(order.number, position + 1, kind, extension)}"`,
       "Cache-Control": "private, no-store",
       "X-Content-Type-Options": "nosniff",

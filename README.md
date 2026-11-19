@@ -41,7 +41,8 @@ Les adresses de `.env.example` se connectent sans mot de passe avec l'utilisateu
 | `DATABASE_URL_UNPOOLED` | Adresse directe de la même base, pour les commandes Prisma (`db push`, migrations). En local, la même que `DATABASE_URL`. |
 | `AUTH_SECRET` | Signe le cookie de session. 32 caractères au moins, sinon la connexion et l'inscription échouent : `openssl rand -base64 32`. |
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. |
-| `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. |
+| `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. Sur Netlify, les envois vont dans Netlify Blobs et cette variable ne sert pas. |
+| `CRON_SECRET` | Facultative en local. Protège la route du nettoyage quotidien (`/api/cron/nettoyage`), qui répond 503 sans elle : `openssl rand -base64 32`. |
 
 ### Comptes de démonstration
 
@@ -73,7 +74,7 @@ Les données de démonstration sont dans `prisma/catalog.mjs` et `prisma/seed.mj
 - Quatre gabarits construits par le code, sans fichier 3D : tasse, gourde, carnet, sac en toile. Dans les données de démonstration, la tasse et la gourde sont personnalisables ; le carnet et le sac s'attribuent à un produit depuis le back-office.
 - Réglages : couleur de l'objet parmi celles du produit, texte avec compteur, quatre écritures (Enseigne, Ronde, Classique, Manuscrite), couleur du texte, image du client, taille et position. Le supplément ne s'applique que s'il y a un texte ou une image à imprimer.
 - Objet en 3D, tournable au doigt, à la souris et par deux boutons. Vue à plat avec les mêmes réglages sans WebGL, si l'appareil peine ou au choix du client.
-- Envoi d'image : JPEG, PNG ou WebP, 5 Mo et 4 096 px au plus, format lu dans le contenu du fichier ; SVG et HEIC refusés avec un message qui dit quoi faire. Le navigateur réduit l'image à 2 048 px avant l'envoi, ce qui retire aussi ses métadonnées.
+- Envoi d'image : JPEG, PNG ou WebP, 4 Mo et 4 096 px au plus, format lu dans le contenu du fichier ; SVG et HEIC refusés avec un message qui dit quoi faire. Le navigateur réduit l'image à 2 048 px avant l'envoi, ce qui retire aussi ses métadonnées.
 - Un seul tracé (`src/lib/customizer/paint.ts`) produit la texture 3D, l'aperçu et le fichier d'impression : le vendeur reçoit ce que le client a vu.
 - L'aperçu remplace la photo dans le panier, la confirmation de commande et l'espace client. Dès qu'il y a un texte ou une image à imprimer, la fiche précise que l'article ne sera ni repris ni échangé.
 
@@ -82,7 +83,7 @@ Les données de démonstration sont dans `prisma/catalog.mjs` et `prisma/seed.mj
 - Tableau de bord : chiffre d'affaires, commandes, panier moyen, nouveaux clients (comparés à la période précédente), courbe journalière, meilleures ventes, stock faible, commandes à traiter.
 - Commandes : recherche, filtres par statut, changement de statut, numéro de suivi, remise en stock à l'annulation. Une commande Mobile Money reste « en attente » ; la liste signale « Référence à vérifier » quand le client a déclaré son paiement, et le vendeur clique sur « Paiement reçu » après avoir vérifié sur son téléphone. Rien n'annule automatiquement une commande impayée.
 - Commande personnalisée : « N articles à imprimer » dans la liste ; dans le détail, aperçu en grand, objet, couleur, texte exact, écriture, zone imprimable en millimètres, téléchargement du fichier d'impression et de l'image du client.
-- Produits : création et modification, photos par glisser-déposer (JPG, PNG, WebP ou AVIF, 5 Mo), prix barré, stock, brouillon / en ligne / archivé. Traductions anglaise et malgache dans des onglets, avec le nombre de champs « à traduire » sur l'onglet et dans la liste. Carte « Personnalisation » : gabarit, couleurs proposées, longueur du texte, image autorisée, supplément.
+- Produits : création et modification, photos par glisser-déposer (JPG, PNG, WebP ou AVIF, 4 Mo, réduites à 2 048 px dans le navigateur), prix barré, stock, brouillon / en ligne / archivé. Traductions anglaise et malgache dans des onglets, avec le nombre de champs « à traduire » sur l'onglet et dans la liste. Carte « Personnalisation » : gabarit, couleurs proposées, longueur du texte, image autorisée, supplément.
 - Catégories (mêmes onglets de traduction), clients, codes promo, modération des avis.
 - Zones de livraison : nom dans les trois langues, tarif et délai par zone.
 - Réglages : nom de la boutique, bandeau d'annonce par langue (vide : le français s'affiche), devise, seuil de livraison offerte, numéros Mobile Money et nom du titulaire.
@@ -165,10 +166,6 @@ Avant de livrer un changement : `npm run lint`, `npx tsc --noEmit`, `npm test`, 
 ## Scripts
 
 ```bash
-# Maintenance, depuis la racine du projet, avec le même .env que le serveur
-node scripts/nettoyer-personnalisations.mjs --dry-run   # montre ce qui serait supprimé
-node scripts/nettoyer-personnalisations.mjs             # supprime
-
 # Mesures, contre un serveur de production (par exemple : npm run build && npm run start -- -p 3100)
 node scripts/poids-pages.mjs http://localhost:3100 /fr /fr/products             # octets transférés par page, en quelques secondes
 node scripts/mesure-telephone.mjs http://localhost:3100 --pages=accueil --langues=fr   # temps en 3G lente, plusieurs minutes
@@ -179,22 +176,31 @@ node scripts/apple-icon.mjs                        # src/app/apple-icon.png, dep
 python3 scripts/police-archivo.py <archivo.woff2>  # src/app/fonts/archivo-latin.woff2 (installation en tête du script)
 ```
 
-`nettoyer-personnalisations.mjs` supprime les personnalisations jamais commandées depuis plus de sept jours, et les fichiers « perso-… » que plus rien ne référence. Il ne touche ni aux photos de produits ni à ce qu'une commande utilise. **À lancer chaque jour en production** : le point d'envoi est public, et sans nettoyage le disque se remplit.
-
 `mesure-telephone.mjs` accepte d'autres pages (`catalogue`, `fiche`, `fiche-perso`, `3d`, `panier`, `commande`) et options (profil réseau, ralentissement du processeur, visite avec cache rempli) : voir l'en-tête du script. Ses temps ne valent rien sur une machine chargée.
+
+## Nettoyage quotidien
+
+Le point d'envoi des images de personnalisation est public : sans nettoyage, le stockage se remplit. `src/lib/cleanup.ts` supprime les personnalisations jamais commandées depuis plus de sept jours, puis les fichiers « perso-… » que plus rien ne référence. Il ne touche ni aux photos de produits ni à ce qu'une commande utilise.
+
+Il tourne par la route `GET /api/cron/nettoyage`, protégée par `Authorization: Bearer <CRON_SECRET>` (401 avec un mauvais secret, 503 si `CRON_SECRET` n'est pas défini sur le serveur). `?dry-run=1` compte ce qui partirait sans rien supprimer. En local :
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" "http://localhost:3001/api/cron/nettoyage?dry-run=1"
+```
+
+En production, le flux de travail GitHub Actions `.github/workflows/nettoyage.yml` l'appelle chaque jour à 4 h, heure d'Antananarivo. Il lit deux secrets du dépôt, `SITE_URL` et `CRON_SECRET` (la même valeur que sur Netlify), et se lance aussi à la main depuis l'onglet Actions, avec ou sans essai à blanc. Le dépôt étant public, ses journaux le sont aussi : le flux n'y écrit que des nombres, jamais les noms des fichiers. GitHub met en pause les tâches planifiées d'un dépôt public sans activité depuis 60 jours : il faut alors les réactiver depuis l'onglet Actions.
 
 ## Ce qu'il reste à brancher avant une vraie mise en ligne
 
 - **Paiement** : aucune liaison avec les opérateurs. Le vendeur vérifie lui-même sur son téléphone que l'argent est arrivé ; la référence saisie par le client n'est contrôlée que sur sa forme. Une API marchande Mobile Money demande un compte marchand. Les numéros Mobile Money de démonstration sont fictifs : saisir les vrais dans les réglages.
 - **E-mails et SMS** : rien n'est envoyé (confirmation, expédition). Il n'y a pas de procédure « mot de passe oublié ». La lettre d'information enregistre des adresses, mais rien ne s'en sert.
 - **Base de données** : PostgreSQL en local. La base hébergée (Neon) et l'application des migrations en production viennent avec la mise en ligne (phase 7A de `PLAN.md`).
-- **Fichiers envoyés** : écrits sur le disque local (`uploads/`). Vercel, sur lequel un envoi vers GitHub déclenche un déploiement, n'a pas de disque persistant : il faut un stockage objet, et une base hébergée. Les aperçus et fichiers d'impression sont servis à tous sous leur nom imprévisible (`/uploads/…`). Le serveur ne réencode pas les images : un envoi qui contourne le navigateur garde ses métadonnées.
+- **Fichiers envoyés** : sur le disque en local et dans les tests (`uploads/`, `uploads-test/`), dans Netlify Blobs sur Netlify (`src/lib/storage.ts`, seul module qui y touche). Un envoi pèse 4 Mo au plus, parce qu'une fonction Netlify refuse toute requête de plus de 6 Mo et que le fichier y arrive encodé en Base64 ; le navigateur réduit les photos à 2048 px avant l'envoi. Les aperçus et fichiers d'impression sont servis à tous sous leur nom imprévisible (`/uploads/…`). Le serveur ne réencode pas les images : un envoi qui contourne le navigateur garde ses métadonnées.
 - **Limites de débit** : en mémoire, remises à zéro au redémarrage, valables pour un seul serveur. L'adresse du visiteur est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance : les limites par adresse IP se contournent alors (celles par e-mail, par compte et par commande tiennent). À régler avec l'hébergeur.
-- **Heures du back-office** : affichées dans le fuseau du serveur. Sur un serveur en UTC, elles ont 3 h de retard, et entre minuit et 3 h « aujourd'hui » est encore la veille dans le tableau de bord. Les dates de livraison promises sont calculées à l'heure de Madagascar (`madagascarTime()`, `src/lib/shipping.ts`).
 - **Montants** : 20 000 000 Ar au plus par prix, tarif ou commande (`MAX_ORDER_CENTS`), parce que les colonnes de montant sont des entiers 32 bits. Au-delà, passer ces colonnes en BigInt.
 - **CSP** : aucune politique de sécurité du contenu pour l'instant. Elle devra autoriser le `<style>` en ligne écrit par `experimental.inlineCss` (`next.config.ts`), option expérimentale à revérifier à chaque mise à jour de Next.
 - **Malgache** : rédigé par Claude, à faire relire par un locuteur natif (termes incertains dans `docs/glossaire.md` et `PROGRESS.md`). Les caractéristiques des produits de démonstration ne sont pas traduites en malgache.
-- **Textes à valider** : mentions légales et CGV (modèle à compléter : éditeur, hébergeur) ; conditions de retour (30 jours sur la fiche, l'aide et les CGV), qui ne disent pas encore qu'un article personnalisé n'est ni repris ni échangé ; page « Qui sommes-nous », proposée par Claude.
+- **Textes à valider** : mentions légales et CGV (modèle à compléter : éditeur, hébergeur) ; modalités de remboursement des retours (Mobile Money sous 5 jours ouvrés, reprise « convenue avec vous » : hypothèses à confirmer) ; page « Qui sommes-nous », proposée par Claude.
 - **Comptes de démonstration** : supprimer `admin@alarobia.example`, `client@alarobia.example` et les codes promo de démonstration. Ne jamais lancer `npm run db:seed` sur la base de production : il la vide.
 
 ## Commandes utiles

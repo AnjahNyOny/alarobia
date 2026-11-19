@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CUSTOM_FILE } from "../customization";
 import { checkAdminUpload, checkUpload, customFileName, MAX_UPLOAD_BYTES, scaleToFit, sniffImage, sniffType } from "../upload";
-import { staleFiles } from "../../../scripts/nettoyer-personnalisations.mjs";
 
 const bytes = (...parts: (number[] | string)[]) => Uint8Array.from(parts.flatMap((p) => (typeof p === "string" ? Array.from(p, (c) => c.charCodeAt(0)) : p)));
 const be32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
@@ -84,6 +83,12 @@ describe("checkUpload", () => {
     heavy.set(jpeg(4000, 3000));
     expect(checkUpload(heavy)).toEqual({ ok: false, error: "tooLarge" });
   });
+  it("refuse une image de plus de 4 Mo : au-delà, la fonction Netlify refuserait la requête encodée en Base64", () => {
+    const heavy = new Uint8Array(4 * 1024 * 1024 + 1);
+    heavy.set(png(2048, 1536));
+    expect(checkUpload(heavy)).toEqual({ ok: false, error: "tooLarge" });
+    expect(checkAdminUpload(heavy)).toEqual({ ok: false, error: "tooLarge" });
+  });
   it("accepte une image juste à la limite de poids", () => {
     const limit = new Uint8Array(MAX_UPLOAD_BYTES);
     limit.set(png(100, 100));
@@ -157,28 +162,5 @@ describe("customFileName", () => {
   });
   it("ne donne jamais deux fois le même nom", () => {
     expect(customFileName("jpg")).not.toBe(customFileName("jpg"));
-  });
-});
-
-describe("staleFiles : nettoyage des images jamais commandées", () => {
-  const DAY = 864e5;
-  const now = 100 * DAY;
-  const name = (n: number) => `perso-00000000-0000-4000-8000-${String(n).padStart(12, "0")}.jpg`;
-  it("supprime un fichier de personnalisation de plus de sept jours que rien ne référence", () => {
-    expect(staleFiles([{ name: name(1), mtimeMs: now - 8 * DAY }], new Set(), now)).toEqual([name(1)]);
-  });
-  it("garde un fichier récent : son auteur est peut-être encore en train de commander", () => {
-    expect(staleFiles([{ name: name(1), mtimeMs: now - 6 * DAY }], new Set(), now)).toEqual([]);
-  });
-  it("garde un fichier ancien encore référencé par une personnalisation ou une commande", () => {
-    expect(staleFiles([{ name: name(1), mtimeMs: now - 90 * DAY }], new Set([name(1)]), now)).toEqual([]);
-  });
-  it("ne touche jamais aux autres fichiers du dossier, comme les photos de produits", () => {
-    const files = [
-      { name: "3f0c7a52-1b2c-4d3e-8f90-a1b2c3d4e5f6.jpg", mtimeMs: 0 },
-      { name: ".gitkeep", mtimeMs: 0 },
-      { name: "perso-notes.txt", mtimeMs: 0 },
-    ];
-    expect(staleFiles(files, new Set(), now)).toEqual([]);
   });
 });

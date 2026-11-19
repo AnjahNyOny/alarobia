@@ -1,11 +1,10 @@
 import { MAX_UPLOAD_BYTES, scaleToFit, sniffType, type UploadError } from "@/lib/upload";
-import { canvasBlob } from "./texture";
 
 /**
- * Envoi d'une image par le client. Le navigateur fait le gros du travail avant d'envoyer : il écarte
- * tout de suite un fichier qui n'est pas une photo, réduit l'image à 2048 px (une photo de téléphone
- * de 6 Mo en pèse alors quelques centaines de ko, ce qui compte en données mobiles) et retire au
- * passage les métadonnées, dont la position GPS. Le serveur recontrôle tout (`src/lib/upload.ts`).
+ * Envoi d'une image par le client, et réduction des photos du vendeur (`reduceImage`). Le navigateur fait le gros
+ * du travail avant d'envoyer : il écarte tout de suite un fichier qui n'est pas une photo, réduit l'image à 2048 px
+ * (une photo de téléphone de 6 Mo en pèse alors quelques centaines de ko, ce qui compte en données mobiles) et
+ * retire au passage les métadonnées, dont la position GPS. Le serveur recontrôle tout (`src/lib/upload.ts`).
  */
 export type SendError = UploadError | "network";
 export type SentImage = {
@@ -17,6 +16,14 @@ export type SentImage = {
 
 const UPLOAD_ERRORS: UploadError[] = ["missing", "tooLarge", "heic", "type", "dimensions", "rate"];
 
+/**
+ * Contenu d'un canevas en fichier. Rangé ici plutôt qu'avec le dessin (`texture.ts`), qui importe les polices de la
+ * personnalisation : le back-office réduit ses photos avec ce module et ne doit pas les recevoir (`admin-fonts.test.ts`).
+ */
+export function canvasBlob(canvas: HTMLCanvasElement, type: "image/png" | "image/jpeg" | "image/webp", quality?: number) {
+  return new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("export du canevas impossible"))), type, quality));
+}
+
 type Encoding = "image/png" | "image/jpeg" | "image/webp";
 // Formats de sortie essayés dans l'ordre, selon le fichier reçu. Un PNG reste un PNG (logo, transparence) tant qu'il tient dans la limite.
 const OUTPUTS: Record<"jpg" | "png" | "webp" | "heic", Encoding[]> = {
@@ -26,7 +33,11 @@ const OUTPUTS: Record<"jpg" | "png" | "webp" | "heic", Encoding[]> = {
   webp: ["image/webp", "image/jpeg"],
 };
 
-async function prepare(file: File): Promise<{ ok: true; blob: Blob } | { ok: false; error: UploadError }> {
+/**
+ * Photo prête à envoyer : contrôlée, réduite à 2048 px de grand côté et réencodée sous 4 Mo. Sert à l'image du client
+ * et aux photos de produits du back-office (`admin/image-uploader.tsx`).
+ */
+export async function reduceImage(file: File): Promise<{ ok: true; blob: Blob } | { ok: false; error: UploadError }> {
   if (file.size === 0) return { ok: false, error: "missing" };
   const kind = sniffType(new Uint8Array(await file.slice(0, 16).arrayBuffer()));
   if (!kind) return { ok: false, error: "type" };
@@ -84,6 +95,6 @@ export async function sendBlob(blob: Blob): Promise<{ ok: true; image: SentImage
 }
 
 export async function sendImage(file: File) {
-  const prepared = await prepare(file);
-  return prepared.ok ? sendBlob(prepared.blob) : prepared;
+  const reduced = await reduceImage(file);
+  return reduced.ok ? sendBlob(reduced.blob) : reduced;
 }

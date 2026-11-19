@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type Locator, type Page, type Request } from "@playwright/test";
 
 /** Échoue le test si la page émet une erreur JavaScript, une erreur console ou une réponse 5xx. */
 export function watchErrors(page: Page) {
@@ -31,6 +31,75 @@ export const CLIENT = { email: "client@alarobia.example", password: "client1234"
  * message d'erreur s'affiche.
  */
 export const CART_ADD_TIMEOUT = 15_000;
+
+/**
+ * Limite d'envoi voulue, 4 Mo : une requête vers une fonction Netlify ne dépasse pas 6 Mo, et le fichier y arrive encodé en
+ * Base64. Écrite ici plutôt qu'importée de `src/lib/upload.ts` (`MAX_UPLOAD_BYTES`) : relever la constante doit faire échouer ces tests.
+ */
+export const UPLOAD_LIMIT = 4 * 1024 * 1024;
+
+/**
+ * Photo de téléphone de plus de 8 Mo (4000 × 3000, JPEG à 0,95), fabriquée dans la page plutôt que rangée dans le dépôt :
+ * un dégradé couvert d'un bruit pseudo-aléatoire, que le JPEG compresse mal, comme le grain d'une vraie photo.
+ * Le bruit est toujours le même : 9,2 Mo dans Chrome, réduite à 2048 px elle en pèse 1,1.
+ */
+export async function heavyPhoto(page: Page) {
+  const base64 = await page.evaluate(async () => {
+    const width = 4000;
+    const height = 3000;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d")!;
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#c2410c");
+    gradient.addColorStop(0.5, "#15803d");
+    gradient.addColorStop(1, "#1d4ed8");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    const pixels = ctx.getImageData(0, 0, width, height);
+    let seed = 0x9e3779b9;
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      for (let c = 0; c < 3; c++) {
+        seed ^= seed << 13;
+        seed ^= seed >>> 17;
+        seed ^= seed << 5;
+        pixels.data[i + c] += ((seed >>> 0) / 2 ** 32 - 0.5) * 120;
+      }
+    }
+    ctx.putImageData(pixels, 0, 0);
+    const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.95));
+    const url = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+    return url.slice(url.indexOf(",") + 1);
+  });
+  return Buffer.from(base64, "base64");
+}
+
+/**
+ * Poids du corps d'une requête tel que Chrome l'a envoyé, enveloppe du formulaire comprise. On lit l'en-tête
+ * Content-Length : Playwright ne voit pas le contenu d'un fichier joint (`request.sizes()` y donne 0).
+ */
+export async function sentBytes(request: Request) {
+  return Number(await request.headerValue("content-length"));
+}
+
+/** Dimensions réelles d'une image servie, lues par le navigateur. */
+export function naturalSize(page: Page, url: string) {
+  return page.evaluate(
+    (src) =>
+      new Promise<{ width: number; height: number }>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        img.onerror = () => reject(new Error(`image illisible : ${src}`));
+        img.src = src;
+      }),
+    url,
+  );
+}
 
 /** Critères vérifiés par axe : WCAG 2.0 et 2.1, niveaux A et AA (plancher du projet, PLAN.md « Contraintes »). */
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];

@@ -14,8 +14,8 @@ import { MAX_UPLOAD_BYTES } from "@/lib/upload";
 import { cn } from "@/lib/utils";
 import { useCustomizer } from "./customizer-context";
 import { fontStyle } from "./fonts";
-import { sendBlob, sendImage, type SendError } from "./send-image";
-import { canvasBlob, ensureFont, loadImage, paintFlat, paintZone } from "./texture";
+import { canvasBlob, sendBlob, sendImage, type SendError } from "./send-image";
+import { ensureFont, loadImage, paintFlat, paintZone } from "./texture";
 
 /**
  * Colonne de droite de la fiche d'un produit personnalisable. Onglet « Photos » : l'achat habituel et une

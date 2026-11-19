@@ -78,7 +78,7 @@ prisma/schema.prisma     modèle de données (statuts en chaînes, pas d'enum)
 prisma/migrations/       migrations appliquées en production (prisma migrate deploy)
 prisma/seed.mjs          données de démonstration, déterministes
 src/actions/             actions serveur : toute écriture en base passe par ici
-src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, promo (code consommé sous condition), schemas Zod, format, localize (repli sur le français), address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées), rate-limit (limites de débit, en mémoire), seo (canonique, hreflang), stock (réservation à la commande, remise en stock)
+src/lib/                 db, auth (JWT en cookie), cart (cookie), pricing, promo (code consommé sous condition), schemas Zod, format, localize (repli sur le français), address (provinces, téléphone), shipping (zones, dates promises), customization (dessin d'un client), upload (contrôle des images envoyées), storage (seul module qui lit ou écrit les envois : disque en local, Netlify Blobs en ligne), cleanup (nettoyage des personnalisations abandonnées), rate-limit (limites de débit, en mémoire), seo (canonique, hreflang), stock (réservation à la commande, remise en stock)
 src/lib/customizer/      mise en place du dessin (layout), tracé sur canevas (paint), objet vu à plat (flat) : fonctions pures, testées
 src/components/customizer/  personnalisation : scène 3D (scene, models), objet en direct 3D ou à plat (live-object), onglets et réglages de la fiche (stage, controls), démonstration de l'accueil (home-demo), chargement à la demande (lazy, fiche), écritures proposées (fonts)
 src/components/ui/       shadcn/ui
@@ -91,9 +91,10 @@ messages/                textes de l'interface : fr.json (socle), en.json, mg.js
 src/app/globals.css      jetons de design, polices de remplacement calibrées
 src/app/fonts/           Archivo réduite aux graisses et largeurs du site (scripts/police-archivo.py)
 assets/fonts/            Archivo en instances fixes pour l'image de partage (satori), licence OFL
-uploads/                 fichiers envoyés, servis par src/app/uploads/[name]/route.ts
+uploads/                 fichiers envoyés en local (Netlify Blobs en ligne), servis par src/app/uploads/[name]/route.ts
+.github/workflows/       nettoyage quotidien : appelle /api/cron/nettoyage avec CRON_SECRET
 e2e/                     tests navigateur ; parcours complets dans les trois langues : parcours*.spec.ts, étapes dans parcours.ts
-scripts/                 mesures (poids, 3G, hydratation), nettoyage des personnalisations, icône, police
+scripts/                 mesures (poids, 3G, hydratation), icône, police
 ```
 
 ## Règles de code
@@ -105,7 +106,7 @@ scripts/                 mesures (poids, 3G, hydratation), nettoyage des personn
 - **Formulaires** : utiliser `<Form>` de `src/components/form.tsx`, pas `<form action>`. React 19 vide les champs après une action ; `<Form>` conserve la saisie en cas d'erreur.
 - **Navigation** : importer `Link`, `useRouter`, `usePathname` depuis `@/i18n/navigation` (jamais `next/link`), et rediriger côté serveur avec `redirectTo` de `@/i18n/server`. Les chemins s'écrivent sans préfixe de langue.
 - **Boutons-liens** : `buttonVariants()` passe par `cn` pour que la variante remplace bien les classes de base. Ne pas appeler `cva` directement.
-- **Fichiers envoyés** : nom généré côté serveur, type et taille contrôlés, jamais de chemin fourni par le client.
+- **Fichiers envoyés** : nom généré côté serveur, type et taille contrôlés (4 Mo au plus : une fonction Netlify refuse une requête de plus de 6 Mo, Base64 compris), jamais de chemin fourni par le client. Toute lecture ou écriture passe par `src/lib/storage.ts`, jamais par `node:fs` : en ligne, le disque d'une fonction ne dure pas et le fichier serait perdu sans bruit.
 - **Textes** : aucun texte en dur dans les composants une fois la phase 1 faite ; tout passe par les fichiers de messages, dans les trois langues.
 
 ## Règles de design
@@ -156,4 +157,4 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 
 ## Limites actuelles (voir phase 7)
 
-Paiement Mobile Money confirmé à la main par le vendeur (pas d'API opérateur), aucun e-mail envoyé, fichiers sur disque local, limites de débit en mémoire et adresse du client forgeable sans proxy de confiance, heures du back-office dans le fuseau du serveur, mentions légales à compléter, malgache à faire relire.
+Paiement Mobile Money confirmé à la main par le vendeur (pas d'API opérateur), aucun e-mail envoyé, limites de débit en mémoire et adresse du client forgeable sans proxy de confiance, mentions légales à compléter, malgache à faire relire.

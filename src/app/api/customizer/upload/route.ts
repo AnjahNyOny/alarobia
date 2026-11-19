@@ -1,8 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
 import { clientIp, createRateLimiter } from "@/lib/rate-limit";
-import { checkUpload, customFileName, MAX_UPLOAD_BYTES, type UploadError } from "@/lib/upload";
-import { uploadDir, uploadPath } from "@/lib/upload-dir";
+import { saveUpload } from "@/lib/storage";
+import { checkUpload, customFileName, IMAGE_MIME, MAX_UPLOAD_BYTES, type UploadError } from "@/lib/upload";
 
 /**
  * Envoi d'une image par un visiteur, pour la personnaliser sur un objet. Point d'envoi public :
@@ -12,7 +11,7 @@ import { uploadDir, uploadPath } from "@/lib/upload-dir";
 
 // Soixante envois par adresse et par dizaine de minutes. Chaque ajout au panier en fait deux (aperçu et fichier d'impression),
 // et les opérateurs mobiles font sortir beaucoup de clients par la même adresse : une limite plus basse gênerait des acheteurs.
-// Au pire, une adresse remplit 300 Mo en dix minutes ; le nettoyage (`scripts/nettoyer-personnalisations.mjs`, chaque jour) les reprend après sept jours. À ajuster avec le trafic réel.
+// Au pire, une adresse remplit 240 Mo en dix minutes ; le nettoyage (`/api/cron/nettoyage`, chaque jour) les reprend après sept jours. À ajuster avec le trafic réel.
 const allow = createRateLimiter({ limit: 60, windowMs: 10 * 60_000 });
 
 const STATUS: Record<UploadError, number> = { missing: 400, tooLarge: 413, heic: 415, type: 415, dimensions: 422, rate: 429 };
@@ -40,8 +39,6 @@ export async function POST(req: Request) {
 
   // Ni le nom ni le type annoncés par le navigateur ne servent : l'extension vient du contenu, le nom est généré.
   const name = customFileName(checked.ext);
-  const dir = uploadDir();
-  await mkdir(dir, { recursive: true });
-  await writeFile(uploadPath(name), bytes);
+  await saveUpload(name, bytes, IMAGE_MIME[checked.ext]);
   return NextResponse.json({ name, url: `/uploads/${name}`, width: checked.width, height: checked.height });
 }

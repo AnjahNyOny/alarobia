@@ -8,13 +8,20 @@
  * expliquer un refus avant d'envoyer quoi que ce soit.
  */
 
-export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+/**
+ * Poids maximal d'un envoi. Les fonctions Netlify refusent une requête de plus de 6 Mo, et l'image y arrive encodée
+ * en Base64 (un tiers de plus) : au-delà de 4,5 Mo de fichier, l'hébergeur répondrait par une erreur sans explication
+ * (https://docs.netlify.com/build/functions/configuration/). Le navigateur réduit les images avant l'envoi.
+ */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 /** Côté maximal, en pixels. Le navigateur réduit déjà les photos à 2048 px ; au-delà de 4096, c'est une erreur ou une attaque. */
 export const MAX_SIDE = 4096;
 /** Grand côté d'une image après réduction dans le navigateur : assez pour imprimer, léger à envoyer en données mobiles. */
 export const RESIZE_SIDE = 2048;
 
 export type ImageType = "jpg" | "png" | "webp";
+/** Type MIME de chaque format enregistré, d'après l'extension que le serveur a donnée au fichier (l'AVIF vient du vendeur seul). */
+export const IMAGE_MIME: Record<ImageType | "avif", string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp", avif: "image/avif" };
 export type UploadError = "missing" | "tooLarge" | "heic" | "type" | "dimensions" | "rate";
 type Sniffed = { type: ImageType; width: number; height: number } | { error: "heic" | "type" };
 
@@ -103,7 +110,8 @@ const AVIF_BRANDS = new Set(["avif", "avis"]);
 /**
  * Photo de produit envoyée depuis le back-office. Même contrôle sur le contenu que pour les visiteurs, avec deux
  * différences : l'AVIF est accepté (réservé au vendeur, le public ne l'a pas), et la taille en pixels n'est pas
- * plafonnée (une photo d'appareil dépasse souvent 4096 px ; le poids reste limité à 5 Mo).
+ * plafonnée (une photo d'appareil dépasse souvent 4096 px ; le poids reste limité à 4 Mo, et le back-office réduit
+ * les photos à 2048 px avant l'envoi).
  */
 export function checkAdminUpload(bytes: Uint8Array): { ok: true; ext: ImageType | "avif" } | { ok: false; error: AdminUploadError } {
   if (bytes.length === 0) return { ok: false, error: "missing" };
