@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 19/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) en cours** : 7.0 à 7.4 faites, détail dans `PLAN.md`.
+**État au 19/11/2026** : phases 0 à 6 faites. **Phase 7A faite : la boutique est en ligne sur `https://alarobia-shop.netlify.app`** (offre gratuite de Netlify, base Neon), un seul produit publié (la tasse) en attendant que le propriétaire corrige et publie les autres.
 
-**Prochaine action** : étape 8 de la 7.5, chez le propriétaire (une vraie commande payée à la livraison sur `https://alarobia-shop.netlify.app`, puis son annulation dans le back-office). Ensuite la tâche 7.6 (aperçus sans crédits), qui demande d'abord une branche Neon `preview` et des variables par contexte sur Netlify. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : tâche 7.6 (aperçus sans crédits), qui demande d'abord au propriétaire une branche Neon `preview` et des valeurs de variables par contexte sur Netlify. Restes de la 7A : vérifier le premier vrai passage du nettoyage (20/11, 01:00 UTC, `gh run list --workflow=nettoyage.yml`), retirer `/api/cron/adresse` et reporter les paramètres Neon dans `.env.example` au prochain lot de code, région des fonctions Netlify à relever. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -117,7 +117,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.3 Heures à l'heure de Madagascar : instants (commandes, paiements, avis, inscriptions) et tableau de bord par jour de Madagascar, fin des codes promo à 23:59:59 à Antananarivo, année du pied de page ; tests unitaires en `TZ=UTC` sous trois fuseaux, suite navigateur avec le serveur en UTC et le navigateur à Antananarivo. Vérifié : lint et types propres, 365 tests unitaires, 123 parcours navigateur
 - [x] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), moteur Prisma pour les fonctions Netlify, adresse du site (`URL` en repli) et du client (`x-nf-client-connection-ip`), en-têtes de sécurité, `prisma/init-production.mjs` (produits en brouillon sauf la tasse, aucune donnée inventée), catalogue écrit par un module partagé avec le seed. Vérifié : lint et types propres, 438 tests unitaires, 134 parcours navigateur, compilation propre, en-têtes contrôlés sur une compilation de production
 - [x] 7.4b Boutique de départ (ajoutée le 19/11/2026) : moyens de paiement annoncés selon les numéros saisis (accueil, aide, « Qui sommes-nous », fiche), rayon vide, catalogue vide, Promotions sans prix réduit, tableau de bord sans commande ; fr, en, mg. Vérifié : lint et types propres, 443 tests unitaires, 141 parcours navigateur, compilation propre, captures relues
-- [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle. Étape 0 faite le 19/11/2026 (route de diagnostic, `npm run test:prod`, clé `ignore` de `netlify.toml`)
+- [x] 7.5 Mise en ligne sur `https://alarobia-shop.netlify.app` : Vercel supprimé, base Neon (us-east-2, Postgres 18) remplie par `init-production.mjs`, contrôle en ligne 23 sur 23 (adresse du client non falsifiable confirmée), poids sous les budgets, nettoyage à blanc réussi depuis GitHub, commande réelle passée puis annulée par le propriétaire (stock de la tasse 85 → 84 → 85). **Livrable 7A atteint** (19/11/2026)
 
 - [ ] 7.6 Aperçus sur une branche `preview`, sans crédits : base Neon à part, secrets distincts, images à part, pas d'indexation (proposé par le propriétaire le 19/11/2026)
 
@@ -641,4 +641,6 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
   - **Poids en ligne** (`poids-pages.mjs`, octets transférés, 390 px) : accueil 331,5 ko (JS 214,5), `/mg` 329,5, catalogue 329,7 (JS 211,9), fiche de la tasse 341,0 (JS 223,6), panier 318,6, commande 318,8, police 57,4 : tous sous les budgets de `e2e/performance.spec.ts`.
   - **Nettoyage** : flux GitHub lancé à la main en essai à blanc, réussi (0 personnalisation abandonnée, 0 fichier : rien n'a encore sept jours) ; le journal public n'affiche que des nombres. Premier vrai passage cette nuit à 01:00 UTC.
 - Reste de la 7.5 : la commande réelle du propriétaire (étape 8) ; la région des fonctions Netlify n'a pas été relevée (la base est en us-east-2, région par défaut des fonctions) ; `.env.secrets.local` à supprimer par le propriétaire une fois les secrets rangés ailleurs.
+- **Commande réelle** (étape 8) : passée par le propriétaire, paiement à la livraison, puis annulée depuis le back-office ; stock de la tasse 85 → 84 → 85, conforme. **Le propriétaire n'a pas trouvé comment annuler** : l'annulation passe par la liste « Statut » de la carte « Traitement » puis « Enregistrer », sans bouton à part. Proposé : un bouton « Annuler la commande » avec confirmation, dans un premier lot passé par les aperçus (7.6).
+- **Phase 7A terminée.**
 
