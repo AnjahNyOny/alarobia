@@ -134,7 +134,7 @@ describe("sur Netlify : Netlify Blobs", () => {
 
   it("enregistre dans le magasin « uploads », en cohérence forte, avec le type et la date d'envoi", async () => {
     await saveUpload("photo.png", PNG, "image/png");
-    expect(getStore).toHaveBeenCalledWith({ name: "uploads", consistency: "strong" });
+    expect(getStore).toHaveBeenCalledWith({ name: "uploads", consistency: "strong", fetch: expect.any(Function) });
     const saved = store.blobs.get("photo.png");
     expect(new Uint8Array(saved!.data)).toEqual(PNG);
     expect(saved!.metadata).toEqual({ contentType: "image/png", uploadedAt: NOW.toISOString() });
@@ -185,14 +185,14 @@ describe("sur Netlify : Netlify Blobs", () => {
       expect(await uploadExists("photo.png")).toBe(true);
       await listUploads("perso-");
       await deleteUploads(["photo.png"]);
-      expect(getStore.mock.calls.map(([options]) => options), context).toEqual(Array(5).fill({ name: "uploads-preview", consistency: "strong" }));
+      expect(getStore.mock.calls.map(([options]) => options), context).toEqual(Array(5).fill({ name: "uploads-preview", consistency: "strong", fetch: expect.any(Function) }));
     }
   });
 
   it("valeur figée absente sur Netlify : « uploads-preview », jamais le magasin de la production", async () => {
     vi.stubEnv("DEPLOY_CONTEXT", undefined);
     await saveUpload("photo.png", PNG, "image/png");
-    expect(getStore).toHaveBeenCalledWith({ name: "uploads-preview", consistency: "strong" });
+    expect(getStore).toHaveBeenCalledWith({ name: "uploads-preview", consistency: "strong", fetch: expect.any(Function) });
   });
 
   it("le contexte de Netlify Blobs suffit à le choisir, même sans SITE_ID", async () => {

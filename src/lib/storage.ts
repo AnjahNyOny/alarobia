@@ -49,10 +49,31 @@ function unavailable(operation: string, error: unknown) {
   return new Error(`Netlify Blobs injoignable (magasin « ${storeName()} », ${operation}) : ${reason}.${missing} Rien n'a été écrit sur le disque de la fonction, qui ne dure pas.`, { cause: error });
 }
 
+/** Statuts sans corps : `new Response` refuse d'en recevoir un. */
+const NO_BODY = new Set([101, 103, 204, 205, 304]);
+
+/**
+ * `fetch` donné au client de Netlify Blobs : celui du moment (dans une route, celui de Next.js), mais avec un corps lu
+ * en entier et rendu dans une réponse neuve.
+ *
+ * Pourquoi : dans le serveur Next.js, `globalThis.fetch` déduplique les GET et rend un corps issu d'un `tee()`
+ * (`createDedupeFetch` et `cloneResponse`, next/dist/server/lib/). Le client jette le corps d'un 404, d'une erreur ou
+ * d'une réponse qu'il va réessayer par `res.body.cancel()` (`discardBody`, @netlify/blobs) ; or l'annulation d'une seule
+ * branche d'un `tee()` n'aboutit qu'avec celle de l'autre branche, que Next garde. La lecture d'un fichier absent restait
+ * donc suspendue jusqu'au délai de la fonction (502 au bout de 30 s en ligne, 19/11/2026), et une panne du magasin aussi,
+ * au lieu de l'erreur qui la nomme. Lire le corps, lui, aboutit : c'est ce que fait déjà la lecture d'un fichier présent.
+ * Coût : le corps est en mémoire, ce que la lecture d'un envoi (`arrayBuffer`) demande de toute façon.
+ */
+const blobsFetch: typeof fetch = async (input, init) => {
+  const res = await globalThis.fetch(input, init);
+  const body = res.body === null || NO_BODY.has(res.status) ? null : await res.arrayBuffer();
+  return new Response(body, { status: res.status, statusText: res.statusText, headers: res.headers });
+};
+
 /** Ouvre le magasin et y fait `run` ; toute panne devient une erreur qui dit laquelle. */
 async function inStore<T>(operation: string, run: (store: Store) => Promise<T>): Promise<T> {
   try {
-    return await run(getStore({ name: storeName(), consistency: "strong" }));
+    return await run(getStore({ name: storeName(), consistency: "strong", fetch: blobsFetch }));
   } catch (error) {
     throw unavailable(operation, error);
   }

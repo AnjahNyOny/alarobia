@@ -43,4 +43,14 @@ describe("GET /uploads/[name]", () => {
     expect((await get("..%2F.env")).status).toBe(404);
     expect((await get("page.html")).status).toBe(404);
   });
+
+  it("404 gardé 5 s par le réseau de Netlify, jamais par le navigateur", async () => {
+    // Un robot qui redemande la même adresse absente ne relance pas la fonction à chaque fois. Court : une absence peut
+    // devenir une présence, et le navigateur redemande toujours (aucune image manquante ne lui reste en mémoire).
+    for (const name of ["perso-00000000-0000-4000-8000-000000000002.png", "page.html"]) {
+      const res = await get(name);
+      expect(res.headers.get("netlify-cdn-cache-control"), name).toBe("public, max-age=5");
+      expect(res.headers.get("cache-control"), name).toBe("no-store");
+    }
+  });
 });
