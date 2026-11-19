@@ -74,9 +74,11 @@ async function main() {
     // relancé. Délai large : depuis Madagascar, chaque requête traverse l'océan jusqu'à la base.
     const created = await db.$transaction(
       async (tx) => {
-        await tx.storeSettings.create({
-          data: { id: 1, ...settings, mvolaNumber: "", orangeMoneyNumber: "", airtelMoneyNumber: "", contactEmail: email },
-        });
+        // `upsert` et non `create` : la première page affichée du site en ligne crée déjà la ligne de réglages, avec les
+        // valeurs par défaut (getSettings, src/lib/settings.ts). Personne n'a pu la modifier (aucun compte administrateur
+        // n'existe avant ce script) : on la remplace.
+        const storeSettings = { ...settings, mvolaNumber: "", orangeMoneyNumber: "", airtelMoneyNumber: "", contactEmail: email };
+        await tx.storeSettings.upsert({ where: { id: 1 }, update: storeSettings, create: { id: 1, ...storeSettings } });
         await writeShippingZones(tx);
         const catalog = await writeCatalog(tx, { status });
         await tx.user.create({ data: { email, name: "Administration", role: "ADMIN", passwordHash } });

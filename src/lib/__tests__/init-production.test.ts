@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import bcrypt from "bcryptjs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { categories, products, shippingZones } from "../../../prisma/catalog.mjs";
+import { categories, products, settings as catalogSettings, shippingZones } from "../../../prisma/catalog.mjs";
 import { onlyOnline } from "../../../prisma/write-catalog.mjs";
 import { createDb, type Db } from "../db";
 import { dropSchema, prismaEnv, ROOT, scratchSchema } from "@/test/database";
@@ -116,6 +116,9 @@ describe("init-production.mjs : refus avant toute écriture", () => {
 
 describe("init-production.mjs : première exécution sur une base vide", () => {
   it("crée les réglages, les zones, les rayons, les produits et le compte administrateur, rien d'autre", async () => {
+    // Comme en vrai : le site est en ligne avant le script, et sa première page affichée a créé la ligne de réglages par
+    // défaut (getSettings, src/lib/settings.ts). Le 19/11/2026, ce doublon faisait échouer le script sur la base Neon.
+    await db!.storeSettings.create({ data: { id: 1 } });
     const out = withBase({ ADMIN_EMAIL, ADMIN_PASSWORD });
     expect(out.status, `${out.stdout}${out.stderr}`).toBe(0);
     expect(await counts()).toEqual({
@@ -140,6 +143,8 @@ describe("init-production.mjs : première exécution sur une base vide", () => {
   it("laisse les numéros Mobile Money vides (paiement à la livraison seulement) et prend ADMIN_EMAIL comme adresse de contact", async () => {
     const settings = await db!.storeSettings.findUniqueOrThrow({ where: { id: 1 } });
     expect(settings).toMatchObject({ mvolaNumber: "", orangeMoneyNumber: "", airtelMoneyNumber: "", contactEmail: "vendeur@alarobia.mg", currency: "MGA" });
+    // Les valeurs par défaut de la ligne laissée par la première visite sont remplacées par celles du catalogue.
+    expect(settings).toMatchObject({ announcement: catalogSettings.announcement, freeShippingThresholdCents: catalogSettings.freeShippingThresholdCents, mobileMoneyName: catalogSettings.mobileMoneyName });
   });
 
   it("met en ligne la seule tasse personnalisable, avec ses réglages, et laisse les 26 autres produits en brouillon", async () => {
