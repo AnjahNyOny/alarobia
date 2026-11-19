@@ -8,12 +8,11 @@ import { expectSecurityHeaders, watchErrors } from "./helpers";
  *   PROD_URL             adresse du site, obligatoire (https://<nom>.netlify.app)
  *   PROD_ADMIN_EMAIL     compte administrateur du site en ligne  } connexion au back-office
  *   PROD_ADMIN_PASSWORD                                          }
- *   PROD_CRON_SECRET     valeur de CRON_SECRET sur Netlify : diagnostic de l'adresse du client
  *
  * Un test dont la variable manque est sauté, et le dit. Ce que la spec fait sur le site : elle lit des pages, envoie une
- * petite image de personnalisation (que le nettoyage quotidien effacera au bout de sept jours), se connecte une fois au
- * back-office et appelle la route de diagnostic. Elle n'ajoute rien au panier, ne passe aucune commande, ne modifie rien
- * dans le back-office et ne lance pas le nettoyage.
+ * petite image de personnalisation (que le nettoyage quotidien effacera au bout de sept jours) et se connecte une fois au
+ * back-office. Elle n'ajoute rien au panier, ne passe aucune commande, ne modifie rien dans le back-office et ne lance
+ * pas le nettoyage.
  */
 
 const PROD_URL = process.env.PROD_URL!;
@@ -170,27 +169,6 @@ test.describe("en-têtes et référencement sur l'adresse en ligne", () => {
 });
 
 test.describe("routes /api/cron", () => {
-  // Adresses de documentation (RFC 5737) : elles n'appartiennent à personne.
-  const FAKE_NF = "203.0.113.7";
-  const FAKE_FORWARDED = "198.51.100.9";
-
-  test("adresse du client : un x-nf-client-connection-ip ou un x-forwarded-for envoyés par le client ne sont pas retenus", async ({ request }) => {
-    const secret = required("PROD_CRON_SECRET", "valeur de CRON_SECRET sur Netlify, pour appeler /api/cron/adresse");
-    const response = await request.get("/api/cron/adresse", {
-      headers: { authorization: `Bearer ${secret}`, "x-nf-client-connection-ip": FAKE_NF, "x-forwarded-for": FAKE_FORWARDED },
-    });
-    expect(response.status(), "401 : PROD_CRON_SECRET différent de CRON_SECRET sur Netlify ; 503 : CRON_SECRET absent sur Netlify").toBe(200);
-    expect(response.headers()["cache-control"]).toContain("no-store");
-    const body = (await response.json()) as { clientIp: string | null; nfClientConnectionIp: string | null; forwardedFor: string | null; realIp: string | null };
-    // Rien de secret : ce que le serveur a reçu pour cette requête, c'est-à-dire l'adresse de la machine qui lance le test.
-    console.log(`Réponse de /api/cron/adresse : ${JSON.stringify(body)}`);
-    expect(
-      [FAKE_NF, FAKE_FORWARDED],
-      `clientIp vaut « ${body.clientIp} », une adresse fournie par le client : n'importe qui peut choisir l'adresse que comptent les limites de débit (connexion, inscription, commandes, envois), et donc les contourner. À signaler avant d'aller plus loin (PLAN.md 7.5, étape 7).`,
-    ).not.toContain(body.clientIp);
-    expect(body.clientIp, "adresse du client inconnue : aucune limite par adresse ne s'appliquerait (une clé null n'est jamais limitée)").not.toBeNull();
-  });
-
   test("nettoyage sans secret : 401, ce qui prouve que CRON_SECRET est défini sur le site", async ({ request }) => {
     // Le nettoyage lui-même n'est jamais lancé d'ici : le propriétaire le lance depuis GitHub (PLAN.md 7.5, étape 9).
     const response = await request.get("/api/cron/nettoyage");

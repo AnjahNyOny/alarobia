@@ -1,6 +1,7 @@
 import "server-only";
 import { mkdir, readdir, readFile, stat, unlink, writeFile } from "node:fs/promises";
 import { getStore, type Store } from "@netlify/blobs";
+import { currentDeployContext, uploadStore } from "./deploy-context";
 import { IMAGE_MIME } from "./upload";
 import { uploadDir, uploadPath } from "./upload-dir";
 
@@ -8,8 +9,9 @@ import { uploadDir, uploadPath } from "./upload-dir";
  * Fichiers envoyés : photos de produits, images des clients, aperçus et fichiers d'impression des personnalisations.
  * Seul ce module y touche.
  *
- * Sur Netlify, ils vont dans Netlify Blobs (magasin « uploads ») : les fonctions n'ont pas de disque durable, un fichier
- * écrit sur le leur disparaîtrait sans bruit. Partout ailleurs (développement, tests), sur le disque, dans le dossier des
+ * Sur Netlify, ils vont dans Netlify Blobs (magasin « uploads » en production, « uploads-preview » pour tout autre
+ * déploiement : `deploy-context.ts`) : les fonctions n'ont pas de disque durable, un fichier écrit sur le leur
+ * disparaîtrait sans bruit. Partout ailleurs (développement, tests), sur le disque, dans le dossier des
  * envois (`upload-dir.ts`). Sur Netlify, jamais de repli sur le disque : si le magasin ne répond pas, l'erreur le dit et
  * nomme ce qui manque (point de vigilance 12).
  *
@@ -32,7 +34,8 @@ function onNetlify() {
 
 // ── Netlify Blobs ─────────────────────────────────────────────────────────────────────────────────────────────────
 
-const STORE = "uploads";
+/** « uploads » en production, « uploads-preview » ailleurs (branche `preview`, aperçus) : `uploadStore`. */
+const storeName = () => uploadStore(currentDeployContext());
 /** Requêtes envoyées en même temps au magasin, pour lister les dates ou supprimer en nombre. */
 const BATCH = 20;
 
@@ -43,13 +46,13 @@ function unavailable(operation: string, error: unknown) {
   const reason = error instanceof Error ? error.message : String(error);
   // `MissingBlobsEnvironmentError` : la fonction n'a pas reçu le contexte que Netlify lui fournit d'habitude.
   const missing = error instanceof Error && error.name === "MissingBlobsEnvironmentError" ? " Il manque le contexte de Netlify Blobs (NETLIFY_BLOBS_CONTEXT), que Netlify fournit à ses fonctions." : "";
-  return new Error(`Netlify Blobs injoignable (magasin « ${STORE} », ${operation}) : ${reason}.${missing} Rien n'a été écrit sur le disque de la fonction, qui ne dure pas.`, { cause: error });
+  return new Error(`Netlify Blobs injoignable (magasin « ${storeName()} », ${operation}) : ${reason}.${missing} Rien n'a été écrit sur le disque de la fonction, qui ne dure pas.`, { cause: error });
 }
 
 /** Ouvre le magasin et y fait `run` ; toute panne devient une erreur qui dit laquelle. */
 async function inStore<T>(operation: string, run: (store: Store) => Promise<T>): Promise<T> {
   try {
-    return await run(getStore({ name: STORE, consistency: "strong" }));
+    return await run(getStore({ name: storeName(), consistency: "strong" }));
   } catch (error) {
     throw unavailable(operation, error);
   }

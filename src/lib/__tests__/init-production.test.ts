@@ -99,6 +99,34 @@ describe("init-production.mjs : refus avant toute écriture", () => {
     expect(out.stderr).toMatch(/DATABASE_URL/);
   });
 
+  it("se connecte par DATABASE_URL_UNPOOLED quand elle est définie (adresse directe), pas par DATABASE_URL (regroupée), et nomme l'hôte sans identifiants", async () => {
+    // .env.secrets.local du propriétaire : DATABASE_URL est l'adresse regroupée, DATABASE_URL_UNPOOLED la directe. Ici,
+    // l'adresse regroupée est injoignable : si le script la prenait, il échouerait sur la connexion, pas sur la commande.
+    const order = await db!.order.create({
+      data: { number: "AL-0002", email: "a@b.mg", paymentMethod: "COD", shippingZone: "Antananarivo ville", subtotalCents: 0, shippingCents: 0, totalCents: 0, fullName: "A", line1: "Lot 1", city: "Antananarivo", phone: "034 12 345 67" },
+    });
+    try {
+      const direct = new URL(url);
+      direct.username = "proprietaire";
+      direct.password = "mot-de-passe-direct";
+      const out = run({ DATABASE_URL: "postgresql://intrus:mot-de-passe-regroupe@127.0.0.1:1/injoignable?connect_timeout=2", DATABASE_URL_UNPOOLED: url, ADMIN_EMAIL, ADMIN_PASSWORD });
+      expect(out.status, out.stderr).toBe(1);
+      expect(out.stderr).toMatch(/pas vide/);
+      expect(out.stderr).toContain(`${direct.host}${direct.pathname}`);
+      expect(await counts()).toEqual({ ...EMPTY, orders: 1 });
+
+      // La base visée est annoncée avant toute connexion, même quand celle-ci échoue (rôle inconnu ici), sans
+      // identifiants ; le mot de passe n'apparaît nulle part, pas même dans l'erreur de connexion.
+      const shown = run({ DATABASE_URL_UNPOOLED: direct.href, ADMIN_EMAIL, ADMIN_PASSWORD });
+      expect(shown.status).toBe(1);
+      expect(shown.stdout).toContain(`Base visée : ${direct.host}${direct.pathname}`);
+      expect(shown.stdout).not.toContain("proprietaire");
+      expect(`${shown.stdout}${shown.stderr}`).not.toContain("mot-de-passe-direct");
+    } finally {
+      await db!.order.delete({ where: { id: order.id } });
+    }
+  });
+
   it("refuse une base qui contient déjà une commande", async () => {
     const order = await db!.order.create({
       data: { number: "AL-0001", email: "a@b.mg", paymentMethod: "COD", shippingZone: "Antananarivo ville", subtotalCents: 0, shippingCents: 0, totalCents: 0, fullName: "A", line1: "Lot 1", city: "Antananarivo", phone: "034 12 345 67" },

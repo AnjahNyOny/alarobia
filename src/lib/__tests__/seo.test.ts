@@ -20,6 +20,22 @@ describe("siteBase", () => {
     expect(siteBase(undefined, "https://alarobia.netlify.app/")).toBe("https://alarobia.netlify.app");
     expect(siteBase("", "https://alarobia.netlify.app")).toBe("https://alarobia.netlify.app");
   });
+  it("hors production : l'adresse du déploiement passe avant URL (qui reste celle de la production), après NEXT_PUBLIC_SITE_URL", () => {
+    const PREVIEW = "https://preview--alarobia-shop.netlify.app";
+    expect(siteBase("", "https://alarobia-shop.netlify.app", `${PREVIEW}/`)).toBe(PREVIEW);
+    expect(siteBase(undefined, "https://alarobia-shop.netlify.app", PREVIEW)).toBe(PREVIEW);
+    expect(siteBase("https://alarobia.mg", "https://alarobia-shop.netlify.app", PREVIEW)).toBe("https://alarobia.mg");
+    expect(siteBase("", "https://alarobia-shop.netlify.app", "")).toBe("https://alarobia-shop.netlify.app");
+  });
+  it("lit par défaut l'adresse figée du déploiement hors production, et l'ignore en production", () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
+    vi.stubEnv("URL", "https://alarobia-shop.netlify.app");
+    vi.stubEnv("PREVIEW_SITE_URL", "https://preview--alarobia-shop.netlify.app");
+    vi.stubEnv("DEPLOY_CONTEXT", "branch-deploy");
+    expect(siteBase()).toBe("https://preview--alarobia-shop.netlify.app");
+    vi.stubEnv("DEPLOY_CONTEXT", "production");
+    expect(siteBase()).toBe("https://alarobia-shop.netlify.app");
+  });
   it("lit par défaut NEXT_PUBLIC_SITE_URL, puis URL, puis le serveur local", () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://alarobia.mg/");
     vi.stubEnv("URL", "https://alarobia.netlify.app");

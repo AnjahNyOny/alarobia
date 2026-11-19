@@ -366,7 +366,7 @@ Ils complètent les sept points du début du plan. Chacun a son test dans la tâ
   - `Referrer-Policy: strict-origin-when-cross-origin` ;
   - `X-Frame-Options: DENY` ;
   - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`.
-- **Données de départ en production** : `prisma/init-production.mjs`, lancé une fois à la main par `node --env-file=.env.production.local prisma/init-production.mjs`.
+- **Données de départ en production** : `prisma/init-production.mjs`, lancé une fois à la main par `node --env-file=.env.secrets.local prisma/init-production.mjs`.
   - Il demande `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins), et refuse de tourner (sortie 1 avec un message) si la base contient déjà un utilisateur, un produit ou une commande.
   - Il crée les réglages (numéros Mobile Money vides : seul le paiement à la livraison est proposé tant que le vendeur n'a pas saisi les siens ; adresse de contact = `ADMIN_EMAIL`), les zones de livraison, les rayons et les 27 produits avec leurs traductions et leurs photos, et le compte administrateur.
   - Décision du propriétaire (19/11/2026) : les produits sont créés **en brouillon**, sauf la tasse personnalisable `tasse-en-gres-vato`, en ligne pour le contrôle de la 7.5. Le propriétaire publie ensuite ceux qu'il garde, prix et stock corrigés. Sans produit à ce slug, le script échoue.
@@ -386,7 +386,7 @@ Ajoutée le 19/11/2026, après les captures d'une base remplie par `init-product
 ### 7.5 Mise en ligne (propriétaire et architecte)
 Ordre revu le 19/11/2026 : Netlify compile dès qu'un site est créé depuis un dépôt. Créé avant l'envoi, il compilerait le code de la phase 4 (SQLite, sans `netlify.toml`) : échec ou site cassé, et des crédits perdus. Le code part donc d'abord, et le site est créé ensuite, ses variables saisies dès le formulaire d'import.
 
-0. **Architecte, avant l'envoi** : route de diagnostic `GET /api/cron/adresse`, protégée comme le nettoyage (`Authorization: Bearer <CRON_SECRET>`, 503 sans la variable, 401 avec un mauvais secret, `no-store`). Elle renvoie à l'appelant ce que le serveur a reçu pour sa propre requête : `clientIp()`, `x-nf-client-connection-ip`, `x-forwarded-for`, `x-real-ip`. Contrôle de secret partagé avec la route du nettoyage, tests unitaires. Elle sert à l'étape 7 ; on peut la retirer ensuite.
+0. **Architecte, avant l'envoi** : route de diagnostic `GET /api/cron/adresse`, protégée comme le nettoyage (`Authorization: Bearer <CRON_SECRET>`, 503 sans la variable, 401 avec un mauvais secret, `no-store`). Elle renvoie à l'appelant ce que le serveur a reçu pour sa propre requête : `clientIp()`, `x-nf-client-connection-ip`, `x-forwarded-for`, `x-real-ip`. Contrôle de secret partagé avec la route du nettoyage, tests unitaires. Elle sert à l'étape 7 ; retirée en 7.6 une fois le contrôle fait.
 1. **Propriétaire, avant l'envoi** :
    - débrancher l'ancien projet Vercel de GitHub, ou le supprimer ;
    - créer la base sur neon.tech (offre gratuite), **région AWS US East 2 (Ohio)**, celle des fonctions Netlify par défaut, et noter ses deux adresses, regroupée (*pooled*) et directe ;
@@ -399,9 +399,9 @@ Ordre revu le 19/11/2026 : Netlify compile dès qu'un site est créé depuis un 
    - relever la région des fonctions du site ; si ce n'est pas `us-east-2`, le dire avant d'aller plus loin (la base Neon serait à recréer au bon endroit) ;
    - dans les variables du site, limiter ces cinq variables au contexte « Production ».
 4. **Propriétaire, sur GitHub** : secrets du dépôt `SITE_URL` (`https://<nom>.netlify.app`) et `CRON_SECRET`, pour le nettoyage quotidien.
-5. **Propriétaire, en local** : `.env.production.local` (ignoré par git) avec `DATABASE_URL` et `DATABASE_URL_UNPOOLED` égales à l'adresse **directe** de Neon, `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins).
+5. **Propriétaire, en local** : `.env.secrets.local` (ignoré par git) avec `DATABASE_URL` et `DATABASE_URL_UNPOOLED` égales à l'adresse **directe** de Neon, `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins).
 6. **Architecte** :
-   - `node --env-file=.env.production.local prisma/init-production.mjs`, juste après le premier déploiement réussi (en attendant, la base est vide) ;
+   - `node --env-file=.env.secrets.local prisma/init-production.mjs`, juste après le premier déploiement réussi (en attendant, la base est vide) ;
    - vérifier que la collation de la base Neon (`SHOW lc_collate`) est la même qu'en local, sinon le signaler.
 7. **Contrôle en ligne (`verificateur`)** : `e2e/production.spec.ts`, lancé seulement si `PROD_URL` est défini.
    - Pages en fr, en et mg (accueil, catalogue, fiche, aide) : réponse 200, aucune erreur de console.

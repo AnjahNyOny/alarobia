@@ -4,7 +4,7 @@ import { defineConfig } from "@playwright/test";
  * Contrôle du site en ligne (PLAN.md 7.5, étape 7) : `e2e/production.spec.ts` seul, contre l'adresse `PROD_URL`, sans
  * serveur lancé ici. La configuration normale (playwright.config.ts) l'ignore.
  *
- *   PROD_URL=https://<nom>.netlify.app PROD_ADMIN_EMAIL=… PROD_ADMIN_PASSWORD=… PROD_CRON_SECRET=… npm run test:prod
+ *   PROD_URL=https://<nom>.netlify.app PROD_ADMIN_EMAIL=… PROD_ADMIN_PASSWORD=… npm run test:prod
  *
  * Sans `PROD_URL`, rien ne se lance. Les autres variables sont facultatives : le test qui en a besoin est sauté.
  */

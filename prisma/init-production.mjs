@@ -1,10 +1,12 @@
 // Données de départ de la base de production, à lancer une seule fois, à la main, après la première mise en ligne
 // (les migrations ont créé les tables, vides) :
 //
-//   node --env-file=.env.production.local prisma/init-production.mjs
+//   node --env-file=.env.secrets.local prisma/init-production.mjs
 //
-// `.env.production.local` (ignoré par git) donne DATABASE_URL (adresse directe de Neon), ADMIN_EMAIL et
-// ADMIN_PASSWORD (12 caractères au moins).
+// `.env.secrets.local` (ignoré par git, et que Next ne charge pas) donne DATABASE_URL_UNPOOLED (adresse directe de
+// Neon) ou, à défaut, DATABASE_URL, ADMIN_EMAIL et ADMIN_PASSWORD (12 caractères au moins). Le script prend l'adresse
+// directe quand elle est là : DATABASE_URL y est l'adresse regroupée, qui passe par PgBouncer. Il affiche l'hôte et la
+// base visés, sans identifiants, avant de s'y connecter.
 //
 // Crée : les réglages de la boutique, sans numéro Mobile Money (seul le paiement à la livraison est proposé tant que
 // le vendeur n'a pas saisi les siens dans le back-office) et avec ADMIN_EMAIL comme adresse de contact ; les zones de
@@ -23,28 +25,30 @@ const ONLINE_PRODUCT = "tasse-en-gres-vato";
 
 /** Réglages lus dans l'environnement, ou le message qui dit ce qui manque. */
 function readConfig(env) {
-  // Vérifiée avant de créer le client Prisma : sans elle, Prisma lirait le fichier .env du projet et écrirait
-  // dans la base de développement.
-  if (!env.DATABASE_URL) return { error: "DATABASE_URL manquante. Mettre l'adresse directe de la base Neon dans .env.production.local." };
+  // Vérifiée avant de créer le client Prisma, à qui elle est passée explicitement : sans elle, Prisma lirait le fichier
+  // .env du projet et écrirait dans la base de développement.
+  const variable = env.DATABASE_URL_UNPOOLED ? "DATABASE_URL_UNPOOLED" : "DATABASE_URL";
+  const databaseUrl = env[variable];
+  if (!databaseUrl) return { error: "DATABASE_URL_UNPOOLED et DATABASE_URL manquantes. Mettre l'adresse directe de la base Neon dans .env.secrets.local." };
   let target;
   try {
-    const { host, pathname } = new URL(env.DATABASE_URL);
+    const { host, pathname } = new URL(databaseUrl);
     // Hôte et base visés, sans identifiants : le propriétaire voit où il écrit.
     target = `${host}${pathname}`;
   } catch {
-    return { error: "DATABASE_URL invalide : attendu postgresql://utilisateur:mot-de-passe@hôte/base." };
+    return { error: `${variable} invalide : attendu postgresql://utilisateur:mot-de-passe@hôte/base.` };
   }
   const email = z.string().trim().toLowerCase().pipe(z.email()).safeParse(env.ADMIN_EMAIL ?? "");
-  if (!email.success) return { error: "ADMIN_EMAIL manquante ou invalide : l'adresse e-mail du compte administrateur, dans .env.production.local." };
+  if (!email.success) return { error: "ADMIN_EMAIL manquante ou invalide : l'adresse e-mail du compte administrateur, dans .env.secrets.local." };
   const password = env.ADMIN_PASSWORD ?? "";
-  if (password.length < 12) return { error: "ADMIN_PASSWORD manquant ou trop court : 12 caractères au moins, dans .env.production.local." };
+  if (password.length < 12) return { error: "ADMIN_PASSWORD manquant ou trop court : 12 caractères au moins, dans .env.secrets.local." };
   let status;
   try {
     status = onlyOnline(ONLINE_PRODUCT);
   } catch (error) {
     return { error: error.message };
   }
-  return { target, email: email.data, password, status };
+  return { databaseUrl, variable, target, email: email.data, password, status };
 }
 
 async function main() {
@@ -53,11 +57,12 @@ async function main() {
     console.error(`init-production : ${config.error}`);
     return 1;
   }
-  const { target, email, password, status } = config;
+  const { databaseUrl, variable, target, email, password, status } = config;
+  console.log(`Base visée : ${target} (${variable}).`);
 
   const { PrismaClient } = await import("@prisma/client");
   const { default: bcrypt } = await import("bcryptjs");
-  const db = new PrismaClient();
+  const db = new PrismaClient({ datasourceUrl: databaseUrl });
   try {
     const [users, products, orders] = await Promise.all([db.user.count(), db.product.count(), db.order.count()]);
     if (users + products + orders > 0) {

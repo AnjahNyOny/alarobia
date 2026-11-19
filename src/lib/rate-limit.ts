@@ -92,8 +92,9 @@ export async function withRateLimit<T>(checks: readonly Check[], attempt: () => 
  * Adresse du visiteur. `null` si elle est inconnue.
  * - Sur Netlify : `x-nf-client-connection-ip`, posé par Netlify. C'est le seul en-tête que Netlify dit garder vers les
  *   fonctions pour l'adresse du client (https://answers.netlify.com/t/upcoming-change-stripping-exposed-netlify-headers-from-function-and-proxy-requests/52665).
- *   Qu'il soit écrasé quand le client l'envoie lui-même n'est écrit nulle part dans la documentation : à vérifier en ligne
- *   (PLAN.md, 7.5), en l'envoyant avec une fausse adresse et en regardant quelle adresse la limite compte.
+ *   Vérifié en ligne (PLAN.md 7.5, contrôle de mise en ligne) : un `x-nf-client-connection-ip` envoyé par le client est
+ *   écrasé par Netlify, qui y met la vraie adresse ; un `x-forwarded-for` envoyé par le client est gardé (Netlify ajoute
+ *   la vraie adresse à la suite), d'où l'ordre de lecture.
  * - Ailleurs (local, tests navigateur) : la première adresse de x-forwarded-for, puis x-real-ip. Sans proxy de confiance
  *   devant le serveur, un client peut les forger et contourner les limites par adresse.
  */

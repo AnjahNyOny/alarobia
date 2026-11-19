@@ -40,7 +40,7 @@ Les adresses de `.env.example` se connectent sans mot de passe avec l'utilisateu
 | `DATABASE_URL` | Base PostgreSQL de l'application : `postgresql://<utilisateur>@localhost:5432/alarobia` en local. |
 | `DATABASE_URL_UNPOOLED` | Adresse directe de la même base, pour les commandes Prisma (`db push`, migrations). En local, la même que `DATABASE_URL`. |
 | `AUTH_SECRET` | Signe le cookie de session. 32 caractères au moins, sinon la connexion et l'inscription échouent : `openssl rand -base64 32`. |
-| `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. Vide, le site prend `URL`, l'adresse que Netlify fournit lui-même, puis `http://localhost:3000`. |
+| `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. Vide, le site prend, hors production, l'adresse du déploiement Netlify (`DEPLOY_PRIME_URL`), puis `URL`, l'adresse que Netlify fournit lui-même, puis `http://localhost:3000`. |
 | `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. Sur Netlify, les envois vont dans Netlify Blobs et cette variable ne sert pas. |
 | `CRON_SECRET` | Facultative en local. Protège la route du nettoyage quotidien (`/api/cron/nettoyage`), qui répond 503 sans elle : `openssl rand -base64 32`. |
 
@@ -197,7 +197,7 @@ En production, le flux de travail GitHub Actions `.github/workflows/nettoyage.ym
 
 La boutique tourne sur l'offre gratuite de Netlify, avec une base PostgreSQL sur l'offre gratuite de Neon et les fichiers envoyés dans Netlify Blobs (rien à créer : le magasin vient avec le site). Aucune option payante : au-delà des quotas gratuits, Netlify met le site en pause jusqu'au mois suivant, sans facturer. Les étapes, dans l'ordre et avec qui fait quoi, sont dans `PLAN.md` (tâche 7.5).
 
-**Variables**, à définir dans Netlify pour le contexte « Production » seulement (le détail de chacune est dans `.env.example`) :
+**Variables**, à définir dans Netlify avec une valeur par contexte : « Production » pour `main`, « Branch deploys » et « Deploy Previews » pour la branche `preview` (branche Neon `preview`, secrets à part). Le détail de chacune est dans `.env.example`.
 
 | Variable | Provenance |
 | --- | --- |
@@ -205,7 +205,7 @@ La boutique tourne sur l'offre gratuite de Netlify, avec une base PostgreSQL sur
 | `DATABASE_URL_UNPOOLED` | Neon : adresse directe, pour les migrations, suivie de `&connect_timeout=15` |
 | `AUTH_SECRET` | À générer : `openssl rand -base64 32` |
 | `CRON_SECRET` | À générer : `openssl rand -base64 32` ; la même valeur dans les secrets du dépôt GitHub |
-| `NEXT_PUBLIC_SITE_URL` | L'adresse `.netlify.app` du site, puis le domaine. Sans elle, le site prend `URL`, fournie par Netlify |
+| `NEXT_PUBLIC_SITE_URL` | Contexte « Production » seulement : l'adresse `.netlify.app` du site, puis le domaine. Sans elle, le site prend `URL`, fournie par Netlify. À laisser vide pour les aperçus : ils prennent l'adresse de leur déploiement (`DEPLOY_PRIME_URL`, figée à la compilation) |
 
 Les secrets du dépôt GitHub `SITE_URL` et `CRON_SECRET` servent au nettoyage quotidien (section précédente). Une variable changée sur Netlify ne compte qu'à la mise en ligne suivante.
 
@@ -216,10 +216,10 @@ Les secrets du dépôt GitHub `SITE_URL` et `CRON_SECRET` servent au nettoyage q
 **Données de départ**, une seule fois, après la première mise en ligne, depuis sa machine :
 
 ```bash
-node --env-file=.env.production.local prisma/init-production.mjs
+node --env-file=.env.secrets.local prisma/init-production.mjs
 ```
 
-`.env.production.local` (ignoré par git) contient `DATABASE_URL` et `DATABASE_URL_UNPOOLED` (toutes deux l'adresse directe de Neon), `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins). Le script refuse de tourner, avec un message, si l'une manque ou si la base contient déjà un utilisateur, un produit ou une commande ; il écrit tout dans une seule transaction. Il crée :
+`.env.secrets.local` (ignoré par git, et que Next ne charge pas) contient `DATABASE_URL_UNPOOLED` (adresse directe de Neon, celle que prend le script ; à défaut, `DATABASE_URL`), `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins). Le script affiche l'hôte et la base visés, sans identifiants, avant de s'y connecter. Ne jamais mettre d'adresse de la base de production dans `.env`, `.env.local`, `.env.production` ni `.env.production.local` : Next les charge à chaque compilation et à chaque lancement, et une compilation locale écrirait dans la base réelle. Le script refuse de tourner, avec un message, si l'une manque ou si la base contient déjà un utilisateur, un produit ou une commande ; il écrit tout dans une seule transaction. Il crée :
 
 - les réglages de la boutique, sans numéro Mobile Money : seul le paiement à la livraison est proposé tant que le vendeur n'a pas saisi les siens dans le back-office (Réglages) ; adresse de contact `ADMIN_EMAIL` ;
 - les quatre zones de livraison, les six rayons et les 27 produits de `prisma/catalog.mjs` avec leurs traductions, photos et réglages de personnalisation. Tous sont en brouillon, sauf la tasse personnalisable, en ligne pour le contrôle de la mise en ligne : le vendeur corrige les autres (prix, stock, photos) et les met en ligne depuis le back-office ;
@@ -227,33 +227,32 @@ node --env-file=.env.production.local prisma/init-production.mjs
 
 Il ne crée ni client, ni avis, ni commande, ni code promo, ni abonné. Ne jamais lancer `npm run db:seed` sur la base de production : il la vide puis la remplit de données de démonstration.
 
-**À vérifier en ligne** (`PLAN.md`, 7.5) : le moteur de Prisma dans les fonctions (sa présence dans les traces de fichiers de Next a été vérifiée en local), la collation de la base Neon, et l'adresse du visiteur : sur Netlify, les limites par adresse lisent `x-nf-client-connection-ip`, posé par Netlify, mais rien dans sa documentation ne dit qu'un client ne peut pas l'imposer.
+**À vérifier en ligne** (`PLAN.md`, 7.5) : le moteur de Prisma dans les fonctions (sa présence dans les traces de fichiers de Next a été vérifiée en local) et la collation de la base Neon. L'adresse du visiteur a été vérifiée lors du premier contrôle en ligne : un `x-nf-client-connection-ip` envoyé par le client est écrasé par Netlify, les limites par adresse tiennent.
 
 **Contrôle en ligne** (`e2e/production.spec.ts`, configuration à part `playwright.production.config.ts`, sans serveur lancé) :
 
 ```bash
-PROD_URL=https://<nom>.netlify.app PROD_ADMIN_EMAIL=<e-mail> PROD_ADMIN_PASSWORD=<mot de passe> PROD_CRON_SECRET=<CRON_SECRET> npm run test:prod
+PROD_URL=https://<nom>.netlify.app PROD_ADMIN_EMAIL=<e-mail> PROD_ADMIN_PASSWORD=<mot de passe> npm run test:prod
 ```
 
-Les variables se donnent sur la ligne de commande, jamais dans un fichier `.env`. Sans `PROD_URL`, rien ne se lance ; sans l'une des trois autres, le test qui en a besoin est sauté et le dit. Le contrôle vérifie :
+Les variables se donnent sur la ligne de commande, jamais dans un fichier `.env`. Sans `PROD_URL`, rien ne se lance ; sans l'une des deux autres, le test qui en a besoin est sauté et le dit. Le contrôle vérifie :
 
 - l'accueil, le catalogue, la fiche de la tasse et l'aide en fr, en et mg : réponse 200, aucune erreur de page ni de console, aucune réponse 5xx (ce qui prouve aussi que Prisma lit la base depuis les fonctions) ;
 - l'envoi d'une petite image sur la fiche de la tasse (onglet « Personnaliser »), puis sa relecture par `/uploads/…` : mêmes octets que ceux envoyés, donc Netlify Blobs écrit et relit ;
 - la connexion au back-office (un seul essai, à cause des limites de débit) et la liste des produits ;
 - les en-têtes de sécurité, l'adresse canonique et les `hreflang` de l'accueil et de la fiche, qui doivent commencer par `PROD_URL` (sinon `NEXT_PUBLIC_SITE_URL` est mal réglée) ;
-- l'adresse du client, par la route de diagnostic `GET /api/cron/adresse` (ci-dessous) ;
 - `GET /api/cron/nettoyage` sans secret : 401 attendu, un 503 voudrait dire que `CRON_SECRET` manque sur Netlify.
 
-Il ne fait rien d'autre sur le site : ni panier, ni commande, ni modification dans le back-office, ni nettoyage (celui-ci se lance depuis GitHub). L'image envoyée sera effacée par le nettoyage au bout de sept jours. Pas de trace Playwright : elle garderait le mot de passe et le secret en clair dans `test-results/`. Contre la compilation locale (`npm run build`, puis `npx next start -p 3100` avec `CRON_SECRET` défini et `NEXT_PUBLIC_SITE_URL=http://localhost:3100` à la compilation), tout passe sauf le test de l'adresse : sans Netlify, l'en-tête envoyé par le client est pris tel quel.
+Il ne fait rien d'autre sur le site : ni panier, ni commande, ni modification dans le back-office, ni nettoyage (celui-ci se lance depuis GitHub). L'image envoyée sera effacée par le nettoyage au bout de sept jours. Pas de trace Playwright : elle garderait le mot de passe en clair dans `test-results/`. Le même contrôle se lance contre l'aperçu de la branche `preview` (`PROD_URL=https://preview--alarobia-shop.netlify.app`) ; il passe aussi contre la compilation locale (`npm run build`, puis `npx next start -p 3100` avec `CRON_SECRET` défini et `NEXT_PUBLIC_SITE_URL=http://localhost:3100` à la compilation).
 
-**Route de diagnostic** `GET /api/cron/adresse`, protégée comme le nettoyage (`Authorization: Bearer <CRON_SECRET>`, 401 avec un mauvais secret, 503 sans `CRON_SECRET`, jamais en cache) : elle renvoie ce que le serveur a reçu pour la requête de l'appelant, et rien d'autre : `{ clientIp, nfClientConnectionIp, forwardedFor, realIp }`, l'adresse retenue par les limites de débit et les valeurs brutes de `x-nf-client-connection-ip`, `x-forwarded-for` et `x-real-ip`. Le contrôle l'appelle avec de faux `x-nf-client-connection-ip` et `x-forwarded-for` : si `clientIp` vaut l'un d'eux, un client peut choisir son adresse et contourner les limites par adresse. Elle ne sert qu'à ce contrôle et peut être retirée ensuite.
+**Production et aperçus** (`src/lib/deploy-context.ts`) : Netlify ne donne le contexte de déploiement (`CONTEXT` : `production`, `branch-deploy`, `deploy-preview`) qu'à la compilation ; `next.config.ts` le fige dans le code serveur. Hors production, les fichiers envoyés vont dans le magasin Netlify Blobs `uploads-preview` au lieu de `uploads` (un magasin est commun à tous les déploiements du site), toutes les adresses portent `X-Robots-Tag: noindex`, `robots.txt` interdit tout, et les adresses canoniques prennent celle du déploiement (`DEPLOY_PRIME_URL`, par exemple `https://preview--alarobia-shop.netlify.app`) quand `NEXT_PUBLIC_SITE_URL` est vide. La production, et le poste local, ne changent pas.
 
 ## Ce qu'il reste à brancher avant une vraie mise en ligne
 
 - **Paiement** : aucune liaison avec les opérateurs. Le vendeur vérifie lui-même sur son téléphone que l'argent est arrivé ; la référence saisie par le client n'est contrôlée que sur sa forme. Une API marchande Mobile Money demande un compte marchand. Les numéros Mobile Money des données de démonstration sont fictifs ; en production, `init-production.mjs` les laisse vides : saisir les vrais dans les réglages pour proposer le Mobile Money.
 - **E-mails et SMS** : rien n'est envoyé (confirmation, expédition). Il n'y a pas de procédure « mot de passe oublié ». La lettre d'information enregistre des adresses, mais rien ne s'en sert.
 - **Fichiers envoyés** : sur le disque en local et dans les tests (`uploads/`, `uploads-test/`), dans Netlify Blobs sur Netlify (`src/lib/storage.ts`, seul module qui y touche). Un envoi pèse 4 Mo au plus, parce qu'une fonction Netlify refuse toute requête de plus de 6 Mo et que le fichier y arrive encodé en Base64 ; le navigateur réduit les photos à 2048 px avant l'envoi. Les aperçus et fichiers d'impression sont servis à tous sous leur nom imprévisible (`/uploads/…`). Le serveur ne réencode pas les images : un envoi qui contourne le navigateur garde ses métadonnées.
-- **Limites de débit** : en mémoire, donc comptées par instance de fonction sur Netlify (plus lâches) et remises à zéro au redémarrage ; un stockage partagé si des abus apparaissent. Sur Netlify, l'adresse du visiteur est lue dans `x-nf-client-connection-ip`, posé par Netlify ; qu'un client ne puisse pas l'imposer reste à vérifier en ligne (voir « Mise en ligne »). Ailleurs, elle est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance. Si l'adresse est forgeable, les limites par adresse IP se contournent ; celles par e-mail, par compte et par commande tiennent.
+- **Limites de débit** : en mémoire, donc comptées par instance de fonction sur Netlify (plus lâches) et remises à zéro au redémarrage ; un stockage partagé si des abus apparaissent. Sur Netlify, l'adresse du visiteur est lue dans `x-nf-client-connection-ip`, posé par Netlify, qui écrase celui qu'un client enverrait (vérifié en ligne). Ailleurs, elle est lue dans `x-forwarded-for`, qu'un client peut forger sans proxy de confiance. Si l'adresse est forgeable, les limites par adresse IP se contournent ; celles par e-mail, par compte et par commande tiennent.
 - **Montants** : 20 000 000 Ar au plus par prix, tarif ou commande (`MAX_ORDER_CENTS`), parce que les colonnes de montant sont des entiers 32 bits. Au-delà, passer ces colonnes en BigInt.
 - **CSP** : aucune politique de sécurité du contenu pour l'instant. Elle devra autoriser le `<style>` en ligne écrit par `experimental.inlineCss` (`next.config.ts`), option expérimentale à revérifier à chaque mise à jour de Next.
 - **Malgache** : rédigé par Claude, à faire relire par un locuteur natif (termes incertains dans `docs/glossaire.md` et `PROGRESS.md`). Les caractéristiques des produits de démonstration ne sont pas traduites en malgache.

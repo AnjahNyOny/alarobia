@@ -60,6 +60,7 @@ beforeEach(async () => {
   vi.stubEnv("UPLOAD_DIR", path.relative(process.cwd(), dir));
   vi.stubEnv("SITE_ID", undefined);
   vi.stubEnv("NETLIFY_BLOBS_CONTEXT", undefined);
+  vi.stubEnv("DEPLOY_CONTEXT", undefined);
   getStore.mockReset();
 });
 
@@ -121,8 +122,10 @@ describe("sur Netlify : Netlify Blobs", () => {
   const NOW = new Date("2026-11-18T09:30:00Z");
 
   beforeEach(() => {
-    // SITE_ID : posé par Netlify dans toute fonction, à l'exécution.
+    // SITE_ID : posé par Netlify dans toute fonction, à l'exécution. DEPLOY_CONTEXT : figée à la compilation
+    // (next.config.ts, src/lib/deploy-context.ts) ; « production » sauf dans les tests qui disent le contraire.
     vi.stubEnv("SITE_ID", "1d01c0c0-4554-4747-93b8-34ce3448ab95");
+    vi.stubEnv("DEPLOY_CONTEXT", "production");
     store = memoryStore();
     getStore.mockReturnValue(store);
     vi.useFakeTimers({ toFake: ["Date"] });
@@ -173,6 +176,25 @@ describe("sur Netlify : Netlify Blobs", () => {
     expect([...store.blobs.keys()]).toEqual([PERSO(2)]);
   });
 
+  it("hors production (branche, aperçu, contexte inconnu) : tout passe par le magasin « uploads-preview »", async () => {
+    for (const context of ["branch-deploy", "deploy-preview", "unknown"]) {
+      vi.stubEnv("DEPLOY_CONTEXT", context);
+      getStore.mockClear();
+      await saveUpload("photo.png", PNG, "image/png");
+      expect(await readUpload("photo.png")).not.toBeNull();
+      expect(await uploadExists("photo.png")).toBe(true);
+      await listUploads("perso-");
+      await deleteUploads(["photo.png"]);
+      expect(getStore.mock.calls.map(([options]) => options), context).toEqual(Array(5).fill({ name: "uploads-preview", consistency: "strong" }));
+    }
+  });
+
+  it("valeur figée absente sur Netlify : « uploads-preview », jamais le magasin de la production", async () => {
+    vi.stubEnv("DEPLOY_CONTEXT", undefined);
+    await saveUpload("photo.png", PNG, "image/png");
+    expect(getStore).toHaveBeenCalledWith({ name: "uploads-preview", consistency: "strong" });
+  });
+
   it("le contexte de Netlify Blobs suffit à le choisir, même sans SITE_ID", async () => {
     vi.stubEnv("SITE_ID", undefined);
     vi.stubEnv("NETLIFY_BLOBS_CONTEXT", "eyJzaXRlSUQiOiJzaXRlIn0=");
@@ -185,6 +207,7 @@ describe("sur Netlify : Netlify Blobs", () => {
 describe("sur Netlify, magasin injoignable (point de vigilance 12)", () => {
   beforeEach(() => {
     vi.stubEnv("SITE_ID", "1d01c0c0-4554-4747-93b8-34ce3448ab95");
+    vi.stubEnv("DEPLOY_CONTEXT", "production");
   });
 
   it("contexte absent : erreur qui nomme ce qui manque, et jamais d'écriture sur le disque", async () => {

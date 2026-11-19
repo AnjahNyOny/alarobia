@@ -61,10 +61,10 @@ npm run lint
 npx tsc --noEmit
 npm test                 # tests unitaires (Vitest)
 npm run test:e2e         # tests navigateur (Playwright) : compile en production sur le port 3100, base alarobia_test
-PROD_URL=https://… PROD_ADMIN_EMAIL=… PROD_ADMIN_PASSWORD=… PROD_CRON_SECRET=… npm run test:prod   # contrôle du site en ligne (e2e/production.spec.ts), aucun serveur lancé
+PROD_URL=https://… PROD_ADMIN_EMAIL=… PROD_ADMIN_PASSWORD=… npm run test:prod   # contrôle du site en ligne (e2e/production.spec.ts), aucun serveur lancé
 npm run db:reset         # recrée la base et recharge les données de démonstration (efface tout)
 npm run db:seed
-node --env-file=.env.production.local prisma/init-production.mjs   # une seule fois, sur la base de production neuve (refuse sinon)
+node --env-file=.env.secrets.local prisma/init-production.mjs   # une seule fois, sur la base de production neuve (refuse sinon)
 node scripts/poids-pages.mjs        # poids transféré des pages, contre un serveur de production (lire l'en-tête)
 node scripts/mesure-telephone.mjs   # temps en 3G lente sur téléphone ralenti (FCP, LCP, CLS, hydratation, 3D)
 ```
@@ -141,6 +141,7 @@ Une seule audace par page, le reste sobre. Plancher de qualité non négociable 
 - **Montants** : colonnes en entiers 32 bits, plafond `MAX_ORDER_CENTS` (20 000 000 Ar), défini dans `src/lib/constants.ts` et réexporté par `src/lib/pricing.ts`.
 - **Dates de livraison** : partir de `madagascarTime()` (`src/lib/shipping.ts`), jamais de `new Date()` seul : le serveur peut tourner dans un autre fuseau.
 - **Crédits Netlify** : chaque mise en ligne réussie coûte 15 crédits sur 300 par mois (au-delà, site en pause). On n'envoie sur GitHub que des lots finis et vérifiés. La clé `ignore` de `netlify.toml` annule la compilation d'un envoi qui ne touche que les `.md` de la racine, `docs/`, `e2e/`, `.claude/`, `.github/`, `playwright*.config.ts` ou `scripts/` : un fichier lu par la compilation ne doit pas aller dans ces dossiers.
+- **Adresses de production** : jamais dans `.env`, `.env.local` ni `.env.production(.local)`, que Next charge à la compilation (une compilation locale viserait la base réelle). Le propriétaire les range dans `.env.secrets.local` (ignoré par git, lu seulement par `--env-file`).
 - **Moteur de Prisma** : `binaryTargets` garde `rhel-openssl-3.0.x` (fonctions Netlify sous Amazon Linux). Sans lui, la compilation réussit mais toute page qui lit la base échoue en ligne.
 - **Schéma Prisma** : `db push` en local et dans les tests ; en production, `prisma migrate deploy` applique `prisma/migrations/`. Tout changement de schéma demande sa migration (`prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url <schéma temporaire de alarobia_test> --script`), sinon `migrations.test.ts` échoue. La base de production contient de vraies commandes : ajouter des colonnes avec une valeur par défaut, ne jamais en supprimer une remplie sans migration de données.
 - **PostgreSQL** : `contains` respecte la casse, une recherche passe toujours `mode: "insensitive"`. Une transaction qui écrit plusieurs produits les prend dans l'ordre des identifiants (`src/lib/stock.ts`), sinon deux commandes croisées s'interbloquent (`40P01`). Un test unitaire qui a besoin d'une base prend un schéma temporaire avec `createTestDatabase()` (`src/test/database.ts`). Tout client Prisma se crée par `createDb()` (`src/lib/db.ts`), et une fonction qui reçoit une transaction prend `tx: Tx`. `createDb()` applique l'extension `nulSafe` (`src/lib/nul.ts`) : PostgreSQL refuse le caractère nul dans un texte (erreur 500 sinon), l'extension le retire des arguments de toutes les requêtes. Les requêtes brutes (`$queryRaw`) n'en profitent pas.

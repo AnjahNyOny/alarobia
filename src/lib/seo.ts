@@ -1,4 +1,5 @@
 import { defaultLocale, isLocale, locales, type Locale } from "@/i18n/routing";
+import { currentPreviewUrl } from "@/lib/deploy-context";
 
 /**
  * Référencement multilingue : adresses canoniques, équivalents par langue (hreflang) et Open Graph.
@@ -6,13 +7,19 @@ import { defaultLocale, isLocale, locales, type Locale } from "@/i18n/routing";
  */
 
 /**
- * Adresse publique du site, sans barre finale : `NEXT_PUBLIC_SITE_URL` (domaine choisi), sinon `URL`, l'adresse principale
- * que Netlify donne à la compilation et aux fonctions (https://docs.netlify.com/configure-builds/environment-variables/),
- * sinon le serveur local. Lue côté serveur seulement (métadonnées, plan du site, robots.txt) : aucun composant client
- * ne l'importe, sinon `URL`, qui n'est pas préfixée NEXT_PUBLIC_, y serait vide.
+ * Adresse publique du site, sans barre finale : `NEXT_PUBLIC_SITE_URL` (domaine choisi), sinon, hors production,
+ * l'adresse du déploiement (branche `preview`, aperçu : `currentPreviewUrl`, deploy-context.ts), sinon `URL`, l'adresse
+ * principale que Netlify donne à la compilation et aux fonctions, celle de la production même dans un aperçu
+ * (https://docs.netlify.com/configure-builds/environment-variables/), sinon le serveur local. Lue côté serveur seulement
+ * (métadonnées, plan du site, robots.txt) : aucun composant client ne l'importe, sinon `URL`, qui n'est pas préfixée
+ * NEXT_PUBLIC_, y serait vide.
  */
-export function siteBase(configured: string | undefined = process.env.NEXT_PUBLIC_SITE_URL, platform: string | undefined = process.env.URL) {
-  return (configured || platform || "http://localhost:3000").replace(/\/+$/, "");
+export function siteBase(
+  configured: string | undefined = process.env.NEXT_PUBLIC_SITE_URL,
+  platform: string | undefined = process.env.URL,
+  preview: string = currentPreviewUrl(),
+) {
+  return (configured || preview || platform || "http://localhost:3000").replace(/\/+$/, "");
 }
 
 /** Adresse absolue d'un chemin commun (« /products/tasse », « » pour l'accueil) dans une langue. */
