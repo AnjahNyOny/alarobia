@@ -201,8 +201,8 @@ La boutique tourne sur l'offre gratuite de Netlify, avec une base PostgreSQL sur
 
 | Variable | Provenance |
 | --- | --- |
-| `DATABASE_URL` | Neon : adresse regroupée (*pooler*), pour l'application |
-| `DATABASE_URL_UNPOOLED` | Neon : adresse directe, pour les migrations |
+| `DATABASE_URL` | Neon : adresse regroupée (*pooler*), pour l'application, suivie de `&pgbouncer=true&connect_timeout=15` (Prisma 6 derrière PgBouncer ; réveil de la base gratuite) |
+| `DATABASE_URL_UNPOOLED` | Neon : adresse directe, pour les migrations, suivie de `&connect_timeout=15` |
 | `AUTH_SECRET` | À générer : `openssl rand -base64 32` |
 | `CRON_SECRET` | À générer : `openssl rand -base64 32` ; la même valeur dans les secrets du dépôt GitHub |
 | `NEXT_PUBLIC_SITE_URL` | L'adresse `.netlify.app` du site, puis le domaine. Sans elle, le site prend `URL`, fournie par Netlify |
