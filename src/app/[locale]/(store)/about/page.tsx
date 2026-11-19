@@ -4,6 +4,7 @@ import { LogoMark } from "@/components/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { weekdayName } from "@/lib/format";
+import { openOperators, operatorList } from "@/lib/payment";
 import { pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
@@ -17,11 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 const WEEK = Array.from({ length: 7 }, (_, i) => new Date(2026, 10, 16 + i));
 
 export default async function AboutPage() {
-  const [{ storeName }, locale, t] = await Promise.all([getSettings(), getLocale(), getTranslations("about")]);
+  const [settings, locale, t, tp] = await Promise.all([getSettings(), getLocale(), getTranslations("about"), getTranslations("payment")]);
+  const { storeName } = settings;
+  // Les moyens de paiement réellement ouverts, comme à la commande.
+  const operators = openOperators(settings);
   const points = [
     [t("p1"), t("p1text")],
     [t("p2"), t("p2text")],
-    [t("p3"), t("p3text")],
+    [t("p3"), operators.length > 0 ? t("p3text", { operators: tp("operators", operatorList(operators)) }) : t("p3textCod")],
   ];
   return (
     <div className="container-page pt-10 md:pt-16">

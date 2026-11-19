@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
+import { openOperators, operatorList } from "@/lib/payment";
 import { pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { zoneName } from "@/lib/shipping";
@@ -12,14 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HelpPage() {
-  const [s, zones, locale, td, t] = await Promise.all([
+  const [s, zones, locale, td, t, tp] = await Promise.all([
     getSettings(),
     db.shippingZone.findMany({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] }),
     getLocale(),
     getTranslations("delivery"),
     getTranslations("help"),
+    getTranslations("payment"),
   ]);
   const email = s.contactEmail;
+  // Seuls les opérateurs dont le vendeur a saisi le numéro : ce sont ceux que la commande propose.
+  const operators = openOperators(s);
   const returns = [
     [t("r1"), t("r1text", { email })],
     [t("r2"), t("r2text")],
@@ -29,7 +33,7 @@ export default async function HelpPage() {
     [t("q1"), t("a1")],
     [t("q2"), t("a2")],
     [t("q3"), t("a3")],
-    [t("q4"), t("a4")],
+    [t("q4"), operators.length > 0 ? t("a4", { operators: tp("operators", operatorList(operators)) }) : t("a4Cod")],
     [t("q5"), t("a5", { email })],
   ];
   return (

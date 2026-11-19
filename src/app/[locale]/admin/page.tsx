@@ -45,7 +45,7 @@ function Kpi({ label, value, current, previous, days, t }: { label: string; valu
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   await requireAdmin();
   const days = PERIODS.includes(Number((await searchParams).p)) ? Number((await searchParams).p) : 30;
-  const [{ currency }, locale, t, tc] = await Promise.all([getSettings(), getLocale(), getTranslations("admin.dashboard"), getTranslations("admin.common")]);
+  const [{ currency }, locale, t, tc, to] = await Promise.all([getSettings(), getLocale(), getTranslations("admin.dashboard"), getTranslations("admin.common"), getTranslations("admin.orders")]);
   const price = (cents: number) => formatPrice(cents, currency, locale);
   // Les jours sont ceux de Madagascar, quel que soit le fuseau du serveur (UTC en production) : `today`, `firstDay` et
   // `prevFirstDay` sont des dates du calendrier malgache, `start` et `prevStart` les instants de leur minuit à Antananarivo.
@@ -163,32 +163,37 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       </div>
 
       <div className="mt-4 grid gap-4 *:min-w-0 xl:grid-cols-[1.7fr_1fr]">
-        <Card title={t("recentOrders")} flush action={<Link href="/admin/orders" className="shrink-0 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{tc("viewAll")}</Link>}>
-          <div className="relative overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-y bg-muted/40">
-                <tr>
-                  <th className={th}>{t("colOrder")}</th>
-                  <th className={th}>{t("colCustomer")}</th>
-                  <th className={th}>{t("colStatus")}</th>
-                  <th className={cn(th, "text-right")}>{t("colTotal")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {recent.map((o) => (
-                  <tr key={o.id} className="hover:bg-muted/40">
-                    <td className={td}>
-                      <Link href={`/admin/orders/${o.id}`} className="font-medium underline-offset-4 hover:underline">{o.number}</Link>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(o.createdAt, locale)}</p>
-                    </td>
-                    <td className={td}>{o.fullName}</td>
-                    <td className={td}><OrderStatus status={o.status} /></td>
-                    <td className={cn(td, "text-right whitespace-nowrap tabular-nums")}>{price(o.totalCents)}</td>
+        <Card title={t("recentOrders")} flush action={recent.length > 0 && <Link href="/admin/orders" className="shrink-0 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">{tc("viewAll")}</Link>}>
+          {/* Boutique qui vient d'ouvrir : le même message que la liste des commandes, plutôt que des en-têtes de colonnes seuls. */}
+          {recent.length === 0 ? (
+            <EmptyState title={to("emptyTitle")} text={to("emptyText")} />
+          ) : (
+            <div className="relative overflow-x-auto">
+              <table className="w-full">
+                <thead className="border-y bg-muted/40">
+                  <tr>
+                    <th className={th}>{t("colOrder")}</th>
+                    <th className={th}>{t("colCustomer")}</th>
+                    <th className={th}>{t("colStatus")}</th>
+                    <th className={cn(th, "text-right")}>{t("colTotal")}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y">
+                  {recent.map((o) => (
+                    <tr key={o.id} className="hover:bg-muted/40">
+                      <td className={td}>
+                        <Link href={`/admin/orders/${o.id}`} className="font-medium underline-offset-4 hover:underline">{o.number}</Link>
+                        <p className="text-xs text-muted-foreground">{formatDateTime(o.createdAt, locale)}</p>
+                      </td>
+                      <td className={td}>{o.fullName}</td>
+                      <td className={td}><OrderStatus status={o.status} /></td>
+                      <td className={cn(td, "text-right whitespace-nowrap tabular-nums")}>{price(o.totalCents)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
         <Card title={t("lowStock")} description={t("lowStockHint", { count: LOW_STOCK_THRESHOLD })} flush>
           {lowStock.length === 0 ? (

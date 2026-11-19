@@ -1,5 +1,10 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
-import { availablePaymentMethods, checkMerchantNumber, isMobileMoney, merchantNumber, normalizePaymentReference, operatorOf, paymentState } from "../payment";
+import { mergeMessages, type Messages } from "@/i18n/messages";
+import en from "../../../messages/en.json";
+import fr from "../../../messages/fr.json";
+import mg from "../../../messages/mg.json";
+import { availablePaymentMethods, checkMerchantNumber, isMobileMoney, merchantNumber, normalizePaymentReference, openOperators, operatorList, operatorOf, paymentState } from "../payment";
 
 const numbers = { mvolaNumber: "034 00 123 45", orangeMoneyNumber: "032 00 123 45", airtelMoneyNumber: "" };
 
@@ -13,6 +18,36 @@ describe("availablePaymentMethods", () => {
   it("ne propose plus la carte bancaire", () => {
     expect(availablePaymentMethods(numbers)).not.toContain("CARD");
   });
+});
+
+describe("openOperators", () => {
+  it("garde les opérateurs proposés à la commande, dans le même ordre", () => {
+    expect(openOperators(numbers)).toEqual(["MVOLA", "ORANGE_MONEY"]);
+  });
+  it("n'en garde aucun quand aucun numéro n'est renseigné : seul le paiement à la livraison reste", () => {
+    expect(openOperators({ mvolaNumber: "", orangeMoneyNumber: " ", airtelMoneyNumber: "" })).toEqual([]);
+  });
+});
+
+describe("operatorList (message payment.operators)", () => {
+  // Même socle et même moteur ICU que l'application (src/i18n/request.ts).
+  const say = (locale: "fr" | "en" | "mg", operators: Parameters<typeof operatorList>[0]) => {
+    const messages: Messages = locale === "fr" ? fr : mergeMessages(fr, { en, mg }[locale]);
+    const t = createTranslator({ locale, messages }) as unknown as (key: string, values: Record<string, string | number>) => string;
+    return t("payment.operators", operatorList(operators));
+  };
+  const cases = {
+    fr: ["MVola", "MVola ou Airtel Money", "MVola, Orange Money ou Airtel Money"],
+    en: ["MVola", "MVola or Airtel Money", "MVola, Orange Money or Airtel Money"],
+    mg: ["MVola", "MVola na Airtel Money", "MVola, Orange Money na Airtel Money"],
+  } as const;
+  for (const [locale, [one, two, three]] of Object.entries(cases) as [keyof typeof cases, readonly string[]][]) {
+    it(`met un, deux ou trois opérateurs en liste en ${locale}`, () => {
+      expect(say(locale, ["MVOLA"])).toBe(one);
+      expect(say(locale, ["MVOLA", "AIRTEL_MONEY"])).toBe(two);
+      expect(say(locale, ["MVOLA", "ORANGE_MONEY", "AIRTEL_MONEY"])).toBe(three);
+    });
+  }
 });
 
 describe("merchantNumber", () => {

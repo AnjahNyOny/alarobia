@@ -78,6 +78,17 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
     return s ? `/products?${s}` : "/products";
   };
   const hasFilters = !!(sp.min || sp.max || sp.stock || sp.sale);
+  // Rien à montrer : une recherche ou un filtre peut l'expliquer (la page lue au-delà de la dernière aussi). « Promotions »
+  // seul (lien de la navigation) : il n'y a aucun prix réduit en ce moment. Sinon le rayon, ou tout le catalogue, n'a encore
+  // aucun article en ligne ; le rayon et le tri ne retirent rien.
+  const otherFilters = !!(q || sp.min || sp.max || sp.stock);
+  const empty = total > 0 || otherFilters ? "noMatch" : sp.sale ? "noSale" : category ? "emptyAisle" : "emptyAll";
+  const emptyCopy = {
+    noMatch: [t("emptyTitle"), t("emptyText")],
+    noSale: [t("emptySaleTitle"), t("emptySaleText")],
+    emptyAisle: [t("emptyAisleTitle"), t("emptyAisleText")],
+    emptyAll: [t("emptyAllTitle"), t("emptyAllText")],
+  }[empty];
   const title = q ? t("results", { q }) : sp.sale && !category ? t("sale") : (category?.name ?? t("all"));
   const priceInput = "h-10 w-24 rounded-md border border-input bg-card px-3 text-sm tabular-nums outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30";
 
@@ -167,11 +178,14 @@ export default async function CataloguePage({ searchParams }: { searchParams: Pr
 
       {products.length === 0 ? (
         <div className="mt-10 max-w-md border-t pt-10 pb-10">
-          <p className="display text-3xl">{t("emptyTitle")}</p>
-          <p className="mt-3 text-muted-foreground">{t("emptyText")}</p>
-          <Link href="/products" className={`${buttonVariants({ size: "md", variant: "outline" })} mt-6`}>
-            {t("emptyCta")}
-          </Link>
+          <p className="display text-3xl">{emptyCopy[0]}</p>
+          <p className="mt-3 text-muted-foreground">{emptyCopy[1]}</p>
+          {/* Sur « tous les produits » sans recherche ni filtre, le lien ramènerait à la même page. */}
+          {empty !== "emptyAll" && (
+            <Link href="/products" className={`${buttonVariants({ size: "md", variant: "outline" })} mt-6`}>
+              {t("emptyCta")}
+            </Link>
+          )}
         </div>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-x-3 gap-y-9 sm:gap-x-5 md:grid-cols-3 lg:grid-cols-4">

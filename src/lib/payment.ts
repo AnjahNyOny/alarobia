@@ -27,6 +27,21 @@ export function availablePaymentMethods(numbers: MerchantNumbers): PaymentMethod
   return PAYMENT_METHODS.filter((method) => method === "COD" || merchantNumber(method, numbers) !== "");
 }
 
+/** Opérateurs Mobile Money proposés à la commande (même règle), dans le même ordre ; aucun : seul le paiement à la livraison reste. */
+export function openOperators(numbers: MerchantNumbers): MobileMoney[] {
+  return availablePaymentMethods(numbers).filter(isMobileMoney);
+}
+
+/**
+ * Variables du message `payment.operators`, qui met un à trois opérateurs en liste dans la langue de la page
+ * (« MVola, Orange Money ou Airtel Money », « MVola na Airtel Money »). Message ICU plutôt qu'Intl.ListFormat :
+ * Node ne connaît pas le malgache et formerait la liste en anglais.
+ */
+export function operatorList(operators: readonly MobileMoney[]) {
+  const [a = "", b = "", c = ""] = operators.map((method) => OPERATOR_NAME[method]);
+  return { count: operators.length, a, b, c };
+}
+
 const PREFIX_OPERATOR: Record<string, MobileMoney> = { "034": "MVOLA", "038": "MVOLA", "032": "ORANGE_MONEY", "037": "ORANGE_MONEY", "033": "AIRTEL_MONEY" };
 
 /** Opérateur Mobile Money d'un numéro malgache, d'après son préfixe ; null pour un fixe ou un numéro invalide. */

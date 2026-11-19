@@ -384,27 +384,35 @@ Ajoutée le 19/11/2026, après les captures d'une base remplie par `init-product
 - Hors tâche, temporaire tant que les produits sont en brouillon : rayons à « 0 article » sur l'accueil et dans la navigation, même carte dans « Nouveautés » et « Les plus demandés ». Ils disparaissent quand le vendeur publie ses produits.
 
 ### 7.5 Mise en ligne (propriétaire et architecte)
+Ordre revu le 19/11/2026 : Netlify compile dès qu'un site est créé depuis un dépôt. Créé avant l'envoi, il compilerait le code de la phase 4 (SQLite, sans `netlify.toml`) : échec ou site cassé, et des crédits perdus. Le code part donc d'abord, et le site est créé ensuite, ses variables saisies dès le formulaire d'import.
+
+0. **Architecte, avant l'envoi** : route de diagnostic `GET /api/cron/adresse`, protégée comme le nettoyage (`Authorization: Bearer <CRON_SECRET>`, 503 sans la variable, 401 avec un mauvais secret, `no-store`). Elle renvoie à l'appelant ce que le serveur a reçu pour sa propre requête : `clientIp()`, `x-nf-client-connection-ip`, `x-forwarded-for`, `x-real-ip`. Contrôle de secret partagé avec la route du nettoyage, tests unitaires. Elle sert à l'étape 7 ; on peut la retirer ensuite.
 1. **Propriétaire, avant l'envoi** :
    - débrancher l'ancien projet Vercel de GitHub, ou le supprimer ;
-   - créer la base sur neon.tech (offre gratuite) et noter ses deux adresses, regroupée et directe ;
-   - générer `AUTH_SECRET` et `CRON_SECRET` (`openssl rand -base64 32` chacun).
-2. **Propriétaire, sur netlify.com** (offre gratuite) :
-   - créer le site depuis le dépôt GitHub `AnjahNyOny/alarobia` et relever la région de ses fonctions (la base Neon doit être dans la même ; sinon la recréer au bon endroit) ;
-   - ajouter, pour la production seulement, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `AUTH_SECRET`, `CRON_SECRET` et `NEXT_PUBLIC_SITE_URL` (l'adresse `.netlify.app` du site).
-3. **Propriétaire, sur GitHub** : secrets du dépôt `SITE_URL` et `CRON_SECRET`, pour le nettoyage quotidien.
-4. **Propriétaire, en local** : copier l'adresse directe de Neon dans `.env.production.local` (ignoré par git) sous le nom `DATABASE_URL_UNPOOLED` (et `DATABASE_URL`), avec `ADMIN_EMAIL` et `ADMIN_PASSWORD` de son choix.
-5. **Architecte, quand le propriétaire le demande** :
-   - `git push` : Netlify compile et applique les migrations ;
-   - puis `node --env-file=.env.production.local prisma/init-production.mjs` ;
+   - créer la base sur neon.tech (offre gratuite), **région AWS US East 2 (Ohio)**, celle des fonctions Netlify par défaut, et noter ses deux adresses, regroupée (*pooled*) et directe ;
+   - générer `AUTH_SECRET` et `CRON_SECRET` (`openssl rand -base64 32` chacun) ;
+   - choisir le nom du site Netlify (par exemple `alarobia`, soit `https://alarobia.netlify.app` s'il est libre).
+2. **Architecte, quand le propriétaire le demande** : `git push` de `main`. Aucun hébergeur ne compile encore (Vercel débranché, site Netlify pas encore créé). Le flux de nettoyage devient actif sur GitHub : il échouerait à sa première heure (01:00 UTC) tant que ses secrets manquent, d'où l'étape 4 le jour même.
+3. **Propriétaire, sur netlify.com** (offre gratuite) :
+   - importer le dépôt GitHub `AnjahNyOny/alarobia` ; dans le formulaire d'import, donner le nom du site et ajouter, **avant de lancer le premier déploiement**, `DATABASE_URL` (adresse regroupée), `DATABASE_URL_UNPOOLED` (adresse directe), `AUTH_SECRET`, `CRON_SECRET` et `NEXT_PUBLIC_SITE_URL` (`https://<nom>.netlify.app`) ; la commande de compilation vient de `netlify.toml` ;
+   - lancer le déploiement : Netlify applique les migrations à Neon puis compile ;
+   - relever la région des fonctions du site ; si ce n'est pas `us-east-2`, le dire avant d'aller plus loin (la base Neon serait à recréer au bon endroit) ;
+   - dans les variables du site, limiter ces cinq variables au contexte « Production ».
+4. **Propriétaire, sur GitHub** : secrets du dépôt `SITE_URL` (`https://<nom>.netlify.app`) et `CRON_SECRET`, pour le nettoyage quotidien.
+5. **Propriétaire, en local** : `.env.production.local` (ignoré par git) avec `DATABASE_URL` et `DATABASE_URL_UNPOOLED` égales à l'adresse **directe** de Neon, `ADMIN_EMAIL` et `ADMIN_PASSWORD` (12 caractères au moins).
+6. **Architecte** :
+   - `node --env-file=.env.production.local prisma/init-production.mjs`, juste après le premier déploiement réussi (en attendant, la base est vide) ;
    - vérifier que la collation de la base Neon (`SHOW lc_collate`) est la même qu'en local, sinon le signaler.
-6. **Contrôle en ligne (`verificateur`)** : `e2e/production.spec.ts`, lancé seulement si `PROD_URL` est défini.
+7. **Contrôle en ligne (`verificateur`)** : `e2e/production.spec.ts`, lancé seulement si `PROD_URL` est défini.
    - Pages en fr, en et mg (accueil, catalogue, fiche, aide) : réponse 200, aucune erreur de console.
    - Envoi d'une image sur la fiche personnalisable, puis relecture de l'image par `/uploads/…` (le nettoyage l'effacera au bout de sept jours).
    - Connexion au back-office avec le compte du propriétaire.
    - En-têtes de sécurité, `hreflang` et adresse canonique sur l'adresse en ligne.
    - Poids des pages par `poids-pages.mjs` contre l'adresse en ligne, comparé aux budgets.
-7. **Propriétaire** : une commande réelle de bout en bout (paiement à la livraison), puis son annulation dans le back-office.
-8. **Nettoyage** : lancer une fois le flux de travail à la main depuis GitHub (onglet Actions), puis vérifier qu'il réussit.
+   - **Adresse du client** : `GET /api/cron/adresse` appelée avec un faux `x-nf-client-connection-ip: 203.0.113.7` et un faux `x-forwarded-for`. Si `clientIp` rend la fausse adresse, Netlify ne l'écrase pas : le signaler (les limites par adresse se contourneraient) avant de décider de la suite.
+   - **Fonctions** : pages qui lisent la base sans erreur de moteur Prisma ; taille des fonctions relevée dans le journal de déploiement (deux moteurs embarqués, environ 35 Mo).
+8. **Propriétaire** : une commande réelle de bout en bout (paiement à la livraison), puis son annulation dans le back-office.
+9. **Nettoyage** : lancer une fois le flux de travail à la main depuis GitHub (onglet Actions), d'abord en essai à blanc, puis vérifier qu'il réussit.
 
 **Livrable 7A** : la boutique tourne gratuitement sur son adresse `.netlify.app`, et les commandes, les comptes et les images survivent d'un déploiement à l'autre.
 

@@ -26,6 +26,8 @@ export function RevenueChart({ data, currency }: { data: Point[]; currency: stri
   const locale = useLocale();
   // Même règle que formatPrice : le malgache suit l'écriture française des nombres.
   const compact = new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR", { notation: "compact", maximumFractionDigits: 1 });
+  // Aucune vente sur la période : sur un axe de 0 à 0, recharts répéterait « 0 » à chaque graduation. Une seule, au pied de la courbe.
+  const flat = data.every((p) => p.revenueCents === 0);
   return (
     <div className="h-64 w-full" role="img" aria-label={t("chartLabel")}>
       <ResponsiveContainer width="100%" height="100%">
@@ -36,9 +38,9 @@ export function RevenueChart({ data, currency }: { data: Point[]; currency: stri
               <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <CartesianGrid vertical={false} stroke="var(--border)" {...(flat && { horizontalValues: [0] })} />
           <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={10} minTickGap={36} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
-          <YAxis width={44} tickLine={false} axisLine={false} tickCount={4} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickFormatter={(v: number) => compact.format(v / 100)} />
+          <YAxis width={44} tickLine={false} axisLine={false} tickCount={4} {...(flat && { domain: [0, 1], ticks: [0] })} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickFormatter={(v: number) => compact.format(v / 100)} />
           <Tooltip cursor={{ stroke: "var(--foreground)", strokeOpacity: 0.25 }} content={<ChartTooltip currency={currency} />} />
           <Area type="monotone" dataKey="revenueCents" stroke="var(--brand)" strokeWidth={2} fill="url(#revenue-fill)" activeDot={{ r: 4, stroke: "var(--card)", strokeWidth: 2 }} isAnimationActive={false} />
         </AreaChart>

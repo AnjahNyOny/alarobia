@@ -12,6 +12,7 @@ import { customizerOptions } from "@/lib/customization";
 import { DEMO_COLOR } from "@/lib/customizer/demo";
 import { db } from "@/lib/db";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
+import { openOperators, operatorList } from "@/lib/payment";
 import { jsonLdScript, pageAlternates, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { estimateDelivery, madagascarTime, zoneName } from "@/lib/shipping";
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [settings, user, locale, t] = await Promise.all([getSettings(), getUser(), getLocale(), getTranslations("home")]);
+  const [settings, user, locale, t, tp] = await Promise.all([getSettings(), getUser(), getLocale(), getTranslations("home"), getTranslations("payment")]);
   const [categories, featured, latest, wished] = await Promise.all([
     db.category.findMany({ orderBy: { position: "asc" }, include: { translations: true, _count: { select: { products: { where: { status: "ACTIVE" } } } } } }),
     db.product.findMany({ where: { status: "ACTIVE", featured: true }, include: cardInclude, orderBy: { updatedAt: "desc" }, take: 8 }),
@@ -55,9 +56,11 @@ export default async function HomePage() {
       { "@type": "WebSite", "@id": `${home}#site`, url: home, name: settings.storeName, description: t("lead"), inLanguage: locale, publisher: { "@id": `${base}/#boutique` } },
     ],
   };
+  // Les moyens de paiement réellement ouverts : un opérateur sans numéro marchand n'est pas proposé à la commande.
+  const operators = openOperators(settings);
   const steps = [
     [t("steps.s1"), t("steps.s1text")],
-    [t("steps.s2"), t("steps.s2text")],
+    [t("steps.s2"), operators.length > 0 ? t("steps.s2text", { operators: tp("operators", operatorList(operators)) }) : t("steps.s2textCod")],
     [t("steps.s3"), t("steps.s3text")],
   ];
 

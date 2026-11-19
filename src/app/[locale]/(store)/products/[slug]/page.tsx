@@ -23,7 +23,7 @@ import { cleanText, customizerOptions, graphemes, type CustomizerOptions } from 
 import { db } from "@/lib/db";
 import { formatDate, formatMoment, formatPrice } from "@/lib/format";
 import { CATEGORY_FIELDS, localize, PRODUCT_FIELDS } from "@/lib/localize";
-import { availablePaymentMethods, isMobileMoney, OPERATOR_NAME } from "@/lib/payment";
+import { openOperators, operatorList } from "@/lib/payment";
 import { shippingCost } from "@/lib/pricing";
 import { catalogPath, jsonLdScript, openGraphBase, pageAlternates, schemaPrice, siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
@@ -78,13 +78,14 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const product = localize(raw, locale, PRODUCT_FIELDS);
   const category = localize(raw.category, locale, CATEGORY_FIELDS);
 
-  const [settings, user, zones, t, tc, td] = await Promise.all([
+  const [settings, user, zones, t, tc, td, tp] = await Promise.all([
     getSettings(),
     getUser(),
     db.shippingZone.findMany({ where: { active: true }, orderBy: [{ position: "asc" }, { name: "asc" }] }),
     getTranslations("product"),
     getTranslations("card"),
     getTranslations("delivery"),
+    getTranslations("payment"),
   ]);
   const [related, wished, purchased] = await Promise.all([
     db.product.findMany({ where: { status: "ACTIVE", categoryId: product.categoryId, id: { not: product.id } }, include: cardInclude, take: 4, orderBy: { featured: "desc" } }),
@@ -103,7 +104,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
   const mine = product.reviews.find((r) => r.userId === user?.id);
   const details = product.details.split("\n").filter(Boolean);
   const today = madagascarTime();
-  const operators = availablePaymentMethods(settings).filter(isMobileMoney).map((method) => OPERATOR_NAME[method]);
+  const operators = openOperators(settings);
   const custom = customizerOptions(product);
   // Prénom écrit sur la démonstration de l'accueil (« ?perso=Anjah ») : coupé à la longueur que le produit accepte.
   const { perso } = await searchParams;
@@ -229,7 +230,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
               )}
               <div className="grid gap-1 px-4 py-4 text-sm text-muted-foreground sm:px-5">
                 {settings.freeShippingThresholdCents > 0 && product.priceCents < settings.freeShippingThresholdCents && <p>{t("freeFrom", { amount: price(settings.freeShippingThresholdCents) })}</p>}
-                <p>{operators.length > 0 ? t("payMobile", { operators: operators.join(", ") }) : t("payCod")}</p>
+                <p>{operators.length > 0 ? t("payMobile", { operators: tp("operators", operatorList(operators)) }) : t("payCod")}</p>
                 <p>
                   {t("returns")}{" "}
                   <Link href="/help" className="text-foreground underline underline-offset-4">
