@@ -13,7 +13,7 @@ Plateforme e-commerce pour Madagascar : objets du quotidien, catalogue libre (le
 3. Écrire le test d'abord quand la tâche porte sur de la logique (prix, panier, traductions, validation).
 4. Vérifier pour de bon avant de dire que c'est fait : `npm run lint`, `npx tsc --noEmit`, `npm test`, `npm run build`, puis le parcours navigateur et des captures d'écran pour tout changement visible.
 5. Mettre à jour `PROGRESS.md` : cocher la tâche, noter ce qui a été vérifié et toute décision prise.
-6. Committer chaque tâche finie et vérifiée, un commit par tâche (autorisé par le propriétaire le 16/11/2026). Ne pas pousser vers GitHub sans sa demande : un envoi déclenche un déploiement Vercel.
+6. Committer chaque tâche finie et vérifiée, un commit par tâche (autorisé par le propriétaire le 16/11/2026). Envois sur GitHub (autorisé par le propriétaire le 19/11/2026) : la branche `preview` peut recevoir les lots vérifiés sans lui demander (déploiement de branche Netlify, 0 crédit, une fois la tâche 7.6 en place) ; `main` seulement à sa demande, car chaque envoi qui touche au site le met en ligne et coûte 15 crédits.
 
 Le propriétaire a rejeté une première version jugée « comme tous les sites e-commerce ». Une demande explicite d'outil ou de méthode (un skill, une bibliothèque) se suit telle quelle ; si c'est impossible, le dire tout de suite plutôt que de substituer autre chose.
 

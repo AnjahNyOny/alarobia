@@ -44,6 +44,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 18/11/2026 | Aucune option payante (refus de l'offre Pro de Vercel) : hébergement sur l'offre gratuite de Netlify, fichiers dans Netlify Blobs, base sur l'offre gratuite de Neon, nettoyage quotidien par GitHub Actions. Remplace Vercel et Vercel Blob dans la décision précédente. Écartés : Vercel gratuit (usage commercial interdit), Cloudflare (code du serveur limité à 3 Mo, autre pilote Prisma). |
 | 18/11/2026 | Retours : « sauf article personnalisé » ajouté aux trois textes qui promettaient 30 jours sans condition (fiche, aide, conditions de vente), en fr, en et mg. Validé par le propriétaire. |
 | 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
+| 19/11/2026 | Envois sur GitHub : la branche `preview` peut recevoir les lots vérifiés sans demander ; `main` seulement à la demande du propriétaire (chaque mise en ligne coûte 15 crédits). |
 | 19/11/2026 | Catalogue de départ en production : `init-production.mjs` crée les 27 produits **en brouillon**, sauf la tasse personnalisable (`tasse-en-gres-vato`), en ligne pour le contrôle de l'envoi d'image (7.5). Le propriétaire publie ensuite les produits qu'il garde, après avoir corrigé prix et stock. Écarté : tout publier puis retirer à la main. |
 
 ## Avancement
