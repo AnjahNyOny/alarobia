@@ -1,6 +1,6 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
@@ -74,7 +74,7 @@ test("zones de livraison : création, validation, visible à la commande, la der
   // Côté boutique : la zone est proposée, sans traduction elle garde son nom français.
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/mg/checkout");
   await page.getByRole("radio", { name: /Nosy Be/ }).check();
   await expect(page.getByText("32 000 Ar")).toBeVisible();

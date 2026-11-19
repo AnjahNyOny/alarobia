@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ADMIN, CLIENT, expectAccessible, login } from "./helpers";
+import { ADMIN, CLIENT, expectAccessible, login, CART_ADD_TIMEOUT } from "./helpers";
 
 // Analyse axe (WCAG 2.0 et 2.1, A et AA) de chaque page, au repos et dans les états où se cachent les défauts :
 // tiroir ouvert, personnalisation, formulaire refusé, onglet de langue. Les adresses portent toujours leur langue
@@ -55,7 +55,7 @@ test("connexion refusée : le message d'erreur est accessible", async ({ page })
 test("panier, commande refusée puis acceptée, confirmation Mobile Money", async ({ page }) => {
   await page.goto(SAC);
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await expectAccessible(page, "tiroir du panier ouvert");
   await page.keyboard.press("Escape");
 
@@ -179,7 +179,7 @@ test("anglais et malgache : accueil, fiche personnalisable, commande", async ({ 
   // Un article dans le panier, sans quoi la commande renvoie au panier.
   await page.goto(SAC);
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   try {
     for (const locale of ["en", "mg"] as const) {
       for (const path of ["", "/products/tasse-en-gres-vato", "/checkout"]) {

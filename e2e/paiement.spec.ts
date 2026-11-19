@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -7,7 +7,7 @@ test.describe.configure({ mode: "serial" });
 async function order(page: Page, email: string, payment: RegExp) {
   await page.goto("/fr/products/clavier-frappe");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/fr/checkout");
   await page.getByLabel("Adresse e-mail").fill(email);
   await page.getByLabel("Nom complet").fill("Noro Rasoa");
@@ -119,7 +119,7 @@ test("réglages : un numéro du mauvais réseau est refusé, un opérateur sans 
 
   await page.goto("/fr/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/fr/checkout");
   await expect(page.getByRole("radio", { name: /MVola/ })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Orange Money/ })).toBeVisible();

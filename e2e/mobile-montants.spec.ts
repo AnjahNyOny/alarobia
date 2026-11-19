@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 // Point de vigilance 6 : « 1 250 000 Ar » et au-delà doivent tenir à 320 px, la largeur minimale supportée.
 test.use({ viewport: { width: 320, height: 640 } });
@@ -63,7 +63,7 @@ test("gros montants en ariary à 320 px : catalogue, fiche, panier et commande d
   await page.goto("/fr/products/canape-dune-en-lin");
   await page.getByRole("button", { name: "Augmenter la quantité" }).click();
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await expectAmountsFit(page, "le panneau du panier");
 
   for (const locale of ["fr", "en", "mg"]) {

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { login, watchErrors } from "./helpers";
+import { login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test("inscription, favori, avis, puis accès refusé au back-office", async ({ page }) => {
   const check = watchErrors(page);
@@ -54,7 +54,7 @@ test("adresse du compte : téléphone malgache exigé, adresse proposée ensuite
 
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/checkout");
   await expect(page.getByLabel("Quartier")).toHaveValue("Isoraka");
   await expect(page.getByLabel("Code postal")).toHaveValue("");

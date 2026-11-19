@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, CART_ADD_TIMEOUT, login, watchErrors } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -33,11 +33,11 @@ test("un client commande une tasse à son nom, avec une image, et une tasse ordi
   sentImage = (await page.getByRole("img", { name: "Votre image" }).getAttribute("src")) ?? "";
   await expect(page.getByRole("img", { name: /Latérite, « Anjah »/ })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("dialog").getByText(/Personnalisé : Latérite, « Anjah »/)).toBeVisible();
+  await expect(page.getByRole("dialog").getByText(/Personnalisé : Latérite, « Anjah »/)).toBeVisible({ timeout: CART_ADD_TIMEOUT });
 
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
 
   await page.goto("/checkout");
   await page.getByLabel("Adresse e-mail").fill(EMAIL);

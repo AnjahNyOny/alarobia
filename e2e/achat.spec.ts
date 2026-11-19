@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ADMIN, login, watchErrors } from "./helpers";
+import { ADMIN, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
 
@@ -8,7 +8,7 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   await page.goto("/products/casque-studio-one");
   await page.getByRole("button", { name: "Augmenter la quantité" }).click();
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.getByRole("link", { name: "Voir le panier" }).click();
   await page.waitForURL("**/cart");
 
@@ -97,7 +97,7 @@ test("sous le seuil de gratuité, le total change avec la zone de livraison", as
   const check = watchErrors(page);
   await page.goto("/products/tasse-en-gres-vato");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/cart");
   // Dans le panier, la livraison n'est pas encore connue : elle dépend de la zone.
   await expect(page.getByText("Calculée à l'étape suivante")).toBeVisible();

@@ -19,7 +19,7 @@ import { formatPrice, slugify } from "../src/lib/format";
 import enMessages from "../messages/en.json";
 import frMessages from "../messages/fr.json";
 import mgMessages from "../messages/mg.json";
-import { ADMIN, CLIENT } from "./helpers";
+import { ADMIN, CLIENT, CART_ADD_TIMEOUT } from "./helpers";
 
 export const LOCALES = ["fr", "en", "mg"] as const;
 export type Locale = (typeof LOCALES)[number];
@@ -296,7 +296,7 @@ export async function guestMobileMoney({ browser, page, locale, device }: { brow
     await checkScreen(client, "fiche du café");
     await page.getByRole("button", { name: t("product.add"), exact: true }).click();
     const drawer = page.getByRole("dialog", { name: t("cart.title") });
-    await expect(drawer.getByRole("link", { name: coffee.name, exact: true })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: coffee.name, exact: true })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     await checkScreen(client, "tiroir du panier, café ajouté");
     await page.keyboard.press("Escape");
     await expect(drawer).toBeHidden();
@@ -326,7 +326,7 @@ export async function guestMobileMoney({ browser, page, locale, device }: { brow
 
     await page.getByRole("button", { name: t("product.add"), exact: true }).click();
     const drawer = page.getByRole("dialog", { name: t("cart.title") });
-    await expect(drawer.getByText(t("customizer.summary.label", { details: design }), { exact: true })).toBeVisible();
+    await expect(drawer.getByText(t("customizer.summary.label", { details: design }), { exact: true })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     await expect(drawer.getByRole("listitem")).toHaveCount(2);
     // L'aperçu dessiné remplace la photo du produit dans la ligne personnalisée.
     await expect(drawer.locator('img[src*="perso-"]')).toHaveCount(1);
@@ -522,7 +522,7 @@ export async function accountCashOnDelivery({ browser, page, locale, device }: {
     await checkScreen(client, "fiche du favori");
     await page.getByRole("button", { name: t("product.add"), exact: true }).click();
     const drawer = page.getByRole("dialog", { name: t("cart.title") });
-    await expect(drawer.getByRole("link", { name: favorite.name, exact: true })).toBeVisible();
+    await expect(drawer.getByRole("link", { name: favorite.name, exact: true })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     await drawer.getByRole("link", { name: t("cart.checkout"), exact: true }).click();
     await page.waitForURL(new RegExp(`/${locale}/checkout$`));
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(t("checkout.title"));

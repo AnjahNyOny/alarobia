@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { watchErrors } from "./helpers";
+import { CART_ADD_TIMEOUT, watchErrors } from "./helpers";
 
 // Images minimales mais réelles : un PNG d'un pixel, et de quoi tromper un contrôle fait sur le nom ou le type annoncé.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
@@ -64,7 +64,7 @@ test.describe("personnalisation sur la fiche produit", () => {
 
     await page.getByRole("button", { name: "Ajouter au panier" }).click();
     const drawer = page.getByRole("dialog");
-    await expect(drawer.getByText("Personnalisé : Latérite, « Anjah »")).toBeVisible();
+    await expect(drawer.getByText("Personnalisé : Latérite, « Anjah »")).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     await expect(drawer.getByText("15 000 Ar").first()).toBeVisible();
     // L'aperçu remplace la photo du produit, et c'est bien un fichier de personnalisation.
     await expect(drawer.locator('img[src*="perso-"]')).toHaveCount(1);
@@ -121,7 +121,7 @@ test.describe("personnalisation sur la fiche produit", () => {
     await page.getByLabel("Votre texte").fill("Aina");
     for (let i = 0; i < 2; i++) {
       await page.getByRole("button", { name: "Ajouter au panier" }).click();
-      await expect(page.getByRole("dialog").getByText("Personnalisé : Forêt, « Aina »")).toBeVisible();
+      await expect(page.getByRole("dialog").getByText("Personnalisé : Forêt, « Aina »")).toBeVisible({ timeout: CART_ADD_TIMEOUT });
       await page.keyboard.press("Escape");
     }
     await page.goto("/cart");
@@ -167,7 +167,7 @@ test.describe("téléphone sans WebGL (point de vigilance 1)", () => {
     await page.getByLabel("Votre texte").fill("Haja");
     await expect(page.getByRole("img", { name: /« Haja »/ })).toBeVisible();
     await page.getByRole("button", { name: "Ajouter au panier" }).click();
-    await expect(page.getByRole("dialog").getByText("Personnalisé : Blanc, « Haja »")).toBeVisible();
+    await expect(page.getByRole("dialog").getByText("Personnalisé : Blanc, « Haja »")).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     check();
   });
 });

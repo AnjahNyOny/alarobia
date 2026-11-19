@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { watchErrors } from "./helpers";
+import { watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test("la racine redirige vers la langue du navigateur", async ({ browser }) => {
   for (const [locale, expected] of [["fr-FR", "/fr"], ["en-GB", "/en"], ["mg-MG", "/mg"], ["de-DE", "/fr"]] as const) {
@@ -41,7 +41,7 @@ test("une adresse inconnue affiche la page 404 de la boutique", async ({ page })
 test("changer de langue pendant la commande conserve le panier, le code promo et la saisie", async ({ page }) => {
   await page.goto("/fr/products/gourde-isotherme-foret");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/fr/cart");
   await page.getByLabel("Code promo").fill("BIENVENUE10");
   await page.getByRole("button", { name: "Appliquer" }).click();

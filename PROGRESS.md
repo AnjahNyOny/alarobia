@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 18/11/2026** : phases 0 à 6 faites et committées. **Phase 7A (mise en ligne gratuite sur Netlify) commencée** à la demande du propriétaire, détaillée dans `PLAN.md`.
 
-**Prochaine action** : 7.3, heures du back-office (`executant`), puis 7.2 et 7.4. En parallèle, le propriétaire peut faire l'étape 1 de la 7.5 : débrancher l'ancien projet Vercel de GitHub, créer la base sur neon.tech, générer les deux secrets. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** : 7.2, fichiers envoyés dans Netlify Blobs (`developpeur`), puis 7.4. En parallèle, le propriétaire peut faire l'étape 1 de la 7.5 : débrancher l'ancien projet Vercel de GitHub, créer la base sur neon.tech, générer les deux secrets. Rien n'a été poussé vers GitHub depuis la phase 4.
 
 ## Décisions en attente
 
@@ -14,7 +14,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 - **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
 
 - **Texte « Qui sommes-nous »** (D3) : proposé par Claude dans `messages/*.json`, espace `about`. À corriger ou valider.
-- **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer. **Contradiction relevée le 18/11/2026** : la fiche, l'aide et les CGV (`legal.s3text`) annoncent « retours acceptés pendant 30 jours » sans condition, alors qu'un article personnalisé n'est « ni repris ni échangé » (mention de la personnalisation). Proposition : ajouter « sauf article personnalisé » aux trois textes, dans les trois langues.
+- **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer. (L'exception des articles personnalisés est réglée : voir les décisions du 18/11/2026.)
 - **Lettre d'information** : le texte promet « une lettre par mois » et une désinscription en un clic ; les adresses sont enregistrées, mais rien n'envoie de lettre et il n'y a pas de désinscription. Soit retirer ces promesses, soit les tenir (phase 7, e-mails).
 - **Préfixe « AL- »** des numéros de commande et des références : à confirmer.
 - **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. Le propriétaire peut maintenant les ajouter lui-même depuis le back-office (fiche produit, carte « Personnalisation »).
@@ -43,6 +43,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 16/11/2026 | Session principale passée de Fable 5.2 à Opus 5.5 (quota). Le propriétaire autorise l'architecte à modifier lui-même le code (règle de délégation assouplie dans `CLAUDE.md`). |
 | 18/11/2026 | Phase 7 commencée par la mise en ligne (7A). Hébergement sur Vercel, base PostgreSQL chez Neon, fichiers envoyés dans Vercel Blob (écartés : Turso, serveur unique). Adresse `.vercel.app` d'abord, domaine plus tard. |
 | 18/11/2026 | Aucune option payante (refus de l'offre Pro de Vercel) : hébergement sur l'offre gratuite de Netlify, fichiers dans Netlify Blobs, base sur l'offre gratuite de Neon, nettoyage quotidien par GitHub Actions. Remplace Vercel et Vercel Blob dans la décision précédente. Écartés : Vercel gratuit (usage commercial interdit), Cloudflare (code du serveur limité à 3 Mo, autre pilote Prisma). |
+| 18/11/2026 | Retours : « sauf article personnalisé » ajouté aux trois textes qui promettaient 30 jours sans condition (fiche, aide, conditions de vente), en fr, en et mg. Validé par le propriétaire. |
 | 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
 
 ## Avancement
@@ -112,7 +113,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.0 Prénom de démonstration « Anjah » et photo fixe refaite au même cadrage. Vérifié : lint et types propres, 322 tests unitaires, 54 parcours navigateur ciblés (personnalisation, accessibilité, commandes du back-office, parcours complets sur ordinateur et téléphone, performance)
 - [x] 7.1 PostgreSQL : schéma (colonnes obsolètes retirées), migration initiale contrôlée par un test, recherche insensible à la casse, tests unitaires sur schémas temporaires et suite navigateur sur `alarobia_test`, stock réservé dans un ordre fixe, caractère nul retiré de toutes les requêtes, annulation conditionnelle. Vérifié : lint et types propres, 340 tests unitaires, 122 parcours navigateur
 - [ ] 7.2 Fichiers envoyés dans Netlify Blobs, envois sous 4 Mo, nettoyage quotidien par GitHub Actions
-- [ ] 7.3 Heures du back-office à l'heure de Madagascar, tests en `TZ=UTC`
+- [x] 7.3 Heures à l'heure de Madagascar : instants (commandes, paiements, avis, inscriptions) et tableau de bord par jour de Madagascar, fin des codes promo à 23:59:59 à Antananarivo, année du pied de page ; tests unitaires en `TZ=UTC` sous trois fuseaux, suite navigateur avec le serveur en UTC et le navigateur à Antananarivo. Vérifié : lint et types propres, 365 tests unitaires, 123 parcours navigateur
 - [ ] 7.4 Réglages de production : `netlify.toml` (migrations à la compilation), adresse du site et du client sur Netlify, en-têtes de sécurité, données de départ sans données de démonstration
 - [ ] 7.5 Mise en ligne : Vercel débranché, Neon et Netlify préparés par le propriétaire, envoi, données de départ, contrôle en ligne, commande réelle
 
@@ -129,7 +130,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7. Mobile Money déclaré mais non reçu : la commande reste « en attente », l'annulation rend le stock, le client ne peut plus déclarer ensuite (test `e2e/paiement.spec.ts`)
 - [x] 8. Recherche et majuscules sous PostgreSQL (tests `e2e/langues.spec.ts` et `e2e/admin.spec.ts`)
 - [x] 9. Vingt commandes simultanées sur cinq exemplaires (test `src/lib/__tests__/stock.test.ts`)
-- [ ] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (7.3)
+- [x] 10. Commande à 23 h 30 à Antananarivo, serveur en UTC (tests `src/lib/__tests__/format.test.ts` et `e2e/heure-madagascar.spec.ts`)
 - [ ] 11. Photo de 8 Mo envoyée par le vendeur ou par un client (7.2)
 - [ ] 12. Variable de production manquante : échec explicite (7.2, 7.4)
 
@@ -483,3 +484,33 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
   - Risque relevé : en 2026, plusieurs utilisateurs gratuits signalent sur le forum de Netlify des mises en ligne bloquées à tort par le compteur de crédits.
   - Cloudflare écarté : code du serveur limité à 3 Mo compressés sur l'offre gratuite, Prisma à passer sur un pilote adapté, et R2 qui peut demander une carte bancaire.
   - `PLAN.md` réécrit pour 7.2, 7.4 et 7.5 : Netlify Blobs (`@netlify/blobs`) au lieu de Vercel Blob, nettoyage par un flux de travail GitHub Actions (gratuit, indépendant de l'hébergeur) qui appelle la route protégée, `netlify.toml`, adresse du client lue dans `x-nf-client-connection-ip`, base Neon créée dans la région des fonctions Netlify. 7.1 et 7.3 ne changent pas. Restent à reprendre en 7.4 : les mentions de « l'intégration Neon de Vercel » dans le commentaire du schéma et dans `.env.example`.
+- **Retours** (validé par le propriétaire) : l'exception des articles personnalisés a été ajoutée par l'architecte dans les trois langues.
+  - Textes concernés : `product.returns` (« Retours acceptés pendant 30 jours, sauf article personnalisé. »), `help.r2text` (« Un article personnalisé n'est ni repris ni échangé. ») et `legal.s3text`.
+  - Vocabulaire repris des textes existants : « personalised » en anglais, « natao manokana » et « natonta araka ny fangatahanao » en malgache, à relire avec le reste.
+  - Aucun test ne cite ces phrases : les parcours lisent leurs libellés dans les fichiers de messages. Vérification avec la 7.3.
+- Tâche 7.3 (`developpeur`, complétée par l'architecte) : heures à l'heure de Madagascar.
+  - **Deux sortes de dates** :
+    - les instants (`createdAt`, `paidAt`, `paymentDeclaredAt`) passent par `formatMoment` et `formatDateTime`, qui les convertissent par `madagascarTime()` ;
+    - les dates du calendrier malgache (livraisons promises, frise) restent sur `formatDate`, sans seconde conversion.
+  - **Tableau de bord** : jours de Madagascar (`madagascarDayKey`, `calendarDayKey`). Les bornes des requêtes sont les minuits d'Antananarivo, par `madagascarInstant`, l'inverse de `madagascarTime`.
+  - **Aucun composant client ne formate de date** : pas de risque de décalage d'hydratation entre le serveur (UTC) et le navigateur (Antananarivo).
+  - **Ajouts de l'architecte**, sur relevés du sous-agent :
+    - fin d'un code promo à 23:59:59 à Antananarivo (`endOfMadagascarDay`, vue rouge sous trois fuseaux) au lieu de la fin du jour du serveur, qui le laissait valable jusqu'à 02:59 le lendemain en UTC ;
+    - affichage de la fin d'un code par `formatMoment` ;
+    - année du pied de page à l'heure de Madagascar ;
+    - commentaires, schéma et `.env.example` qui citaient Vercel.
+  - **Tests** :
+    - 21 tests unitaires sous `UTC`, `America/New_York` et `Pacific/Kiritimati`, vus rouges (« 20:30 » au lieu de « 23:30 ») ;
+    - `e2e/heure-madagascar.spec.ts` (commande AL-1001 passée à 20:30 puis 21:30 UTC, lue « 23:30 » et « 00:30 » le lendemain), vu rouge ;
+    - suite navigateur avec `TZ=UTC` côté serveur et `timezoneId: "Indian/Antananarivo"` côté navigateur.
+  - **Relevé, non traité** :
+    - `Order.estimatedDelivery` est une date du calendrier enregistrée comme un instant, juste tant que le serveur garde le même fuseau (UTC en production). Une colonne `@db.Date` serait plus sûre (décision de schéma) ;
+    - le seed calcule `estimatedDelivery` et le `paidAt` des paiements à la livraison dans le fuseau de la machine (données de démonstration seulement) ;
+    - la machine du propriétaire est en EST.
+- **Test instable diagnostiqué** (`developpeur`) : `personnalisation.spec.ts`, « téléphone sans WebGL », a échoué une fois sur un passage complet.
+  - **Cause : lenteur de la machine**, pas le code. Elle a 8 Go de mémoire et un swap presque plein (12,5 à 13,4 Go sur 13,3). Un ajout au panier a été mesuré à 9 s, pour un tiroir attendu 5 s :
+    - action serveur en 2,8 s, puis un navigateur qui ne peignait plus qu'une image par seconde ou deux ;
+    - pic de pagination au même instant.
+  - **Limite de débit écartée** : les fichiers de l'ajout ont été enregistrés, et 25 envois sur 60 seulement avaient eu lieu avant ce test. Aucune erreur serveur.
+  - **Correctif, dans les tests seulement** : `CART_ADD_TIMEOUT` (15 s, `e2e/helpers.ts`) sur la première attente qui suit chacun des 23 ajouts au panier de `e2e/`. Le délai global de Playwright reste à 5 s. Règle et piège notés dans `CLAUDE.md`, dont `--repeat-each=5` sur `personnalisation.spec.ts`, qui bute sur la limite d'envois.
+- `verificateur` (7.3, retours et délais) : lint et types propres, 365 tests unitaires, **123 parcours navigateur sur 123** en 13,1 min sans relance (charge 14 à 16, swap 9,9 à 10,9 Go), `tsconfig.json` intact. Captures des nouveaux textes de retours (fiche en mg à 320 px et en fr à 1440 px, aide à 390 px, conditions en en à 390 px) : aucun débordement, relues par l'architecte.

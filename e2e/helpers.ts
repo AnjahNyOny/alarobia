@@ -21,6 +21,17 @@ export const ADMIN = { email: "admin@alarobia.example", password: "admin1234" };
 
 export const CLIENT = { email: "client@alarobia.example", password: "client1234" };
 
+/**
+ * Attente du tiroir ou du panier après un ajout au panier, au lieu des 5 s par défaut. Tout ajout passe par la même
+ * action serveur, qui redessine toute la mise en page ; pour un article personnalisé s'y ajoutent l'encodage de deux
+ * images dans le navigateur (aperçu, fichier d'impression) et deux envois. Machine en pagination (8 Go de mémoire,
+ * swap presque plein), l'ajout personnalisé a été mesuré à 9 s : action à 2,8 s, puis un navigateur qui ne peignait
+ * plus qu'une image toutes les une à deux secondes ; d'habitude, 0,4 à 3,4 s.
+ * Un ajout réellement en panne échoue quand même : envoi refusé ou action en erreur, le tiroir ne s'ouvre pas et un
+ * message d'erreur s'affiche.
+ */
+export const CART_ADD_TIMEOUT = 15_000;
+
 /** Critères vérifiés par axe : WCAG 2.0 et 2.1, niveaux A et AA (plancher du projet, PLAN.md « Contraintes »). */
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 

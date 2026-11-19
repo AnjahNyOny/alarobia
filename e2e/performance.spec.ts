@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { CART_ADD_TIMEOUT } from "./helpers";
 
 /**
  * Budgets de poids par page (tâche 6.2), mesurés sur un téléphone : 390 px de large, densité 2, cache vide.
@@ -49,7 +50,7 @@ async function fillCart(page: Page) {
   for (const product of ["/fr/products/casque-studio-one", "/fr/products/tasse-en-gres-vato"]) {
     await page.goto(product);
     await page.getByRole("button", { name: "Ajouter au panier" }).click();
-    await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   }
 }
 

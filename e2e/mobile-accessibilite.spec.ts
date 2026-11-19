@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { ADMIN, expectAccessible, login } from "./helpers";
+import { ADMIN, expectAccessible, login, CART_ADD_TIMEOUT } from "./helpers";
 
 // Même analyse axe qu'en `accessibilite.spec.ts`, sur téléphone (Pixel 7), plus la taille des cibles tactiles :
 // la règle `target-size` d'axe (WCAG 2.2, critère 2.5.8 : 24 × 24 px CSS, ou assez d'espace autour) n'est pas
@@ -34,7 +34,7 @@ test("boutique sur téléphone : écrans principaux et menu ouvert", async ({ pa
 
   await page.goto("/fr/products/sac-a-dos-transit");
   await page.getByRole("button", { name: "Ajouter au panier" }).click();
-  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await page.goto("/fr/cart");
   await check(page, "panier rempli");
   await page.goto("/fr/checkout");

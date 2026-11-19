@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { ADMIN, expectFocusShown, tabTo } from "./helpers";
+import { ADMIN, CART_ADD_TIMEOUT, expectFocusShown, tabTo } from "./helpers";
 
 // Parcours au clavier seul : Tab, Maj+Tab, Entrée, Espace, flèches, Échap et la frappe de texte.
 // Les sélecteurs ne servent qu'à vérifier où est le focus ; aucun click() ni fill() pour agir.
@@ -97,7 +97,7 @@ test("achat complet au clavier : recherche, fiche, panier, commande, confirmatio
   await tabTo(page, add, { step: "fiche produit" });
   await page.keyboard.press("Enter");
   const drawer = page.getByRole("dialog");
-  await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+  await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   await expectFocusInside(drawer, "le focus entre dans le tiroir");
   await tabTo(page, drawer.getByRole("link", { name: "Voir le panier" }), { step: "tiroir" });
   await page.keyboard.press("Enter");
@@ -179,7 +179,7 @@ test.describe("tiroir et menus", () => {
     const add = page.getByRole("button", { name: "Ajouter au panier" });
     await tabTo(page, add, { step: "ajout au panier" });
     await page.keyboard.press("Enter");
-    await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible();
+    await expect(drawer.getByRole("heading", { name: "Votre panier" })).toBeVisible({ timeout: CART_ADD_TIMEOUT });
     expect(await dialogOnOpen(page), "le tiroir s'ouvre sur le panier à jour, pas sur le panier vide").toContain("Sac à dos Transit");
     await expectFocusInside(drawer, "le focus entre dans le tiroir");
     await expectTrapped(page, drawer);
@@ -288,7 +288,7 @@ test("personnalisation de la tasse au clavier", async ({ page }) => {
   await tabTo(page, add, { step: "ajout" });
   await page.keyboard.press("Enter");
   const drawer = page.getByRole("dialog");
-  await expect(drawer.getByText(/Personnalisé : .*« Fara »/)).toBeVisible();
+  await expect(drawer.getByText(/Personnalisé : .*« Fara »/)).toBeVisible({ timeout: CART_ADD_TIMEOUT });
   // Même enchaînement que sur une fiche ordinaire : le tiroir s'ouvre sur la tasse ajoutée, le focus y entre, Échap le rend au bouton.
   expect(await dialogOnOpen(page), "le tiroir s'ouvre sur le panier à jour, pas sur le panier vide").toContain("« Fara »");
   await expectFocusInside(drawer, "le focus entre dans le tiroir");
