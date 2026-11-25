@@ -24,9 +24,12 @@ export function csvCell(value: string) {
   return /[",\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
-/** Inscrits → fichier CSV, dans l'ordre reçu (le plus récent d'abord, comme la page). */
-export function newsletterCsv(subscribers: { email: string; createdAt: Date }[]) {
-  const rows = [["email", "inscription"], ...subscribers.map((s) => [s.email, madagascarIso(s.createdAt)])];
+/**
+ * Inscrits → fichier CSV, dans l'ordre reçu (le plus récent d'abord, comme la page). `confirmee` : `oui` quand la personne
+ * a cliqué sur le lien de l'e-mail de confirmation ; seules ces adresses reçoivent la lettre.
+ */
+export function newsletterCsv(subscribers: { email: string; createdAt: Date; confirmedAt: Date | null }[]) {
+  const rows = [["email", "inscription", "confirmee"], ...subscribers.map((s) => [s.email, madagascarIso(s.createdAt), s.confirmedAt ? "oui" : "non"])];
   return rows.map((row) => row.map(csvCell).join(",") + "\r\n").join("");
 }
 

@@ -284,7 +284,15 @@ model ShippingZone {
 }
 
 model NewsletterSubscriber {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  email         String    @unique
+  createdAt     DateTime  @default(now())
+  // Jeton des liens de confirmation et de désinscription : 32 octets aléatoires en hexadécimal (src/lib/newsletter.ts).
+  token         String    @unique
+  // Langue de l'inscription : celle des e-mails (confirmation, lettres).
+  locale        String    @default("fr")
+  // Date du clic sur « Confirmer » ; seules les adresses confirmées reçoivent la lettre.
+  confirmedAt   DateTime?
+  // Dernier e-mail de confirmation envoyé : un seul par 24 h et par adresse.
+  confirmSentAt DateTime?
 }

@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : tâche 7.13 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : tâche 7.14 (rédaction et envoi de la lettre par lots). 7.10 à 7.13 vérifiées et committées sur `preview`, pas encore en ligne. Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -135,7 +135,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 Phase 7B, e-mails par Gmail (détail dans `PLAN.md`) :
 - [x] 7.11 Socle d'envoi : `src/lib/mail/` (`sendMail` : Gmail SMTP, sinon outbox des tests, sinon journal ; `renderMail`, `escapeHtml`), `nodemailer` 10.6.1 (MIT-0), `Order.locale` (migration `1_email`). Vérifié : lint et types propres, 534 tests unitaires, **146 parcours navigateur sur 146**, nodemailer absent du JavaScript du navigateur
 - [x] 7.12 E-mails de commande : récapitulatif au client dans sa langue (instructions Mobile Money comprises), avis au vendeur (nouvelle commande, paiement déclaré), e-mail au client à chaque changement de statut utile. Vérifié : lint et types propres, 587 tests unitaires, **150 parcours navigateur sur 150**, 76 e-mails produits par la suite (fr, en, mg)
-- [ ] 7.13 Lettre d'information : confirmation et désinscription
+- [x] 7.13 Lettre d'information : double confirmation par e-mail (une par 24 h et par adresse, réservée avant l'envoi, rendue si Gmail refuse), pages `/newsletter/confirm/[token]` et `/newsletter/unsubscribe/[token]` (GET lit, seul le bouton agit), route one-click `POST /api/newsletter/unsubscribe` (RFC 8058, pour 7.14), colonne « Confirmée » et CSV `confirmee`, migration `2_newsletter` (inscrits existants confirmés). Vérifié : lint et types propres, 626 tests unitaires, **153 parcours navigateur sur 153**, captures relues
 - [ ] 7.14 Lettre d'information : rédaction et envoi par lots
 - [ ] 7.15 Prévenir le client par WhatsApp ou par SMS (liens au texte prérempli dans le back-office)
 
@@ -710,3 +710,12 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - `preview` envoyée sur GitHub (7.10 à 7.12) ; contrôle en ligne de l'aperçu 22 sur 22 après l'envoi. Netlify ne publie pas de statut de déploiement sur GitHub : on ne peut pas suivre un déploiement par `gh`, seulement par le site. La production a 7.6 à 7.9. Aucun e-mail réel n'a encore été envoyé (l'aperçu a les variables SMTP : une commande passée sur l'aperçu enverrait de vrais e-mails).
 - **Suite** : 7.13 (lettre : confirmation et désinscription), 7.14 (rédaction et envoi par lots), 7.15 (liens WhatsApp et SMS), puis l'essai réel sur l'aperçu avec le propriétaire, puis fusion dans `main`.
 - Base de développement : colonne `Order.locale` déjà ajoutée (`db push`).
+
+### 25/11/2026 (reprise)
+
+- **7.13** (`developpeur`) : `src/lib/newsletter.ts` (jeton de 64 caractères hexadécimaux vérifié avant toute requête, `requestSubscription` réserve la confirmation par un `updateMany` conditionnel, `releaseConfirmation` rend la place si l'envoi échoue, `subscriptionState` en lecture seule), `src/lib/mail/newsletter-mails.ts` (`confirmationMail`, rappelle l'adresse saisie), `src/actions/newsletter.ts`, deux pages `noindex`, route one-click (GET : 405, POST : 200 toujours). Adresse déjà confirmée : aucun e-mail, même réponse. Le jeton reste le même jusqu'à la désinscription, qui supprime la ligne. Textes des pages passés en props depuis le serveur (pas d'espace `newsletter` dans les messages envoyés au navigateur).
+  - Base de développement et `alarobia_test` : `db push` s'arrêtait sur l'avertissement de l'index unique et `--accept-data-loss` a été refusé à l'agent ; le SQL de `2_newsletter` a été appliqué par `psql` (tables vides, non destructif). Une autre copie de la base buterait de même sur `db push`.
+  - Relu par l'architecte : diff, migration, logique de réservation, `Referrer-Policy` (`strict-origin-when-cross-origin`, le jeton ne fuit pas vers un autre site), captures (confirmation sur ordinateur, désinscription en malgache sur téléphone).
+  - `verificateur` : lint, types, 626 tests unitaires (47 fichiers), **153 parcours navigateur sur 153** (charge 9 à 24), 78 e-mails dans l'outbox, nodemailer absent du JavaScript du navigateur, `tsconfig.json` intact.
+  - Clés mg à relire : `footer.newsletterText`, `notices.newsletterDone`, `mail.newsletter.*`, `newsletter.*`, `admin.newsletter.{colConfirmed,confirmedNo,confirmedOn,notConfirmed}`.
+  - Pour 7.14 : la page des inscrits ne compte pas séparément les adresses confirmées ; sa description parle encore de retirer une adresse « sur demande ». Pas de limite de débit sur les boutons à jeton ni sur la route one-click (jeton de 256 bits, risque jugé nul).

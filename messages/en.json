@@ -58,7 +58,7 @@
     "wishlistAdded": "Added to favourites.",
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
-    "newsletterDone": "You're on the list. We'll write when there's something new.",
+    "newsletterDone": "Check your inbox: a confirmation email is on its way.",
     "referenceSaved": "Reference saved. We are checking your payment."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, photo {n}"
   },
   "footer": {
-    "newsletterText": "New arrivals and items back in stock, by email, whenever there are some. Unsubscribe at any time: just ask us.",
+    "newsletterText": "New arrivals and items back in stock, by email, whenever there are some. Unsubscribe at any time with the link in every newsletter.",
     "newsletterLabel": "Your email for the newsletter",
     "subscribe": "Subscribe",
     "shop": "Shop",
@@ -448,6 +448,23 @@
     "errorTitle": "The page could not be displayed",
     "errorText": "Try again; if the problem persists, come back in a few minutes.",
     "retry": "Try again"
+  },
+  "newsletter": {
+    "confirmMetaTitle": "Confirm subscription",
+    "confirmTitle": "Confirm your subscription",
+    "confirmText": "One click and you'll receive the newsletter: new arrivals and items back in stock, whenever there are some.",
+    "confirmButton": "Confirm my subscription",
+    "confirmedTitle": "Subscription confirmed",
+    "confirmedText": "You'll receive the next newsletter. Every newsletter has a link to unsubscribe.",
+    "invalidTitle": "This link is no longer valid",
+    "invalidText": "The subscription may have been removed in the meantime. To receive the newsletter, subscribe again at the bottom of this page.",
+    "unsubscribeMetaTitle": "Unsubscribe",
+    "unsubscribeTitle": "Unsubscribe from the newsletter",
+    "unsubscribeText": "Your address will be removed from the list and you will no longer receive the newsletter. Emails about your orders will still arrive.",
+    "unsubscribeButton": "Unsubscribe me",
+    "unsubscribedTitle": "You're unsubscribed",
+    "unsubscribedText": "You will no longer receive the newsletter. To receive it again, subscribe at the bottom of this page.",
+    "home": "Back to the shop"
   },
   "customizer": {
     "colors": {
@@ -1009,7 +1026,11 @@
       "confirmDescription": "This address will no longer receive the newsletter. The person can subscribe again from the shop footer.",
       "emptyTitle": "No subscribers",
       "emptyText": "Addresses left in the shop footer will appear here.",
-      "emptyFiltered": "No address matches this search."
+      "emptyFiltered": "No address matches this search.",
+      "colConfirmed": "Confirmed",
+      "confirmedNo": "no",
+      "confirmedOn": "Confirmed {date}",
+      "notConfirmed": "Not confirmed"
     },
     "categories": {
       "metaTitle": "Categories",
@@ -1157,6 +1178,14 @@
         "number": "Number credited: {phone}",
         "check": "Check on your phone that the money has arrived before confirming the payment. Do not ship before."
       }
+    },
+    "newsletter": {
+      "subject": "Confirm your subscription to the {shop} newsletter",
+      "title": "Confirm your subscription",
+      "body": "The address {email} has just been subscribed to the {shop} newsletter: new arrivals and items back in stock, whenever there are some.",
+      "button": "Confirm my subscription",
+      "ignore": "If you didn't subscribe, ignore this message: without confirmation, you won't receive anything.",
+      "footer": "You are receiving this message because this address was entered in the {shop} newsletter form."
     }
   }
 }

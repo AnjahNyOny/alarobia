@@ -1,6 +1,8 @@
 import "server-only";
 import type { Db } from "../db";
+import { releaseConfirmation, type PendingConfirmation } from "../newsletter";
 import { siteBase } from "../seo";
+import { confirmationMail } from "./newsletter-mails";
 import { newOrderVendorMail, orderReceivedMail, paymentDeclaredVendorMail, statusMail, statusToNotify, vendorAddress, type MailContext, type MailOrder, type MailSettings } from "./order-mails";
 import { maskAddress, sendMail, type MailMessage } from "./transport";
 import { translateMail } from "./translate";
@@ -70,4 +72,19 @@ export function notifyPaymentDeclared(db: Db, orderId: string): Promise<void> {
 export async function notifyStatusChange(db: Db, orderId: string, change: { from: string; to: string }): Promise<void> {
   if (!statusToNotify(change.from, change.to)) return;
   return deliver(db, orderId, `statut ${change.to}`, (order, settings, ctx) => [statusMail(order, change, settings, ctx)]);
+}
+
+/**
+ * Lettre d'information (PLAN.md 7.13) : envoie la demande de confirmation que `requestSubscription` vient de réserver.
+ * Si l'envoi échoue, la place est rendue : une nouvelle inscription pourra le renvoyer sans attendre 24 h. Rien ne lève,
+ * et l'adresse n'apparaît pas en clair dans le journal.
+ */
+export async function notifyNewsletterConfirmation(db: Db, pending: PendingConfirmation): Promise<void> {
+  try {
+    const sent = await sendMail(confirmationMail(pending, { translate: translateMail, base: siteBase() }));
+    if (!sent) await releaseConfirmation(db, pending);
+  } catch (error) {
+    console.error(`[mail] confirmation de la lettre à ${maskAddress(pending.email)} : ${masked(error)}`);
+    await releaseConfirmation(db, pending).catch(() => {});
+  }
 }

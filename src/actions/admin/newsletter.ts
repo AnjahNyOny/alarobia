@@ -7,8 +7,8 @@ import { db } from "@/lib/db";
 import type { FormState } from "@/lib/form";
 
 /**
- * Retire une adresse de la lettre d'information, à la demande de la personne (le texte du pied de page promet une
- * désinscription « sur simple demande »). `deleteMany` : une adresse déjà retirée (deux onglets ouverts) n'est pas une erreur.
+ * Retire une adresse de la lettre d'information, à la demande d'une personne qui écrit à la boutique plutôt que de
+ * suivre le lien de désinscription de la lettre. `deleteMany` : une adresse déjà retirée (deux onglets ouverts) n'est pas une erreur.
  */
 export async function removeNewsletterSubscriber(id: string): Promise<FormState> {
   await requireAdmin();

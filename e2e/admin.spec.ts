@@ -111,16 +111,18 @@ test("lettre d'information : une inscription du pied de page se retrouve dans le
   const email = `lettre-${Date.now()}@exemple.mg`;
   await page.goto("/");
   const footer = page.getByRole("contentinfo");
-  await expect(footer.getByText("Désinscription à tout moment, sur simple demande.")).toBeVisible();
+  await expect(footer.getByText("Désinscription à tout moment, par le lien de chaque lettre.")).toBeVisible();
   await footer.getByLabel("Votre e-mail pour la lettre d'information").fill(email);
   await footer.getByRole("button", { name: "S'inscrire" }).click();
-  await expect(footer.getByRole("status")).toHaveText("Inscription enregistrée. Nous vous écrirons quand il y aura du nouveau.");
+  await expect(footer.getByRole("status")).toHaveText("Vérifiez votre boîte : un e-mail de confirmation vient de partir.");
 
   await page.goto("/admin/newsletter");
   await expect(page.getByRole("heading", { level: 1, name: "Lettre d'information" })).toBeVisible();
   await expect(page.getByText(/^\d+ adresses? inscrites?\./)).toBeVisible();
   const row = page.getByRole("row", { name: new RegExp(email) });
   await expect(row).toBeVisible();
+  // Pas encore confirmée : la confirmation se fait par le lien de l'e-mail (lettre.spec.ts).
+  await expect(row.getByRole("cell").nth(2)).toHaveText("non");
   // accessibilite.spec.ts contrôle la page vide (le seed n'inscrit personne) ; ici, avec une ligne et son bouton.
   await expectAccessible(page, "admin lettre d'information, avec une adresse");
 
@@ -128,8 +130,8 @@ test("lettre d'information : une inscription du pied de page se retrouve dans le
   expect(download.suggestedFilename()).toMatch(/^lettre-inscrits-\d{4}-\d{2}-\d{2}\.csv$/);
   const csv = await readFile(await download.path(), "utf8");
   const lines = csv.split("\r\n");
-  expect(lines[0]).toBe("email,inscription");
-  expect(lines).toContainEqual(expect.stringMatching(new RegExp(`^${email.replaceAll(".", "\\.")},\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+03:00$`)));
+  expect(lines[0]).toBe("email,inscription,confirmee");
+  expect(lines).toContainEqual(expect.stringMatching(new RegExp(`^${email.replaceAll(".", "\\.")},\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+03:00,non$`)));
   expect(csv.endsWith("\r\n")).toBe(true);
 
   // Sans session administrateur, l'export ne révèle rien.

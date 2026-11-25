@@ -14,7 +14,7 @@ export async function GET() {
   const user = await getUser();
   if (user?.role !== "ADMIN") return new Response("Introuvable", { status: 404, headers: { "Cache-Control": NO_STORE } });
 
-  const subscribers = await db.newsletterSubscriber.findMany({ orderBy: [{ createdAt: "desc" }, { id: "asc" }], select: { email: true, createdAt: true } });
+  const subscribers = await db.newsletterSubscriber.findMany({ orderBy: [{ createdAt: "desc" }, { id: "asc" }], select: { email: true, createdAt: true, confirmedAt: true } });
   return new Response(newsletterCsv(subscribers), {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",

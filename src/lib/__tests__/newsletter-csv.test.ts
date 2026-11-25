@@ -34,16 +34,16 @@ describe("csvCell : une cellule sans danger pour un tableur", () => {
 describe("newsletterCsv", () => {
   it("écrit l'en-tête puis une ligne par inscrit, dans l'ordre reçu, avec des fins de ligne CRLF", () => {
     const csv = newsletterCsv([
-      { email: "voahangy@exemple.mg", createdAt: new Date("2026-11-20T09:00:00Z") },
-      { email: "rakoto@exemple.mg", createdAt: new Date("2026-11-17T20:30:05Z") },
+      { email: "voahangy@exemple.mg", createdAt: new Date("2026-11-20T09:00:00Z"), confirmedAt: null },
+      { email: "rakoto@exemple.mg", createdAt: new Date("2026-11-17T20:30:05Z"), confirmedAt: new Date("2026-11-17T20:40:00Z") },
     ]);
-    expect(csv).toBe("email,inscription\r\nvoahangy@exemple.mg,2026-11-20T12:00:00+03:00\r\nrakoto@exemple.mg,2026-11-17T23:30:05+03:00\r\n");
+    expect(csv).toBe("email,inscription,confirmee\r\nvoahangy@exemple.mg,2026-11-20T12:00:00+03:00,non\r\nrakoto@exemple.mg,2026-11-17T23:30:05+03:00,oui\r\n");
   });
   it("n'écrit que l'en-tête quand personne n'est inscrit", () => {
-    expect(newsletterCsv([])).toBe("email,inscription\r\n");
+    expect(newsletterCsv([])).toBe("email,inscription,confirmee\r\n");
   });
   it("neutralise une adresse piégée", () => {
-    expect(newsletterCsv([{ email: "=cmd@x.mg", createdAt: new Date("2026-11-17T20:30:05Z") }])).toContain("\r\n'=cmd@x.mg,");
+    expect(newsletterCsv([{ email: "=cmd@x.mg", createdAt: new Date("2026-11-17T20:30:05Z"), confirmedAt: null }])).toContain("\r\n'=cmd@x.mg,");
   });
 });
 

@@ -58,7 +58,7 @@
     "wishlistAdded": "Ajouté aux favoris.",
     "wishlistRemoved": "Retiré des favoris.",
     "reviewPublished": "Merci, votre avis est publié.",
-    "newsletterDone": "Inscription enregistrée. Nous vous écrirons quand il y aura du nouveau.",
+    "newsletterDone": "Vérifiez votre boîte : un e-mail de confirmation vient de partir.",
     "referenceSaved": "Référence enregistrée. Nous vérifions votre paiement."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, photo {n}"
   },
   "footer": {
-    "newsletterText": "Les nouveautés et les retours en stock, par e-mail, quand il y en a. Désinscription à tout moment, sur simple demande.",
+    "newsletterText": "Les nouveautés et les retours en stock, par e-mail, quand il y en a. Désinscription à tout moment, par le lien de chaque lettre.",
     "newsletterLabel": "Votre e-mail pour la lettre d'information",
     "subscribe": "S'inscrire",
     "shop": "Boutique",
@@ -448,6 +448,23 @@
     "errorTitle": "La page n'a pas pu s'afficher",
     "errorText": "Réessayez ; si le problème persiste, revenez dans quelques minutes.",
     "retry": "Réessayer"
+  },
+  "newsletter": {
+    "confirmMetaTitle": "Confirmer l'inscription",
+    "confirmTitle": "Confirmer votre inscription",
+    "confirmText": "Un clic, et vous recevrez la lettre d'information : les nouveautés et les retours en stock, quand il y en a.",
+    "confirmButton": "Confirmer mon inscription",
+    "confirmedTitle": "Inscription confirmée",
+    "confirmedText": "Vous recevrez la prochaine lettre. Chaque lettre contient un lien pour vous désinscrire.",
+    "invalidTitle": "Ce lien n'est plus valable",
+    "invalidText": "L'inscription a peut-être été retirée entre-temps. Pour recevoir la lettre, inscrivez-vous de nouveau depuis le bas de cette page.",
+    "unsubscribeMetaTitle": "Se désinscrire",
+    "unsubscribeTitle": "Vous désinscrire de la lettre",
+    "unsubscribeText": "Votre adresse sera retirée de la liste et vous ne recevrez plus la lettre d'information. Les e-mails de vos commandes continueront d'arriver.",
+    "unsubscribeButton": "Me désinscrire",
+    "unsubscribedTitle": "Désinscription enregistrée",
+    "unsubscribedText": "Vous ne recevrez plus la lettre d'information. Pour la recevoir de nouveau, inscrivez-vous depuis le bas de cette page.",
+    "home": "Retour à la boutique"
   },
   "customizer": {
     "colors": {
@@ -1009,7 +1026,11 @@
       "confirmDescription": "Cette adresse ne recevra plus la lettre d'information. La personne pourra se réinscrire depuis le pied de page de la boutique.",
       "emptyTitle": "Aucune inscription",
       "emptyText": "Les adresses laissées dans le pied de page de la boutique apparaîtront ici.",
-      "emptyFiltered": "Aucune adresse ne correspond à cette recherche."
+      "emptyFiltered": "Aucune adresse ne correspond à cette recherche.",
+      "colConfirmed": "Confirmée",
+      "confirmedNo": "non",
+      "confirmedOn": "Confirmée le {date}",
+      "notConfirmed": "Non confirmée"
     },
     "categories": {
       "metaTitle": "Catégories",
@@ -1157,6 +1178,14 @@
         "number": "Numéro crédité : {phone}",
         "check": "Vérifiez sur votre téléphone que l'argent est arrivé avant de confirmer le paiement. N'expédiez pas avant."
       }
+    },
+    "newsletter": {
+      "subject": "Confirmez votre inscription à la lettre de {shop}",
+      "title": "Confirmez votre inscription",
+      "body": "L'adresse {email} vient d'être inscrite à la lettre d'information de {shop} : les nouveautés et les retours en stock, quand il y en a.",
+      "button": "Confirmer mon inscription",
+      "ignore": "Si vous n'êtes pas à l'origine de cette inscription, ignorez ce message : sans confirmation, vous ne recevrez rien.",
+      "footer": "Vous recevez ce message parce que cette adresse a été saisie dans le formulaire de la lettre d'information de {shop}."
     }
   }
 }

@@ -58,7 +58,7 @@
     "wishlistAdded": "Tafiditra ao amin'ny tianko.",
     "wishlistRemoved": "Nesorina tao amin'ny tianko.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
-    "newsletterDone": "Voaray ny fisoratana anarana. Hanoratra aminao izahay rehefa misy vaovao.",
+    "newsletterDone": "Jereo ny boaty mailakao: vao nalefa ny mailaka fanamafisana.",
     "referenceSaved": "Voatahiry ny référence. Hamarininay ny fandoavanao."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, sary {n}"
   },
   "footer": {
-    "newsletterText": "Entana vaovao sy izay niverina tahiry, alefa amin'ny mailaka rehefa misy. Azo ajanona amin'ny fotoana rehetra, angataho aminay fotsiny.",
+    "newsletterText": "Entana vaovao sy izay niverina tahiry, alefa amin'ny mailaka rehefa misy. Azo ajanona amin'ny fotoana rehetra, amin'ny rohy ao amin'ny taratasy tsirairay.",
     "newsletterLabel": "Ny mailakao ho an'ny taratasim-baovao",
     "subscribe": "Hisoratra anarana",
     "shop": "Fivarotana",
@@ -448,6 +448,23 @@
     "errorTitle": "Tsy afaka naseho ny pejy",
     "errorText": "Andramo indray; raha mbola misy olana dia miverena afaka minitra vitsy.",
     "retry": "Andramo indray"
+  },
+  "newsletter": {
+    "confirmMetaTitle": "Hanamafy ny fisoratana",
+    "confirmTitle": "Hamafiso ny fisoratanao anarana",
+    "confirmText": "Tsindry iray monja dia handray ny taratasim-baovao ianao: entana vaovao sy izay niverina tahiry, rehefa misy.",
+    "confirmButton": "Hamafisina ny fisoratako",
+    "confirmedTitle": "Voamafy ny fisoratana",
+    "confirmedText": "Handray ny taratasy manaraka ianao. Misy rohy hialana ao amin'ny taratasy tsirairay.",
+    "invalidTitle": "Tsy manan-kery intsony ity rohy ity",
+    "invalidText": "Mety efa nesorina ny fisoratana. Raha te handray ny taratasim-baovao ianao, misorata indray eo amin'ny farany ambany amin'ity pejy ity.",
+    "unsubscribeMetaTitle": "Hiala",
+    "unsubscribeTitle": "Hiala amin'ny taratasim-baovao",
+    "unsubscribeText": "Hesorina ao amin'ny lisitra ny adiresinao ary tsy handray ny taratasim-baovao intsony ianao. Mbola ho tonga foana ny mailaka momba ny komandinao.",
+    "unsubscribeButton": "Hiala aho",
+    "unsubscribedTitle": "Voaray ny fialanao",
+    "unsubscribedText": "Tsy handray ny taratasim-baovao intsony ianao. Raha te handray azy indray, misorata eo amin'ny farany ambany amin'ity pejy ity.",
+    "home": "Hiverina amin'ny fivarotana"
   },
   "customizer": {
     "colors": {
@@ -1009,7 +1026,11 @@
       "confirmDescription": "Tsy handray ny taratasim-baovao intsony io adiresy io. Afaka misoratra indray amin'ny farany ambany amin'ny fivarotana ilay olona.",
       "emptyTitle": "Tsy misy voasoratra",
       "emptyText": "Eto no hiseho ny adiresy navela teo amin'ny farany ambany amin'ny fivarotana.",
-      "emptyFiltered": "Tsy misy adiresy mifanaraka amin'ity fikarohana ity."
+      "emptyFiltered": "Tsy misy adiresy mifanaraka amin'ity fikarohana ity.",
+      "colConfirmed": "Voamafy",
+      "confirmedNo": "tsia",
+      "confirmedOn": "Voamafy tamin'ny {date}",
+      "notConfirmed": "Tsy voamafy"
     },
     "categories": {
       "metaTitle": "Sokajy",
@@ -1157,6 +1178,14 @@
         "number": "Laharana nandefasana : {phone}",
         "check": "Hamarino amin'ny findainao fa tonga ny vola alohan'ny hanamafisana ny fandoavana. Aza alefa mialoha izany ny entana."
       }
+    },
+    "newsletter": {
+      "subject": "Hamafiso ny fisoratanao amin'ny taratasim-baovaon'i {shop}",
+      "title": "Hamafiso ny fisoratanao anarana",
+      "body": "Vao nosoratana tamin'ny taratasim-baovaon'i {shop} ny adiresy {email}: entana vaovao sy izay niverina tahiry, rehefa misy.",
+      "button": "Hamafisina ny fisoratako",
+      "ignore": "Raha tsy ianao no nisoratra, aza raharahiana ity hafatra ity: raha tsy misy fanamafisana dia tsy handray na inona na inona ianao.",
+      "footer": "Nahazo ity hafatra ity ianao satria nosoratana tao amin'ny takelaka fisoratana amin'ny taratasim-baovaon'i {shop} ity adiresy ity."
     }
   }
 }
