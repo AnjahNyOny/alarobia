@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : tâche 7.11 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Choix attendu du propriétaire pour remplacer les SMS. Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : tâche 7.11 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -51,6 +51,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 24/11/2026 | Lot autorisé : bouton « Annuler la commande », tableau des zones à 390 px, `.env.example`, lettre d'information, puis fusion de `preview` dans `main` (une mise en ligne). |
 | 25/11/2026 | Bouton « Annuler la commande » retiré des commandes livrées (le colis ne revient pas forcément) ; la liste « Statut » reste le recours si l'article est rendu. |
 | 25/11/2026 | 7B, e-mails : compte Gmail dédié `alarobia.shop@gmail.com` créé par le propriétaire, validation en deux étapes active ; envoi SMTP par mot de passe d'application (variables `SMTP_USER`, `SMTP_PASSWORD` sur Netlify, jamais dans les fichiers `.env*` lus par Next). SMS : le propriétaire n'a pas de téléphone Android à laisser branché, donc pas de passerelle SMS. |
+| 25/11/2026 | Plan de la 7B validé par le propriétaire. SMS remplacés par deux liens au choix du vendeur, WhatsApp et SMS (beaucoup de clients n'ont pas WhatsApp), au texte prérempli : tâche 7.15. |
 
 ## Avancement
 
@@ -136,6 +137,7 @@ Phase 7B, e-mails par Gmail (détail dans `PLAN.md`) :
 - [ ] 7.12 E-mails de commande (client et vendeur)
 - [ ] 7.13 Lettre d'information : confirmation et désinscription
 - [ ] 7.14 Lettre d'information : rédaction et envoi par lots
+- [ ] 7.15 Prévenir le client par WhatsApp ou par SMS (liens au texte prérempli dans le back-office)
 
 7B (e-mails et SMS, services gratuits uniquement), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 

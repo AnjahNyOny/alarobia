@@ -434,7 +434,7 @@ Une mise en ligne de production coûte 15 crédits ; un déploiement de branche 
 
 ### 7B E-mails (détaillée le 25/11/2026)
 
-**But** : tenir les promesses du site par e-mail (« nous vous préviendrons dès l'expédition », lettre d'information), sans service payant. Ordre : 7.11 → 7.14, un commit par tâche, chacune vérifiée en local, puis le lot entier sur `preview`, essai réel, fusion dans `main` (une mise en ligne).
+**But** : tenir les promesses du site par e-mail (« nous vous préviendrons dès l'expédition », lettre d'information), sans service payant. Ordre : 7.11 → 7.15, un commit par tâche, chacune vérifiée en local, puis le lot entier sur `preview`, essai réel, fusion dans `main` (une mise en ligne).
 
 **Décidé** (propriétaire et architecte, 24 et 25/11/2026) :
 - **Envoi par le compte Gmail de la boutique** `alarobia.shop@gmail.com`, SMTP `smtp.gmail.com:465` (TLS), mot de passe d'application. Variables `SMTP_USER` et `SMTP_PASSWORD`, saisies par le propriétaire sur Netlify (production et déploiements de branche), **jamais dans `.env*`** : en local et dans les tests, aucun e-mail ne part. Écartés : Brevo (réécrit un expéditeur Gmail, DMARC), Resend (domaine vérifié) ; à revoir avec un nom de domaine.
@@ -443,7 +443,7 @@ Une mise en ligne de production coûte 15 crédits ; un déploiement de branche 
 - **Un e-mail ne fait jamais échouer une action** : envoi après la réponse par `after()` de `next/server` (pris en charge par Netlify, https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/), erreur journalisée (`console.error`, sans l'adresse en clair), jamais relancée. Délai d'une fonction Netlify : 60 s d'après la documentation, 26 s d'après le forum ; on reste très en dessous.
 - **Langue** : celle du client au moment de la commande (nouvelle colonne `Order.locale`) ; celle de l'inscription pour la lettre (`NewsletterSubscriber.locale`).
 - **Expéditeur** « Alarobia <alarobia.shop@gmail.com> », `Reply-To` = `contactEmail` des réglages s'il n'est pas l'adresse d'exemple. Les avis au vendeur vont à `SMTP_USER`. Le propriétaire met `contactEmail` à `alarobia.shop@gmail.com` dans les réglages.
-- **SMS** : pas de passerelle (aucun téléphone Android disponible, aucun service gratuit pour Madagascar). Remplacement à décider par le propriétaire (bouton « Prévenir le client » par WhatsApp ou SMS au texte prérempli), tâche à ajouter après sa réponse.
+- **SMS** : pas de passerelle (aucun téléphone Android disponible, aucun service gratuit pour Madagascar). Remplacement : liens WhatsApp et SMS au texte prérempli dans le back-office (tâche 7.15).
 
 **Points de vigilance** (chacun a son test dans la tâche qui le porte) :
 1. Texte saisi par un client ou le vendeur (nom, adresse, note, texte de la lettre) qui contient du HTML : échappé dans la version HTML, intact dans la version texte.
@@ -482,6 +482,15 @@ Une mise en ligne de production coûte 15 crédits ; un déploiement de branche 
 - **Page** `/admin/newsletter/write` : objet et texte (paragraphes séparés par une ligne vide, liens écrits en clair rendus cliquables), aperçu, bouton « M'envoyer un essai » (à `SMTP_USER`), puis « Envoyer aux N inscrits confirmés » avec confirmation. Historique des lettres avec le nombre d'envois réussis.
 - **Envoi par lots** : action `sendIssueBatch(issueId): Promise<{ sent: number; remaining: number; stopped?: "quota" | "error" }>`, au plus 10 messages par appel, chacun avec son lien de désinscription et les en-têtes `List-Unsubscribe` ; la page rappelle l'action tant qu'il en reste et affiche la progression ; plafond de 300 envois par 24 h glissantes (compté sur `NewsletterDelivery`) ; un refus de Gmail arrête le lot, la page explique qu'il faudra reprendre plus tard, et la reprise n'envoie jamais deux fois à la même adresse.
 - **Tests** : unitaires (lots de 10, reprise sans doublon, plafond de 300, arrêt sur erreur, inscrit non confirmé ignoré) ; navigateur : rédaction, essai, envoi à trois inscrits confirmés, trois messages dans l'outbox avec chacun son lien.
+
+#### 7.15 Prévenir le client par WhatsApp ou par SMS (décidé le 25/11/2026)
+Le propriétaire n'a pas de passerelle SMS, et beaucoup de clients à Madagascar n'ont pas WhatsApp : la page d'une commande du back-office propose **les deux**, au choix du vendeur. Rien ne part tout seul : le lien ouvre WhatsApp (application ou WhatsApp Web) ou l'application SMS du téléphone du vendeur, message déjà écrit, et le vendeur appuie sur Envoyer. Coût : celui de son forfait.
+- **Créer** `src/lib/notify-links.ts`, fonctions pures :
+  - `internationalPhone(phone: string): string | null` : numéro enregistré (forme nationale `034 12 345 67`) → `261341234567` ; `null` si ce n'est pas un numéro malgache valide (réutiliser la normalisation de `src/lib/address.ts`).
+  - `customerMessage(order, locale, siteBase): string` : texte court selon le statut (en attente de paiement Mobile Money, payée, expédiée avec numéro de suivi, livrée, annulée), dans la langue de la commande (`Order.locale`, tâche 7.11), avec le numéro de commande et le lien `/order/{id}`. Textes dans `messages/*.json` (espace `admin.notify`), **160 caractères au plus** hors lien pour tenir dans un SMS, et sans caractère hors de l'alphabet GSM (â, ê, î, ô, guillemets typographiques) qui ferait passer le SMS à 70 caractères.
+  - `whatsappLink(phone, text)` → `https://wa.me/261341234567?text=…` ; `smsLink(phone, text)` → `sms:+261341234567?&body=…` (forme comprise par Android et iPhone). Texte encodé par `encodeURIComponent`.
+- **Page d'une commande** (`src/app/[locale]/admin/orders/[id]/page.tsx`), carte « Client » : deux liens-boutons « WhatsApp » et « SMS » (`buttonVariants`, `target="_blank"` pour WhatsApp seulement), et le message affiché en dessous pour que le vendeur le relise. Numéro invalide : pas de boutons, une phrase l'explique.
+- **Tests** : unitaires (numéros `034 12 345 67`, `+261 34 12 345 67`, `0341234567`, numéro invalide ; liens encodés ; longueur et alphabet GSM vérifiés pour chaque statut dans les trois langues) ; navigateur : sur une commande du seed, les deux liens ont la bonne adresse et le bon texte (sans les ouvrir).
 
 #### Mise en ligne de la 7B
 1. Lot entier sur `preview`. Contrôle en ligne de l'aperçu (`npm run test:prod`).
