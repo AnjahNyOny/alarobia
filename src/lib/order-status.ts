@@ -44,11 +44,12 @@ export async function transitionOrder(
 }
 
 /** Issue d'un changement de statut ; l'action serveur en fait un message. */
-export type StatusChange = "ok" | "notFound" | "closed" | "changed";
+export type StatusChange = "ok" | "notFound" | "closed" | "delivered" | "changed";
 
 /**
  * Relit la commande et change son statut (liste « Statut » du back-office). Une commande close ne peut que passer
- * d'annulée à remboursée ou l'inverse ; avec `openOnly`, elle est refusée dans tous les cas.
+ * d'annulée à remboursée ou l'inverse ; avec `openOnly` (bouton « Annuler la commande »), elle est refusée dans tous les
+ * les cas, et une commande livrée aussi : le colis ne revient pas forcément, son stock ne doit pas être remis en vente.
  * `trackingNumber` absent : le numéro de suivi enregistré est gardé.
  */
 export async function changeOrderStatus(
@@ -60,12 +61,18 @@ export async function changeOrderStatus(
   const order = await db.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) return "notFound";
   if (isClosed(order.status) && (openOnly || !isClosed(next.status))) return "closed";
+  if (openOnly && order.status === "DELIVERED") return "delivered";
   const trackingNumber = next.trackingNumber === undefined ? order.trackingNumber : next.trackingNumber;
   const changed = await db.$transaction((tx) => transitionOrder(tx, order, { status: next.status, trackingNumber }));
   return changed ? "ok" : "changed";
 }
 
-/** Bouton « Annuler la commande » : toute commande encore ouverte, livrée comprise, comme la liste « Statut ». */
+/** Le bouton « Annuler la commande » s'affiche : commande ni close ni livrée (décision du propriétaire, 25/11/2026). */
+export function canCancel(status: string) {
+  return !isClosed(status) && status !== "DELIVERED";
+}
+
+/** Bouton « Annuler la commande » : commande ni close ni livrée. La liste « Statut » reste le recours pour un cas à part. */
 export function cancelOrder(db: Db, id: string) {
   return changeOrderStatus(db, id, { status: "CANCELLED" }, { openOnly: true });
 }

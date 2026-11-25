@@ -170,6 +170,17 @@ async function vatoStock(page: Page) {
   return Number(await row.getByRole("cell").nth(3).textContent());
 }
 
+test("une commande livrée n'a pas de bouton « Annuler la commande » : le colis ne revient pas forcément", async ({ page }) => {
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.waitForURL("**/admin");
+  await page.goto("/admin/orders?status=DELIVERED");
+  await page.getByRole("link", { name: /^AL-/ }).first().click();
+  await page.waitForURL(/\/admin\/orders\/c/);
+  await expect(page.locator("#commande-statut")).toHaveText("Livrée");
+  await expect(page.getByRole("button", { name: "Enregistrer" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Annuler la commande" })).toHaveCount(0);
+});
+
 test("une commande payée par Mobile Money prévient que le remboursement se fait à la main", async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
   await page.waitForURL("**/admin");

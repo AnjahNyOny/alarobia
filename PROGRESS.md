@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : plan de la 7B (e-mails par un compte Gmail dédié à la boutique, SMS par un téléphone Android avec SIM : services gratuits), qui attend du propriétaire le compte Gmail (validation en deux étapes) et le téléphone. Décision attendue : garder ou non le bouton « Annuler la commande » sur une commande livrée. Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : plan de la 7B (e-mails par un compte Gmail dédié à la boutique, services gratuits), qui attend du propriétaire le mot de passe d'application Gmail sur Netlify et son choix pour remplacer les SMS. Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -49,6 +49,8 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 24/11/2026 | Préfixe « AL- » des numéros de commande et des références : validé. |
 | 24/11/2026 | Lettre d'information confiée à Claude. E-mails et SMS (7B) : services gratuits uniquement. |
 | 24/11/2026 | Lot autorisé : bouton « Annuler la commande », tableau des zones à 390 px, `.env.example`, lettre d'information, puis fusion de `preview` dans `main` (une mise en ligne). |
+| 25/11/2026 | Bouton « Annuler la commande » retiré des commandes livrées (le colis ne revient pas forcément) ; la liste « Statut » reste le recours si l'article est rendu. |
+| 25/11/2026 | 7B, e-mails : compte Gmail dédié `alarobia.shop@gmail.com` créé par le propriétaire, validation en deux étapes active ; envoi SMTP par mot de passe d'application (variables `SMTP_USER`, `SMTP_PASSWORD` sur Netlify, jamais dans les fichiers `.env*` lus par Next). SMS : le propriétaire n'a pas de téléphone Android à laisser branché, donc pas de passerelle SMS. |
 
 ## Avancement
 
@@ -127,6 +129,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.7 Bouton « Annuler la commande » dans le back-office, avec confirmation (rappel du remboursement à la main si Mobile Money confirmé), même chemin de remise en stock que la liste « Statut » (`changeOrderStatus`, `src/lib/order-status.ts`). Vérifié : lint et types propres, 483 tests unitaires, 142 parcours navigateur sur 144 (2 délais dépassés sous charge 10 à 17, hors du code touché, repassés seuls), captures relues
 - [x] 7.8 Tableau des zones de la page d'aide lisible sur téléphone (tarifs visibles sans défilement, fr, en, mg à 390 px) ; paramètres des adresses Neon dans `.env.example`. Mêmes contrôles que 7.7
 - [x] 7.9 Lettre d'information : promesses du pied de page alignées sur ce que le site fait (plus de fréquence ni de désinscription « en un clic »), page « Lettre d'information » du back-office (inscrits, recherche, retrait avec confirmation, export CSV protégé contre les formules). Vérifié : lint et types propres, 507 tests unitaires, **145 parcours navigateur sur 145**, captures relues
+- [x] 7.10 Bouton « Annuler la commande » retiré des commandes livrées, refus côté serveur (`canCancel`, résultat `delivered`, clé `admin.errors.orderDelivered`). Vérifié : lint et types propres, 508 tests unitaires (test vu rouge d'abord), 29 parcours navigateur ciblés (commandes, accessibilité, clavier). Pas encore en ligne : part avec le prochain lot
 
 7B (e-mails et SMS, services gratuits uniquement), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
@@ -680,3 +683,8 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
   - `verificateur` : lint et types propres, 507 tests unitaires, **145 parcours navigateur sur 145** sans relance (charge 8 à 11), budgets de poids passés, `tsconfig.json` intact.
 - Commits `e98cfa4` (7.8), `4932258` (7.7), `f4d7a60` (7.9). **Envoi de `preview`** : aperçu publié en 60 s, contrôle en ligne 22 sur 22, export CSV 404 sans session, page des inscrits redirigée vers la connexion.
 - **Fusion dans `main`** (autorisée par le propriétaire le 24/11/2026), en avance rapide `c15f138..f4d7a60` : 7.6, correctif des images, 7.7, 7.8, 7.9 en une seule mise en ligne (15 crédits), en ligne en 70 s. **Contrôle en ligne de la production : 22 sur 22** (23 avant : la route `/api/cron/adresse` est retirée). `robots.txt` ouvert et aucun `X-Robots-Tag` : la production reste indexable ; image absente 404 en 0,3 s ; export CSV 404 sans session.
+
+### 25/11/2026
+
+- **7.10** (architecte, quelques lignes) : test unitaire changé d'abord (commande livrée refusée, stock intact ; `canCancel`), vu rouge (2 échecs), puis vert ; test navigateur ajouté (commande livrée du seed : pas de bouton). Clé mg à relire : `admin.errors.orderDelivered`. `verificateur` : lint, types, 508 tests unitaires, 29 sur 29 sur `admin-commandes`, `accessibilite`, `clavier`.
+- **7B** : compte `alarobia.shop@gmail.com` créé, validation en deux étapes active. Demandé au propriétaire : mot de passe d'application rangé sur Netlify (`SMTP_USER`, `SMTP_PASSWORD`, production et déploiements de branche). SMS remplacés, proposé : bouton « Prévenir le client » (lien WhatsApp ou SMS au texte prérempli) ; choix attendu.

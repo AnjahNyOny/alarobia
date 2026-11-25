@@ -17,7 +17,7 @@ import { PRINT_ZONES, printPixels } from "@/lib/customizer/layout";
 import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { itemFile, type ItemFile } from "@/lib/order-files";
-import { isClosed } from "@/lib/order-status";
+import { canCancel } from "@/lib/order-status";
 import { isMobileMoney, OPERATOR_NAME, paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 import { requireAdmin } from "@/lib/auth";
@@ -176,7 +176,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <div className="grid min-w-0 content-start gap-4">
           <Card title={t("processing")}>
             <OrderForm id={order.id} status={order.status} trackingNumber={order.trackingNumber} unpaid={payment === "awaiting" || payment === "declared"} />
-            {!isClosed(order.status) && (
+            {canCancel(order.status) && (
               // Chemin direct pour annuler, séparé du formulaire : même règle et même remise en stock que la liste « Statut ».
               <div className="-mx-5 mt-5 border-t px-5 pt-4">
                 <ConfirmAction

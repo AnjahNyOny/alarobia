@@ -638,6 +638,7 @@
       "orderNotFound": "Order not found.",
       "orderClosed": "A cancelled or refunded order cannot be reopened: its stock has already been put back on sale.",
       "orderAlreadyClosed": "This order is already cancelled or refunded.",
+      "orderDelivered": "A delivered order can't be cancelled with this button: the parcel may not come back. Change its status in the list if the item was returned to you.",
       "orderChanged": "This order was just changed. Reload the page before trying again.",
       "orderNotPending": "This order is no longer awaiting payment.",
       "emailInvalid": "Invalid email address.",

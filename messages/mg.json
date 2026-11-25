@@ -638,6 +638,7 @@
       "orderNotFound": "Tsy hita ny komandy.",
       "orderClosed": "Tsy azo averina ho velona ny komandy nofoanana na naverina ny vola: efa naverina amidy ny tahiriny.",
       "orderAlreadyClosed": "Efa nofoanana na naverina ny vola io komandy io.",
+      "orderDelivered": "Tsy azo foanana amin'ity bokotra ity ny komandy efa tonga: mety tsy hiverina ilay entana. Ovay ao amin'ny lisitra ny sata raha naverina taminao ilay entana.",
       "orderChanged": "Vao avy nisy nanova ity baiko ity. Avereno sokafana ny pejy vao manandrana indray.",
       "orderNotPending": "Tsy miandry fandoavam-bola intsony ity komandy ity.",
       "emailInvalid": "Diso ny adiresy mailaka.",

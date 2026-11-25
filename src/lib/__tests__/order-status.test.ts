@@ -1,7 +1,7 @@
 import type { Db } from "../db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestDatabase } from "@/test/database";
-import { cancelOrder, changeOrderStatus, isClosed } from "../order-status";
+import { canCancel, cancelOrder, changeOrderStatus, isClosed } from "../order-status";
 
 /*
  * Annulation depuis le back-office (bouton « Annuler la commande ») et changement de statut par la liste :
@@ -53,11 +53,15 @@ describe("cancelOrder", () => {
     expect(await stockOf(mug.id)).toBe(13);
   });
 
-  it("annule une commande livrée, comme la liste des statuts le permet", async () => {
+  it("refuse une commande livrée (le colis ne revient pas forcément) sans toucher au stock", async () => {
     const mug = await product(4);
     const order = await makeOrder("DELIVERED", mug.id, 1);
-    expect(await cancelOrder(db, order.id)).toBe("ok");
-    expect([await statusOf(order.id), await stockOf(mug.id)]).toEqual(["CANCELLED", 5]);
+    expect(await cancelOrder(db, order.id)).toBe("delivered");
+    expect([await statusOf(order.id), await stockOf(mug.id)]).toEqual(["DELIVERED", 4]);
+  });
+
+  it("canCancel : seules les commandes ni livrées ni closes ont le bouton", () => {
+    expect(["PENDING", "PAID", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"].map(canCancel)).toEqual([true, true, true, false, false, false]);
   });
 
   it.each(["CANCELLED", "REFUNDED"])("refuse une commande déjà close (%s) sans toucher au stock", async (status) => {

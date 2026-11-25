@@ -10,7 +10,7 @@ import type { FormState } from "@/lib/form";
 import { cancelOrder as cancel, changeOrderStatus, type StatusChange } from "@/lib/order-status";
 
 /** Clé de `admin.errors` pour chaque refus. */
-const REFUSAL: Record<Exclude<StatusChange, "ok">, string> = { notFound: "orderNotFound", closed: "orderClosed", changed: "orderChanged" };
+const REFUSAL: Record<Exclude<StatusChange, "ok">, string> = { notFound: "orderNotFound", closed: "orderClosed", delivered: "orderDelivered", changed: "orderChanged" };
 
 export async function updateOrder(id: string, _: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
