@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : plan de la 7B (e-mails par un compte Gmail dédié à la boutique, services gratuits), qui attend du propriétaire le mot de passe d'application Gmail sur Netlify et son choix pour remplacer les SMS. Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : tâche 7.11 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Choix attendu du propriétaire pour remplacer les SMS. Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -130,6 +130,12 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.8 Tableau des zones de la page d'aide lisible sur téléphone (tarifs visibles sans défilement, fr, en, mg à 390 px) ; paramètres des adresses Neon dans `.env.example`. Mêmes contrôles que 7.7
 - [x] 7.9 Lettre d'information : promesses du pied de page alignées sur ce que le site fait (plus de fréquence ni de désinscription « en un clic »), page « Lettre d'information » du back-office (inscrits, recherche, retrait avec confirmation, export CSV protégé contre les formules). Vérifié : lint et types propres, 507 tests unitaires, **145 parcours navigateur sur 145**, captures relues
 - [x] 7.10 Bouton « Annuler la commande » retiré des commandes livrées, refus côté serveur (`canCancel`, résultat `delivered`, clé `admin.errors.orderDelivered`). Vérifié : lint et types propres, 508 tests unitaires (test vu rouge d'abord), 29 parcours navigateur ciblés (commandes, accessibilité, clavier). Pas encore en ligne : part avec le prochain lot
+
+Phase 7B, e-mails par Gmail (détail dans `PLAN.md`) :
+- [ ] 7.11 Socle d'envoi (transport, gabarit, langue de la commande)
+- [ ] 7.12 E-mails de commande (client et vendeur)
+- [ ] 7.13 Lettre d'information : confirmation et désinscription
+- [ ] 7.14 Lettre d'information : rédaction et envoi par lots
 
 7B (e-mails et SMS, services gratuits uniquement), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
@@ -688,3 +694,4 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 
 - **7.10** (architecte, quelques lignes) : test unitaire changé d'abord (commande livrée refusée, stock intact ; `canCancel`), vu rouge (2 échecs), puis vert ; test navigateur ajouté (commande livrée du seed : pas de bouton). Clé mg à relire : `admin.errors.orderDelivered`. `verificateur` : lint, types, 508 tests unitaires, 29 sur 29 sur `admin-commandes`, `accessibilite`, `clavier`.
 - **7B** : compte `alarobia.shop@gmail.com` créé, validation en deux étapes active. Demandé au propriétaire : mot de passe d'application rangé sur Netlify (`SMTP_USER`, `SMTP_PASSWORD`, production et déploiements de branche). SMS remplacés, proposé : bouton « Prévenir le client » (lien WhatsApp ou SMS au texte prérempli) ; choix attendu.
+- **Plan de la 7B** écrit dans `PLAN.md` (skill `writing-plans`) : Gmail en SMTP par `nodemailer`, envoi après la réponse (`after()`), outbox en fichiers pour les tests, langue de la commande, lettre avec double confirmation et désinscription en un clic, envoi par lots de 10 et plafond de 300 par 24 h. Variables saisies sur Netlify par le propriétaire.

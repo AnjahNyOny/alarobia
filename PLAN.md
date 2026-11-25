@@ -432,8 +432,63 @@ Une mise en ligne de production coûte 15 crédits ; un déploiement de branche 
 - **Aperçus de déploiement** (branches, demandes de fusion) : aucun, on n'envoie que `main`. Les variables de la base ne sont définies que pour la production, donc un aperçu échouerait à la compilation au lieu de toucher la base réelle.
 - **Surveillance des quotas** : le propriétaire consulte la consommation de crédits dans Netlify. Rien d'automatique.
 
-### 7B à 7D (à détailler quand le propriétaire les demande)
-- **7B E-mails et SMS** : confirmation de commande, changement de statut, et la lettre d'information (soit on la tient, soit on retire ses promesses). Service d'envoi à choisir.
+### 7B E-mails (détaillée le 25/11/2026)
+
+**But** : tenir les promesses du site par e-mail (« nous vous préviendrons dès l'expédition », lettre d'information), sans service payant. Ordre : 7.11 → 7.14, un commit par tâche, chacune vérifiée en local, puis le lot entier sur `preview`, essai réel, fusion dans `main` (une mise en ligne).
+
+**Décidé** (propriétaire et architecte, 24 et 25/11/2026) :
+- **Envoi par le compte Gmail de la boutique** `alarobia.shop@gmail.com`, SMTP `smtp.gmail.com:465` (TLS), mot de passe d'application. Variables `SMTP_USER` et `SMTP_PASSWORD`, saisies par le propriétaire sur Netlify (production et déploiements de branche), **jamais dans `.env*`** : en local et dans les tests, aucun e-mail ne part. Écartés : Brevo (réécrit un expéditeur Gmail, DMARC), Resend (domaine vérifié) ; à revoir avec un nom de domaine.
+- **Bibliothèque** : `nodemailer` (licence MIT-0), version exacte relevée par `npm view nodemailer version` et figée dans `package.json`, avec `@types/nodemailer` si la version n'a pas ses types.
+- **Limites de Gmail** (compte personnel, chiffres non officiels : environ 500 messages par jour, 100 destinataires par message ; un dépassement bloque l'envoi jusqu'à 24 h, https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace) : **un message par destinataire**, jamais de copie cachée groupée ; la lettre d'information plafonnée à **300 envois par 24 h glissantes** pour garder de la marge aux e-mails de commande.
+- **Un e-mail ne fait jamais échouer une action** : envoi après la réponse par `after()` de `next/server` (pris en charge par Netlify, https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/), erreur journalisée (`console.error`, sans l'adresse en clair), jamais relancée. Délai d'une fonction Netlify : 60 s d'après la documentation, 26 s d'après le forum ; on reste très en dessous.
+- **Langue** : celle du client au moment de la commande (nouvelle colonne `Order.locale`) ; celle de l'inscription pour la lettre (`NewsletterSubscriber.locale`).
+- **Expéditeur** « Alarobia <alarobia.shop@gmail.com> », `Reply-To` = `contactEmail` des réglages s'il n'est pas l'adresse d'exemple. Les avis au vendeur vont à `SMTP_USER`. Le propriétaire met `contactEmail` à `alarobia.shop@gmail.com` dans les réglages.
+- **SMS** : pas de passerelle (aucun téléphone Android disponible, aucun service gratuit pour Madagascar). Remplacement à décider par le propriétaire (bouton « Prévenir le client » par WhatsApp ou SMS au texte prérempli), tâche à ajouter après sa réponse.
+
+**Points de vigilance** (chacun a son test dans la tâche qui le porte) :
+1. Texte saisi par un client ou le vendeur (nom, adresse, note, texte de la lettre) qui contient du HTML : échappé dans la version HTML, intact dans la version texte.
+2. Gmail refuse ou ne répond pas (identifiants faux, quota atteint, réseau) : la commande est créée, l'utilisateur ne voit rien d'anormal, l'erreur est journalisée ; l'envoi de la lettre s'arrête proprement et reprend où il en était.
+3. Variables absentes en ligne : rien ne plante, une ligne d'erreur claire dans le journal de la fonction.
+4. Inscription répétée de la même adresse, ou d'une adresse qui n'est pas la sienne : un seul e-mail de confirmation par 24 h et par adresse, et aucune lettre sans confirmation.
+5. Lien de désinscription ouvert par un antivirus de messagerie (requête GET automatique) : ne désinscrit pas ; seul le bouton (POST) ou l'en-tête `List-Unsubscribe-Post` le fait.
+
+#### 7.11 Socle d'envoi
+- **Créer** `src/lib/mail/transport.ts` : `sendMail(message: MailMessage): Promise<boolean>` avec `MailMessage = { to: string; subject: string; html: string; text: string; replyTo?: string; headers?: Record<string, string> }`. Trois sorties : SMTP Gmail si `SMTP_USER` et `SMTP_PASSWORD` sont définis ; sinon, si `MAIL_OUTBOX` est défini (tests), un fichier JSON par message dans ce dossier ; sinon une ligne `console.info` (sujet et destinataire masqué). Renvoie `false` sur erreur, ne lève jamais. Un seul transporteur réutilisé.
+- **Créer** `src/lib/mail/layout.ts` : `escapeHtml(s: string): string` et `renderMail(locale, { title, paragraphs, button?: { label, url }, footer? }): { html: string; text: string }` : HTML simple à styles en ligne (largeur 560 px, nom « Alarobia » en texte, couleur de la marque de `globals.css`), version texte équivalente. Aucune image distante.
+- **Schéma** : `Order.locale String @default("fr")` ; migration `1_email` (voir CLAUDE.md, schéma Prisma) ; `placeOrder` enregistre `getLocale()`.
+- `.gitignore` : dossier `.mail-outbox*`. `playwright.config.ts` : `MAIL_OUTBOX=.mail-outbox-e2e` pour le serveur de test, vidé au démarrage. `.env.example` et README : les deux variables, où les saisir, et pourquoi pas dans `.env`.
+- **Tests** (`src/lib/__tests__/mail.test.ts`) : `escapeHtml` sur `<script>`, `&`, guillemets ; `renderMail` échappe titre et paragraphes et garde le texte brut intact ; `sendMail` écrit dans `MAIL_OUTBOX` sans SMTP ; `sendMail` renvoie `false` sans lever quand le transporteur échoue (transporteur simulé) ; `migrations.test.ts` reste vert.
+
+#### 7.12 E-mails de commande
+- **Créer** `src/lib/mail/order-mails.ts`, fonctions pures (commande + réglages → `MailMessage`), textes dans `messages/*.json`, espace `mail` :
+  - `orderReceivedMail` (client) : numéro, articles et quantités, total, zone et date promise, et selon le paiement : Mobile Money (numéro, opérateur et titulaire du vendeur, puis bouton vers `/order/{id}` pour déclarer la référence) ou paiement à la livraison. Le lien porte la langue de la commande et l'adresse du site (`siteBase()`).
+  - `newOrderVendorMail` (vendeur, en français) : numéro, total, paiement, nom et téléphone, lien vers `/admin/orders/{id}`.
+  - `paymentDeclaredVendorMail` (vendeur) : référence déclarée, opérateur, montant, lien vers la commande.
+  - `statusMail` (client), pour PAID, SHIPPED (numéro de suivi s'il y en a), DELIVERED, CANCELLED (phrase de remboursement si Mobile Money confirmé), REFUNDED. Aucun e-mail pour PENDING ni pour un statut inchangé.
+- **Brancher** avec `after()` : `placeOrder` (client et vendeur), `declarePayment` (vendeur), `markPaid`, `updateOrder` et `cancelOrder` (client, seulement quand le statut a vraiment changé : résultat `"ok"` et statut différent).
+- Relire le texte `order.notify` de la page de confirmation : il doit rester vrai.
+- **Tests** : unitaires sur chaque fonction (fr, en, mg ; HTML échappé avec un nom `<b>Rakoto</b>` ; montants en ariary ; lien absolu dans la bonne langue) ; navigateur (`e2e/e-mails.spec.ts`) : une commande en Mobile Money crée deux messages dans l'outbox (client et vendeur) ; « Paiement reçu » en crée un ; une erreur d'envoi simulée ne bloque pas la commande.
+
+#### 7.13 Lettre d'information : confirmation et désinscription
+- **Schéma** (`NewsletterSubscriber`) : `token String @unique` (32 octets aléatoires en hexadécimal, `randomBytes(32).toString("hex")`), `locale String @default("fr")`, `confirmedAt DateTime?`, `confirmSentAt DateTime?`. Migration : colonnes ajoutées, jeton rempli pour les lignes existantes (`replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', '')`, 64 caractères hexadécimaux, sans extension), puis `NOT NULL` ; les inscrits existants sont considérés comme confirmés (`confirmedAt = createdAt`), décision de l'architecte : ce sont les essais du propriétaire.
+- **Inscription** : `subscribeNewsletter` enregistre la langue, envoie le message de confirmation (lien `/newsletter/confirm/{token}`) au plus une fois par 24 h par adresse ; même réponse à l'écran que l'adresse soit nouvelle, en attente ou déjà confirmée (rien ne révèle qui est inscrit).
+- **Pages** : `/newsletter/confirm/[token]` (GET affiche un bouton, POST confirme), `/newsletter/unsubscribe/[token]` (GET affiche un bouton, POST retire l'adresse). Route `POST /api/newsletter/unsubscribe?token=…` pour l'en-tête `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058). Jeton inconnu : même page neutre.
+- **Back-office** : colonne « Confirmée » sur la page des inscrits ; l'export CSV ajoute `confirmee` (`oui` / `non`).
+- **Textes** : `footer.newsletterText` → désinscription « par le lien de chaque lettre » ; message après inscription : « Vérifiez votre boîte : un e-mail de confirmation vient de partir. »
+- **Tests** : unitaires (une seule confirmation en 24 h ; GET ne change rien ; POST confirme puis désinscrit ; jeton inconnu) ; navigateur : inscription → lien lu dans l'outbox → confirmation → désinscription.
+
+#### 7.14 Lettre d'information : rédaction et envoi
+- **Schéma** : `NewsletterIssue { id, subject, body, createdAt, sentAt? }` et `NewsletterDelivery { issueId, subscriberId, sentAt, ok Boolean }` (`@@id([issueId, subscriberId])`, suppression en cascade). Migration.
+- **Page** `/admin/newsletter/write` : objet et texte (paragraphes séparés par une ligne vide, liens écrits en clair rendus cliquables), aperçu, bouton « M'envoyer un essai » (à `SMTP_USER`), puis « Envoyer aux N inscrits confirmés » avec confirmation. Historique des lettres avec le nombre d'envois réussis.
+- **Envoi par lots** : action `sendIssueBatch(issueId): Promise<{ sent: number; remaining: number; stopped?: "quota" | "error" }>`, au plus 10 messages par appel, chacun avec son lien de désinscription et les en-têtes `List-Unsubscribe` ; la page rappelle l'action tant qu'il en reste et affiche la progression ; plafond de 300 envois par 24 h glissantes (compté sur `NewsletterDelivery`) ; un refus de Gmail arrête le lot, la page explique qu'il faudra reprendre plus tard, et la reprise n'envoie jamais deux fois à la même adresse.
+- **Tests** : unitaires (lots de 10, reprise sans doublon, plafond de 300, arrêt sur erreur, inscrit non confirmé ignoré) ; navigateur : rédaction, essai, envoi à trois inscrits confirmés, trois messages dans l'outbox avec chacun son lien.
+
+#### Mise en ligne de la 7B
+1. Lot entier sur `preview`. Contrôle en ligne de l'aperçu (`npm run test:prod`).
+2. **Essai réel** (propriétaire et architecte) : « M'envoyer un essai » depuis le back-office de l'aperçu, puis une commande à la livraison avec l'adresse personnelle du propriétaire, qui vérifie la réception, le dossier des indésirables et l'affichage sur téléphone ; inscription à la lettre, confirmation, désinscription. Commande annulée ensuite.
+3. Fusion dans `main` (15 crédits) avec le correctif 7.10. Le propriétaire met `contactEmail` à jour dans les réglages de la production.
+
+### 7C et 7D (à détailler quand le propriétaire les demande)
 - **7C Mobile Money par API** : il faut les comptes marchands MVola, Orange Money et Airtel Money.
 - **7D Avant d'annoncer le site** :
   - mentions légales complètes (NIF, STAT, adresse) ;
