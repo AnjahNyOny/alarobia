@@ -211,6 +211,8 @@ model Order {
   phone             String
   trackingNumber    String?
   note              String?
+  // Langue du client au moment de la commande (fr, en, mg) : celle des e-mails qui suivent.
+  locale            String      @default("fr")
   items             OrderItem[]
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt

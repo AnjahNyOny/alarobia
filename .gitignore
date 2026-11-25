@@ -51,3 +51,5 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 /uploads-test/
+# e-mails écrits par le serveur au lieu d'être envoyés (MAIL_OUTBOX)
+.mail-outbox*

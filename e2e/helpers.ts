@@ -1,5 +1,9 @@
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page, type Request } from "@playwright/test";
+import type { OutboxMessage } from "../src/lib/mail/transport";
+import { E2E_MAIL_OUTBOX } from "./database";
 
 /** Échoue le test si la page émet une erreur JavaScript, une erreur console ou une réponse 5xx. */
 export function watchErrors(page: Page) {
@@ -214,4 +218,19 @@ export async function tabTo(page: Page, target: Locator, { max = 60, back = fals
     if (await target.evaluate((el) => el === document.activeElement).catch(() => false)) return;
   }
   throw new Error(`${step} : ${String(target)} jamais atteint en ${max} tabulations`);
+}
+
+/**
+ * E-mails écrits par le serveur de test depuis le début de la suite (`MAIL_OUTBOX`, playwright.config.ts), du plus ancien
+ * au plus récent. Un e-mail part après la réponse (`after()`) : l'attendre avec `expect.poll(() => readOutbox())`.
+ * Tous les tests partagent l'outbox : filtrer sur le destinataire ou le sujet, ou compter à partir d'un premier relevé.
+ */
+export async function readOutbox(): Promise<OutboxMessage[]> {
+  const dir = path.join(process.cwd(), E2E_MAIL_OUTBOX);
+  const names = await readdir(dir).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  });
+  const files = names.filter((name) => name.endsWith(".json")).sort();
+  return Promise.all(files.map(async (name) => JSON.parse(await readFile(path.join(dir, name), "utf8")) as OutboxMessage));
 }

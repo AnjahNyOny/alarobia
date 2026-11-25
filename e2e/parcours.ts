@@ -19,7 +19,12 @@ import { formatPrice, slugify } from "../src/lib/format";
 import enMessages from "../messages/en.json";
 import frMessages from "../messages/fr.json";
 import mgMessages from "../messages/mg.json";
+import { createDb } from "../src/lib/db";
+import { E2E_DATABASE_URL } from "./database";
 import { ADMIN, CLIENT, CART_ADD_TIMEOUT } from "./helpers";
+
+/** Base du serveur de test, pour ce que l'écran ne montre pas (la langue enregistrée avec une commande). */
+const db = createDb(E2E_DATABASE_URL);
 
 export const LOCALES = ["fr", "en", "mg"] as const;
 export type Locale = (typeof LOCALES)[number];
@@ -365,6 +370,9 @@ export async function guestMobileMoney({ browser, page, locale, device }: { brow
     await page.getByRole("button", { name: t("payment.submit"), exact: true }).click();
     await page.waitForURL(new RegExp(`/${locale}/order/c\\w+$`));
     orderUrl = page.url();
+    // Les e-mails de la commande partiront dans la langue où elle a été passée (PLAN.md 7.11).
+    const saved = await db.order.findUniqueOrThrow({ where: { id: new URL(orderUrl).pathname.split("/").pop() }, select: { locale: true } });
+    expect(saved.locale, "langue enregistrée avec la commande").toBe(locale);
   });
 
   await test.step("confirmation : montant, numéro du vendeur, référence", async () => {

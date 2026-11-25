@@ -43,6 +43,9 @@ Les adresses de `.env.example` se connectent sans mot de passe avec l'utilisateu
 | `NEXT_PUBLIC_SITE_URL` | Adresse publique du site : adresses canoniques, plan du site, `robots.txt`, images de partage. À changer en production. Vide, le site prend, hors production, l'adresse du déploiement Netlify (`DEPLOY_PRIME_URL`), puis `URL`, l'adresse que Netlify fournit lui-même, puis `http://localhost:3000`. |
 | `UPLOAD_DIR` | Facultative. Dossier des fichiers envoyés, `uploads` par défaut. Sur Netlify, les envois vont dans Netlify Blobs et cette variable ne sert pas. |
 | `CRON_SECRET` | Facultative en local. Protège la route du nettoyage quotidien (`/api/cron/nettoyage`), qui répond 503 sans elle : `openssl rand -base64 32`. |
+| `MAIL_OUTBOX` | Facultative. Dossier où les e-mails sont écrits, un fichier JSON par message, au lieu d'être envoyés ; les tests navigateur prennent `.mail-outbox-e2e`. Sans elle (et sans SMTP), un e-mail n'est qu'une ligne dans le terminal du serveur. Ignorée quand SMTP est configuré. |
+
+`SMTP_USER` et `SMTP_PASSWORD` ne vont jamais dans un fichier `.env*` : Next les charge à chaque compilation et à chaque démarrage, et un serveur local enverrait de vrais e-mails aux clients de démonstration. Elles ne se saisissent que sur Netlify (section « Mise en ligne »).
 
 ### Comptes de démonstration
 
@@ -129,6 +132,7 @@ src/app/fonts/                police Archivo réduite, chargée par next/font/lo
 src/app/globals.css           jetons de design, polices de remplacement calibrées
 src/lib/                      base, session, panier, prix, promotions, livraison, adresses, paiement, validation,
                               formats par langue, traductions du catalogue, référencement, limites de débit, envois
+src/lib/mail/                 e-mails : gabarit HTML et texte (layout), envoi par Gmail, dossier de test ou journal (transport)
 src/lib/customizer/           mise en place du dessin, tracé, objets à plat, démonstration (fonctions pures, testées)
 src/components/customizer/    scène 3D et gabarits, objet en direct ou à plat, réglages, démonstration de l'accueil
 src/components/store/         boutique
@@ -206,6 +210,8 @@ La boutique tourne sur l'offre gratuite de Netlify, avec une base PostgreSQL sur
 | `AUTH_SECRET` | À générer : `openssl rand -base64 32` |
 | `CRON_SECRET` | À générer : `openssl rand -base64 32` ; la même valeur dans les secrets du dépôt GitHub |
 | `NEXT_PUBLIC_SITE_URL` | Contexte « Production » seulement : l'adresse `.netlify.app` du site, puis le domaine. Sans elle, le site prend `URL`, fournie par Netlify. À laisser vide pour les aperçus : ils prennent l'adresse de leur déploiement (`DEPLOY_PRIME_URL`, figée à la compilation) |
+| `SMTP_USER` | Adresse du compte Gmail de la boutique, qui envoie les e-mails (expéditeur « Alarobia ») et reçoit les avis au vendeur. « Production » et « Branch deploys » |
+| `SMTP_PASSWORD` | Mot de passe d'application de ce compte Gmail (compte Google, Sécurité, validation en deux étapes, Mots de passe des applications), pas le mot de passe du compte. Mêmes contextes. Absentes ou incomplètes, aucun e-mail ne part et le journal de la fonction le dit (`[mail] …`) ; les commandes passent quand même |
 
 Les secrets du dépôt GitHub `SITE_URL` et `CRON_SECRET` servent au nettoyage quotidien (section précédente). Une variable changée sur Netlify ne compte qu'à la mise en ligne suivante.
 

@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : tâche 7.11 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : tâche 7.12 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -133,7 +133,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 - [x] 7.10 Bouton « Annuler la commande » retiré des commandes livrées, refus côté serveur (`canCancel`, résultat `delivered`, clé `admin.errors.orderDelivered`). Vérifié : lint et types propres, 508 tests unitaires (test vu rouge d'abord), 29 parcours navigateur ciblés (commandes, accessibilité, clavier). Pas encore en ligne : part avec le prochain lot
 
 Phase 7B, e-mails par Gmail (détail dans `PLAN.md`) :
-- [ ] 7.11 Socle d'envoi (transport, gabarit, langue de la commande)
+- [x] 7.11 Socle d'envoi : `src/lib/mail/` (`sendMail` : Gmail SMTP, sinon outbox des tests, sinon journal ; `renderMail`, `escapeHtml`), `nodemailer` 10.6.1 (MIT-0), `Order.locale` (migration `1_email`). Vérifié : lint et types propres, 534 tests unitaires, **146 parcours navigateur sur 146**, nodemailer absent du JavaScript du navigateur
 - [ ] 7.12 E-mails de commande (client et vendeur)
 - [ ] 7.13 Lettre d'information : confirmation et désinscription
 - [ ] 7.14 Lettre d'information : rédaction et envoi par lots
@@ -697,3 +697,6 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - **7.10** (architecte, quelques lignes) : test unitaire changé d'abord (commande livrée refusée, stock intact ; `canCancel`), vu rouge (2 échecs), puis vert ; test navigateur ajouté (commande livrée du seed : pas de bouton). Clé mg à relire : `admin.errors.orderDelivered`. `verificateur` : lint, types, 508 tests unitaires, 29 sur 29 sur `admin-commandes`, `accessibilite`, `clavier`.
 - **7B** : compte `alarobia.shop@gmail.com` créé, validation en deux étapes active. Demandé au propriétaire : mot de passe d'application rangé sur Netlify (`SMTP_USER`, `SMTP_PASSWORD`, production et déploiements de branche). SMS remplacés, proposé : bouton « Prévenir le client » (lien WhatsApp ou SMS au texte prérempli) ; choix attendu.
 - **Plan de la 7B** écrit dans `PLAN.md` (skill `writing-plans`) : Gmail en SMTP par `nodemailer`, envoi après la réponse (`after()`), outbox en fichiers pour les tests, langue de la commande, lettre avec double confirmation et désinscription en un clic, envoi par lots de 10 et plafond de 300 par 24 h. Variables saisies sur Netlify par le propriétaire.
+- **Boucles d'attente restées 3 h** (agent du bouton d'annulation) : `until ! pgrep -f "playwright test e2e/admin-commandes"` se trouvait lui-même. Cinq boucles arrêtées avec l'accord du propriétaire ; piège ajouté à `CLAUDE.md`.
+- **7.11** (`developpeur`) : délais SMTP courts (connexion 5 s, envoi 10 s au plus), un transporteur réutilisé sans pool, adresse masquée dans le journal et retirée des erreurs de Gmail, outbox écrite par renommage (jamais lue à moitié), `SMTP_USER` et `SMTP_PASSWORD` forcés à vide dans le serveur de test, langue de la commande vérifiée dans les parcours fr, en, mg. Défaut trouvé sur capture et corrigé : des guillemets dans la pile de polices coupaient les attributs `style`. Colonne ajoutée à la base de développement par `db push` (architecte). Reste pour 7.13 et 7.14 : `renderMail` ne rend aucun lien cliquable dans le texte.
+  - `verificateur` : lint et types propres, 534 tests unitaires, **146 parcours navigateur sur 146** (charge 6 à 6,6), nodemailer absent de `.next-e2e/static`, `tsconfig.json` intact. `npm audit --omit=dev` : 8 alertes (4 hautes, 4 modérées), aucune sur nodemailer ; toutes dans les outils en ligne de commande de Prisma (`@prisma/config` : deepmerge-ts, effect) et de shadcn (minimatch) ; correctif proposé = versions majeures (Prisma 7, shadcn 1), non fait.

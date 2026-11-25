@@ -18,6 +18,7 @@ import { makeSchemas } from "@/lib/schemas";
 import { consumePromo } from "@/lib/promo";
 import { reserveStock } from "@/lib/stock";
 import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
+import { defaultLocale, isLocale } from "@/i18n/routing";
 
 class StockError extends Error {}
 class PromoError extends Error {}
@@ -54,7 +55,7 @@ async function createOrder(formData: FormData): Promise<FormState | string> {
   const { email, shippingZoneId, paymentMethod, note, ...fields } = parsed.data;
   const address = { ...fields, line2: fields.line2 || null, country: "Madagascar" };
 
-  const [user, cart, settings] = await Promise.all([getUser(), getCart(), getSettings()]);
+  const [user, cart, settings, locale] = await Promise.all([getUser(), getCart(), getSettings(), getLocale()]);
   if (cart.lines.length === 0) return { error: t("cartEmpty") };
   const short = cart.lines.find((l) => l.insufficientStock);
   if (short) return { error: t("stockInsufficient", { name: short.product.name }) };
@@ -65,7 +66,7 @@ async function createOrder(formData: FormData): Promise<FormState | string> {
   if (!zone) return { error: t("formInvalid"), fieldErrors: { shippingZoneId: t("zoneRequired") } };
   const shippingCents = shippingCost(zone, cart.subtotalCents - cart.discountCents, settings.freeShippingThresholdCents);
   const totalCents = cart.subtotalCents - cart.discountCents + shippingCents;
-  if (!orderWithinLimit(totalCents)) return { error: t("orderTooLarge", { amount: formatPrice(MAX_ORDER_CENTS, settings.currency, await getLocale()) }) };
+  if (!orderWithinLimit(totalCents)) return { error: t("orderTooLarge", { amount: formatPrice(MAX_ORDER_CENTS, settings.currency, locale) }) };
   const number = `AL-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 36).toString(36).toUpperCase()}`;
 
   let orderId: string;
@@ -96,6 +97,8 @@ async function createOrder(formData: FormData): Promise<FormState | string> {
           promoCode: cart.promo?.code,
           note: note || null,
           ...address,
+          // Langue des e-mails qui suivront la commande : celle de la page où le client l'a passée.
+          locale: isLocale(locale) ? locale : defaultLocale,
           items: {
             create: cart.lines.map((l) => ({
               productId: l.product.id,
