@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
+import { after } from "next/server";
 import { redirectTo } from "@/i18n/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -19,6 +20,7 @@ import { consumePromo } from "@/lib/promo";
 import { reserveStock } from "@/lib/stock";
 import { clientIp, createRateLimiter, withRateLimit } from "@/lib/rate-limit";
 import { defaultLocale, isLocale } from "@/i18n/routing";
+import { notifyOrderPlaced } from "@/lib/mail/notify";
 
 class StockError extends Error {}
 class PromoError extends Error {}
@@ -31,12 +33,16 @@ export async function placeOrder(_: FormState, formData: FormData): Promise<Form
   const outcome = await withRateLimit([[ordersByIp, clientIp(await headers())]], () => createOrder(formData), (result) => typeof result === "string");
   if (outcome.limited) return { error: (await getTranslations("errors"))("rateLimited", { minutes: outcome.minutes }) };
   if (typeof outcome.value !== "string") return outcome.value;
+  const orderId = outcome.value;
+  // Récapitulatif au client et avis au vendeur, après la réponse : la redirection n'attend pas Gmail, et un échec
+  // d'envoi est journalisé sans toucher à la commande, déjà enregistrée.
+  after(() => notifyOrderPlaced(db, orderId));
 
   const store = await cookies();
   store.delete(CART_COOKIE);
   store.delete(PROMO_COOKIE);
   revalidatePath("/", "layout");
-  return redirectTo(`/order/${outcome.value}`);
+  return redirectTo(`/order/${orderId}`);
 }
 
 /** Crée la commande et renvoie son identifiant, ou l'état du formulaire à réafficher. */

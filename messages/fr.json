@@ -97,7 +97,7 @@
     "step1": "Envoyez ce montant, par {operator}, à ce numéro.",
     "amount": "Montant",
     "number": "Numéro {operator}",
-    "holder": "Le compte est au nom de {name}.",
+    "holder": "Titulaire du compte : {name}.",
     "step2": "Si un motif vous est demandé, indiquez le numéro de commande {order}.",
     "step3": "Recopiez ici la référence de la transaction, reçue par SMS.",
     "referenceLabel": "Référence de la transaction",
@@ -1078,6 +1078,85 @@
       "confirmTitle": "Supprimer cet avis ?",
       "confirmDescription": "Cette action est définitive. Pour le retirer temporairement, masquez-le plutôt.",
       "delete": "Supprimer l'avis de {name}"
+    }
+  },
+  "mail": {
+    "greeting": "Bonjour {name},",
+    "footer": "Vous recevez ce message à la suite d'une commande passée avec cette adresse. Une question ? Répondez à ce message.",
+    "viewOrder": "Voir ma commande",
+    "item": "{quantity} × {name} : {amount}",
+    "discount": "Réduction ({code}) : −{amount}",
+    "discountNoCode": "Réduction : −{amount}",
+    "shipping": "Livraison : {amount}",
+    "shippingFree": "Livraison : offerte",
+    "total": "Total : {amount}",
+    "zone": "Zone de livraison : {zone}",
+    "expected": "Livraison prévue au plus tard {date}.",
+    "addressTitle": "Adresse de livraison :",
+    "received": {
+      "subject": "Commande {number} enregistrée",
+      "title": "Merci, votre commande est enregistrée.",
+      "intro": "Nous avons bien reçu votre commande {number}. En voici le détail.",
+      "mobile": "Il reste à la régler par {operator} : envoyez {amount} au {phone}.",
+      "holder": "Titulaire du compte : {name}.",
+      "motive": "Si un motif vous est demandé, indiquez le numéro de commande {number}.",
+      "reference": "Recopiez ensuite la référence de la transaction, reçue par SMS, sur la page de votre commande. Nous préparons la commande dès réception du paiement.",
+      "referenceButton": "Indiquer la référence",
+      "mobileNoNumber": "Il reste à la régler par {operator} : les indications sont sur la page de votre commande.",
+      "cod": "Vous réglerez {amount} en espèces au livreur.",
+      "notify": "Nous vous écrirons à nouveau dès l'expédition du colis."
+    },
+    "status": {
+      "PAID": {
+        "subject": "Paiement reçu : commande {number}",
+        "title": "Paiement reçu, merci.",
+        "body": "Nous avons bien reçu votre paiement de {amount} pour la commande {number}. Nous la préparons."
+      },
+      "SHIPPED": {
+        "subject": "Commande {number} expédiée",
+        "title": "Votre colis est en route.",
+        "body": "La commande {number} vient de partir.",
+        "tracking": "Numéro de suivi : {tracking}",
+        "cod": "Prévoyez {amount} en espèces pour le livreur."
+      },
+      "DELIVERED": {
+        "subject": "Commande {number} livrée",
+        "title": "Votre commande est livrée.",
+        "body": "Le colis de la commande {number} vous a été remis. Merci pour votre achat.",
+        "returns": "Un souci avec un article ? Prévenez-nous sous 30 jours en répondant à ce message."
+      },
+      "CANCELLED": {
+        "subject": "Commande {number} annulée",
+        "title": "Votre commande est annulée.",
+        "body": "La commande {number} est annulée.",
+        "refund": "Vous aviez payé {amount} par {operator} : nous vous remboursons."
+      },
+      "REFUNDED": {
+        "subject": "Commande {number} remboursée",
+        "title": "Votre commande est remboursée.",
+        "body": "La commande {number} vous a été remboursée. Si l'argent n'est pas arrivé d'ici quelques jours, répondez à ce message."
+      }
+    },
+    "vendor": {
+      "footer": "Avis automatique, envoyé à l'adresse de la boutique. Répondre à ce message écrit directement au client.",
+      "open": "Ouvrir la commande",
+      "customer": "Client : {name}, {phone}",
+      "zone": "Zone : {zone}",
+      "note": "Note du client : {note}",
+      "newOrder": {
+        "subject": "Nouvelle commande {number} : {amount}",
+        "title": "Nouvelle commande {number}",
+        "payMobile": "Paiement : {operator}, en attente du client.",
+        "payCod": "Paiement : à la livraison, {amount} en espèces."
+      },
+      "declared": {
+        "subject": "Paiement à vérifier : commande {number}",
+        "title": "Paiement déclaré pour la commande {number}",
+        "body": "Le client indique avoir envoyé {amount} par {operator}.",
+        "reference": "Référence : {reference}",
+        "number": "Numéro crédité : {phone}",
+        "check": "Vérifiez sur votre téléphone que l'argent est arrivé avant de confirmer le paiement. N'expédiez pas avant."
+      }
     }
   }
 }

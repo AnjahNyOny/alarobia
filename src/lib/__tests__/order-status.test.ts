@@ -107,3 +107,46 @@ describe("changeOrderStatus", () => {
     expect((await db.order.findUniqueOrThrow({ where: { id: order.id } })).trackingNumber).toBe("COLIS-1");
   });
 });
+
+/*
+ * `onStatusChanged` : l'action serveur y branche l'e-mail au client (PLAN.md 7.12). Appelé avec l'ancien statut, une
+ * fois la transaction validée, seulement quand le statut a réellement changé.
+ */
+describe("onStatusChanged", () => {
+  it("reçoit l'ancien statut quand le statut change", async () => {
+    const mug = await product(5);
+    const order = await makeOrder("PAID", mug.id, 1);
+    const seen: string[] = [];
+    expect(await changeOrderStatus(db, order.id, { status: "SHIPPED", trackingNumber: "COLIS-2" }, { onStatusChanged: (from) => seen.push(from) })).toBe("ok");
+    expect(seen).toEqual(["PAID"]);
+  });
+
+  it("n'est pas appelé quand seul le numéro de suivi change", async () => {
+    const mug = await product(5);
+    const order = await makeOrder("SHIPPED", mug.id, 1);
+    const seen: string[] = [];
+    expect(await changeOrderStatus(db, order.id, { status: "SHIPPED", trackingNumber: "COLIS-3" }, { onStatusChanged: (from) => seen.push(from) })).toBe("ok");
+    expect(seen).toEqual([]);
+  });
+
+  it("n'est pas appelé quand le changement est refusé", async () => {
+    const mug = await product(5);
+    const closed = await makeOrder("CANCELLED", mug.id, 1);
+    const delivered = await makeOrder("DELIVERED", mug.id, 1);
+    const seen: string[] = [];
+    const onStatusChanged = (from: string) => seen.push(from);
+    expect(await changeOrderStatus(db, closed.id, { status: "PAID" }, { onStatusChanged })).toBe("closed");
+    expect(await cancelOrder(db, delivered.id, { onStatusChanged })).toBe("delivered");
+    expect(await changeOrderStatus(db, "inexistante", { status: "PAID" }, { onStatusChanged })).toBe("notFound");
+    expect(seen).toEqual([]);
+  });
+
+  it("cancelOrder le transmet : une seule annulation sur deux simultanées le déclenche", async () => {
+    const mug = await product(5);
+    const order = await makeOrder("PENDING", mug.id, 1, { paymentMethod: "MVOLA" });
+    const seen: string[] = [];
+    const onStatusChanged = (from: string) => seen.push(from);
+    await Promise.all([cancelOrder(db, order.id, { onStatusChanged }), cancelOrder(db, order.id, { onStatusChanged })]);
+    expect(seen).toEqual(["PENDING"]);
+  });
+});

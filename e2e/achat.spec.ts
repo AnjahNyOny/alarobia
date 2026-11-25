@@ -56,7 +56,7 @@ test("achat invité : panier, code promo, validation du formulaire, confirmation
   const panel = page.getByRole("region", { name: "Paiement MVola" });
   await expect(panel.getByText("630 000 Ar")).toBeVisible();
   await expect(panel.getByText("034 00 123 45")).toBeVisible();
-  await expect(panel.getByText("Le compte est au nom de Alarobia.")).toBeVisible();
+  await expect(panel.getByText("Titulaire du compte : Alarobia.")).toBeVisible();
   await expect(panel.getByText(/indiquez le numéro de commande AL-/)).toBeVisible();
   await panel.getByLabel("Référence de la transaction").fill("12");
   await panel.getByRole("button", { name: "Envoyer la référence" }).click();

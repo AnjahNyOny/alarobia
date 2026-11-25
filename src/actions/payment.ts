@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { getUser } from "@/lib/auth";
 import type { FormState } from "@/lib/form";
+import { notifyPaymentDeclared } from "@/lib/mail/notify";
 import { isMobileMoney, normalizePaymentReference } from "@/lib/payment";
 import { createRateLimiter, withRateLimit } from "@/lib/rate-limit";
 
@@ -33,6 +35,8 @@ export async function declarePayment(orderId: string, _: FormState, formData: Fo
   );
   if (outcome.limited) return { error: t("formInvalid"), fieldErrors: { reference: t("rateLimited", { minutes: outcome.minutes }) } };
   if (outcome.value === 0) return { error: t("paymentClosed") };
+  // Avis au vendeur, après la réponse : une référence corrigée en envoie un nouveau, c'est celle qu'il doit vérifier.
+  after(() => notifyPaymentDeclared(db, orderId));
   revalidatePath("/", "layout");
   return { ok: true, message: n("referenceSaved") };
 }

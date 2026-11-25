@@ -97,7 +97,7 @@
     "step1": "Send this amount, with {operator}, to this number.",
     "amount": "Amount",
     "number": "{operator} number",
-    "holder": "The account is in the name of {name}.",
+    "holder": "Account holder: {name}.",
     "step2": "If you are asked for a reason, enter the order number {order}.",
     "step3": "Copy the transaction reference from the SMS here.",
     "referenceLabel": "Transaction reference",
@@ -1078,6 +1078,85 @@
       "confirmTitle": "Delete this review?",
       "confirmDescription": "This cannot be undone. To remove it temporarily, hide it instead.",
       "delete": "Delete {name}'s review"
+    }
+  },
+  "mail": {
+    "greeting": "Hello {name},",
+    "footer": "You are receiving this message because an order was placed with this address. Any questions? Reply to this message.",
+    "viewOrder": "View my order",
+    "item": "{quantity} × {name}: {amount}",
+    "discount": "Discount ({code}): −{amount}",
+    "discountNoCode": "Discount: −{amount}",
+    "shipping": "Delivery: {amount}",
+    "shippingFree": "Delivery: free",
+    "total": "Total: {amount}",
+    "zone": "Delivery zone: {zone}",
+    "expected": "Expected by {date} at the latest.",
+    "addressTitle": "Delivery address:",
+    "received": {
+      "subject": "Order {number} confirmed",
+      "title": "Thank you, your order is confirmed.",
+      "intro": "We have received your order {number}. Here are the details.",
+      "mobile": "It still needs to be paid by {operator}: send {amount} to {phone}.",
+      "holder": "Account holder: {name}.",
+      "motive": "If you are asked for a reason, enter the order number {number}.",
+      "reference": "Then copy the transaction reference, received by text message, on your order page. We prepare the order as soon as the payment arrives.",
+      "referenceButton": "Enter the reference",
+      "mobileNoNumber": "It still needs to be paid by {operator}: the instructions are on your order page.",
+      "cod": "You will pay {amount} in cash to the courier.",
+      "notify": "We will write to you again as soon as the parcel ships."
+    },
+    "status": {
+      "PAID": {
+        "subject": "Payment received: order {number}",
+        "title": "Payment received, thank you.",
+        "body": "We have received your payment of {amount} for order {number}. We are preparing it."
+      },
+      "SHIPPED": {
+        "subject": "Order {number} shipped",
+        "title": "Your parcel is on its way.",
+        "body": "Order {number} has just left.",
+        "tracking": "Tracking number: {tracking}",
+        "cod": "Have {amount} in cash ready for the courier."
+      },
+      "DELIVERED": {
+        "subject": "Order {number} delivered",
+        "title": "Your order has been delivered.",
+        "body": "The parcel for order {number} has been handed to you. Thank you for your purchase.",
+        "returns": "A problem with an item? Tell us within 30 days by replying to this message."
+      },
+      "CANCELLED": {
+        "subject": "Order {number} cancelled",
+        "title": "Your order is cancelled.",
+        "body": "Order {number} is cancelled.",
+        "refund": "You had paid {amount} by {operator}: we are refunding you."
+      },
+      "REFUNDED": {
+        "subject": "Order {number} refunded",
+        "title": "Your order has been refunded.",
+        "body": "Order {number} has been refunded to you. If the money has not arrived within a few days, reply to this message."
+      }
+    },
+    "vendor": {
+      "footer": "Automatic notice, sent to the shop's address. Replying to this message writes directly to the customer.",
+      "open": "Open the order",
+      "customer": "Customer: {name}, {phone}",
+      "zone": "Zone: {zone}",
+      "note": "Customer note: {note}",
+      "newOrder": {
+        "subject": "New order {number}: {amount}",
+        "title": "New order {number}",
+        "payMobile": "Payment: {operator}, awaiting the customer.",
+        "payCod": "Payment: on delivery, {amount} in cash."
+      },
+      "declared": {
+        "subject": "Payment to check: order {number}",
+        "title": "Payment declared for order {number}",
+        "body": "The customer says they sent {amount} by {operator}.",
+        "reference": "Reference: {reference}",
+        "number": "Number credited: {phone}",
+        "check": "Check on your phone that the money has arrived before confirming the payment. Do not ship before."
+      }
     }
   }
 }

@@ -51,12 +51,14 @@ export type StatusChange = "ok" | "notFound" | "closed" | "delivered" | "changed
  * d'annulée à remboursée ou l'inverse ; avec `openOnly` (bouton « Annuler la commande »), elle est refusée dans tous les
  * les cas, et une commande livrée aussi : le colis ne revient pas forcément, son stock ne doit pas être remis en vente.
  * `trackingNumber` absent : le numéro de suivi enregistré est gardé.
+ * `onStatusChanged` est appelé avec l'ancien statut, une fois la transaction validée, seulement si le statut a
+ * réellement changé : l'action serveur y branche l'e-mail au client (un numéro de suivi ajouté seul n'en envoie pas).
  */
 export async function changeOrderStatus(
   db: Db,
   id: string,
   next: { status: OrderStatus; trackingNumber?: string | null },
-  { openOnly = false } = {},
+  { openOnly = false, onStatusChanged }: StatusOptions = {},
 ): Promise<StatusChange> {
   const order = await db.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) return "notFound";
@@ -64,8 +66,12 @@ export async function changeOrderStatus(
   if (openOnly && order.status === "DELIVERED") return "delivered";
   const trackingNumber = next.trackingNumber === undefined ? order.trackingNumber : next.trackingNumber;
   const changed = await db.$transaction((tx) => transitionOrder(tx, order, { status: next.status, trackingNumber }));
-  return changed ? "ok" : "changed";
+  if (!changed) return "changed";
+  if (order.status !== next.status) onStatusChanged?.(order.status);
+  return "ok";
 }
+
+type StatusOptions = { openOnly?: boolean; onStatusChanged?: (from: string) => void };
 
 /** Le bouton « Annuler la commande » s'affiche : commande ni close ni livrée (décision du propriétaire, 25/11/2026). */
 export function canCancel(status: string) {
@@ -73,6 +79,6 @@ export function canCancel(status: string) {
 }
 
 /** Bouton « Annuler la commande » : commande ni close ni livrée. La liste « Statut » reste le recours pour un cas à part. */
-export function cancelOrder(db: Db, id: string) {
-  return changeOrderStatus(db, id, { status: "CANCELLED" }, { openOnly: true });
+export function cancelOrder(db: Db, id: string, { onStatusChanged }: Pick<StatusOptions, "onStatusChanged"> = {}) {
+  return changeOrderStatus(db, id, { status: "CANCELLED" }, { openOnly: true, onStatusChanged });
 }

@@ -4,7 +4,7 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** : tâche 7.12 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : tâche 7.13 (plan de la 7B écrit le 25/11/2026, variables `SMTP_USER` et `SMTP_PASSWORD` saisies sur Netlify par le propriétaire). Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -134,7 +134,7 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 
 Phase 7B, e-mails par Gmail (détail dans `PLAN.md`) :
 - [x] 7.11 Socle d'envoi : `src/lib/mail/` (`sendMail` : Gmail SMTP, sinon outbox des tests, sinon journal ; `renderMail`, `escapeHtml`), `nodemailer` 10.6.1 (MIT-0), `Order.locale` (migration `1_email`). Vérifié : lint et types propres, 534 tests unitaires, **146 parcours navigateur sur 146**, nodemailer absent du JavaScript du navigateur
-- [ ] 7.12 E-mails de commande (client et vendeur)
+- [x] 7.12 E-mails de commande : récapitulatif au client dans sa langue (instructions Mobile Money comprises), avis au vendeur (nouvelle commande, paiement déclaré), e-mail au client à chaque changement de statut utile. Vérifié : lint et types propres, 587 tests unitaires, **150 parcours navigateur sur 150**, 76 e-mails produits par la suite (fr, en, mg)
 - [ ] 7.13 Lettre d'information : confirmation et désinscription
 - [ ] 7.14 Lettre d'information : rédaction et envoi par lots
 - [ ] 7.15 Prévenir le client par WhatsApp ou par SMS (liens au texte prérempli dans le back-office)
@@ -700,3 +700,13 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - **Boucles d'attente restées 3 h** (agent du bouton d'annulation) : `until ! pgrep -f "playwright test e2e/admin-commandes"` se trouvait lui-même. Cinq boucles arrêtées avec l'accord du propriétaire ; piège ajouté à `CLAUDE.md`.
 - **7.11** (`developpeur`) : délais SMTP courts (connexion 5 s, envoi 10 s au plus), un transporteur réutilisé sans pool, adresse masquée dans le journal et retirée des erreurs de Gmail, outbox écrite par renommage (jamais lue à moitié), `SMTP_USER` et `SMTP_PASSWORD` forcés à vide dans le serveur de test, langue de la commande vérifiée dans les parcours fr, en, mg. Défaut trouvé sur capture et corrigé : des guillemets dans la pile de polices coupaient les attributs `style`. Colonne ajoutée à la base de développement par `db push` (architecte). Reste pour 7.13 et 7.14 : `renderMail` ne rend aucun lien cliquable dans le texte.
   - `verificateur` : lint et types propres, 534 tests unitaires, **146 parcours navigateur sur 146** (charge 6 à 6,6), nodemailer absent de `.next-e2e/static`, `tsconfig.json` intact. `npm audit --omit=dev` : 8 alertes (4 hautes, 4 modérées), aucune sur nodemailer ; toutes dans les outils en ligne de commande de Prisma (`@prisma/config` : deepmerge-ts, effect) et de shadcn (minimatch) ; correctif proposé = versions majeures (Prisma 7, shadcn 1), non fait.
+- **7.12** (`developpeur`, retouches de l'architecte) : `src/lib/mail/order-mails.ts` (fonctions pures), `notify.ts` (relit la commande dans `after()`, envois en parallèle, ne lève jamais), `translate.ts` ; `changeOrderStatus` reçoit `onStatusChanged(from)` ; e-mail client pour PAID, SHIPPED, DELIVERED, CANCELLED, REFUNDED seulement si le statut change ; avis au vendeur à la commande et à la déclaration de paiement. Retouches de l'architecte : `Reply-To` = adresse du client sur les avis au vendeur (tests vus rouges d'abord) ; « Le livreur vous appellera avant de passer » retiré (promesse inventée) ; `payment.holder` et `mail.received.holder` : « Titulaire du compte : {name}. » (fr, en ; « au nom de Alarobia » était fautif).
+  - Clés mg à relire : tout l'espace `mail` de `messages/mg.json` (liste complète dans le rapport du 25/11/2026 : `mail.greeting`, `mail.footer`, `mail.received.*`, `mail.status.*`, `mail.vendor.*`).
+  - Relevé, non traité : `formatDate` écrit « mardi 1 décembre » (au lieu de « 1er ») et met une majuscule au jour et au mois malgaches en milieu de phrase (« Zoma 27 Novambra ») ; touche aussi le site. Un numéro de commande se coupe au tiret dans un titre d'e-mail étroit. Noms de zone gelés en français dans `Order.shippingZone`.
+
+### Point de reprise (25/11/2026, nuit)
+
+- Branche `preview` locale, en avance sur `main` de 7.10, 7.11 et 7.12, toutes vérifiées et committées. `verificateur` (7.12) : lint, types, 587 tests unitaires, 150 parcours navigateur sur 150 (charge 6 à 7), nodemailer absent du JavaScript du navigateur, `tsconfig.json` intact ; deux « Paiement à vérifier » pour une même commande = référence déclarée puis corrigée (voulu).
+- `origin/preview` est à `56be1c2` (7.10) ; 7.11 et 7.12 ne sont pas encore envoyées. La production a 7.6 à 7.9.
+- **Suite** : 7.13 (lettre : confirmation et désinscription), 7.14 (rédaction et envoi par lots), 7.15 (liens WhatsApp et SMS), puis l'essai réel sur l'aperçu avec le propriétaire, puis fusion dans `main`.
+- Base de développement : colonne `Order.locale` déjà ajoutée (`db push`).

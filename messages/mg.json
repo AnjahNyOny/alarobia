@@ -1079,5 +1079,84 @@
       "confirmDescription": "Tsy azo averina ity hetsika ity. Raha te hanala azy vetivety, afeno fa aza fafana.",
       "delete": "Hamafa ny hevitr'i {name}"
     }
+  },
+  "mail": {
+    "greeting": "Manao ahoana {name},",
+    "footer": "Nahazo ity hafatra ity ianao satria nisy komandy natao tamin'ity adiresy ity. Misy fanontaniana ? Valio ity hafatra ity.",
+    "viewOrder": "Hijery ny komandiko",
+    "item": "{quantity} × {name} : {amount}",
+    "discount": "Fihenam-bidy ({code}) : −{amount}",
+    "discountNoCode": "Fihenam-bidy : −{amount}",
+    "shipping": "Fanaterana : {amount}",
+    "shippingFree": "Fanaterana : maimaim-poana",
+    "total": "Totaliny : {amount}",
+    "zone": "Faritra fanaterana : {zone}",
+    "expected": "Ho tonga farafahatarany {date}.",
+    "addressTitle": "Adiresy fanaterana :",
+    "received": {
+      "subject": "Voaray ny komandy {number}",
+      "title": "Misaotra, voaray ny komandinao.",
+      "intro": "Voaray ny komandinao {number}. Ity ny antsipiriany.",
+      "mobile": "Mbola mila aloa amin'ny {operator} izy : alefaso any amin'ny {phone} ny {amount}.",
+      "holder": "Amin'ny anaran'i {name} ny kaonty.",
+      "motive": "Raha anontaniana ny antony, soraty ny laharan'ny komandy {number}.",
+      "reference": "Avy eo, adikao ao amin'ny pejin'ny komandinao ny référence-n'ny fandefasana, voaray tamin'ny SMS. Karakarainay ny komandinao raha vao voaray ny vola.",
+      "referenceButton": "Hampiditra ny référence",
+      "mobileNoNumber": "Mbola mila aloa amin'ny {operator} izy : ao amin'ny pejin'ny komandinao ny toromarika.",
+      "cod": "Homenao ny mpanatitra ny {amount}, vola eny an-tanana.",
+      "notify": "Hanoratra aminao indray izahay raha vao lasa ny entana."
+    },
+    "status": {
+      "PAID": {
+        "subject": "Voaray ny vola : komandy {number}",
+        "title": "Voaray ny vola, misaotra.",
+        "body": "Voaray ny {amount} nalefanao ho an'ny komandy {number}. Karakarainay izao ny entana."
+      },
+      "SHIPPED": {
+        "subject": "Lasa ny komandy {number}",
+        "title": "Efa an-dalana ny entanao.",
+        "body": "Vao lasa ny entan'ny komandy {number}.",
+        "tracking": "Laharana fanarahana : {tracking}",
+        "cod": "Omano ho an'ny mpanatitra ny {amount}, vola eny an-tanana."
+      },
+      "DELIVERED": {
+        "subject": "Tonga ny komandy {number}",
+        "title": "Tonga ny komandinao.",
+        "body": "Natolotra anao ny entan'ny komandy {number}. Misaotra nividy taminay.",
+        "returns": "Misy olana amin'ny entana iray ? Ampandreneso izahay ao anatin'ny 30 andro, amin'ny famaliana ity hafatra ity."
+      },
+      "CANCELLED": {
+        "subject": "Nofoanana ny komandy {number}",
+        "title": "Nofoanana ny komandinao.",
+        "body": "Nofoanana ny komandy {number}.",
+        "refund": "Efa nandoa {amount} tamin'ny {operator} ianao : haverinay aminao io vola io."
+      },
+      "REFUNDED": {
+        "subject": "Naverina ny volan'ny komandy {number}",
+        "title": "Naverina ny volanao.",
+        "body": "Naverinay aminao ny volan'ny komandy {number}. Raha mbola tsy tonga ny vola afaka andro vitsivitsy, valio ity hafatra ity."
+      }
+    },
+    "vendor": {
+      "footer": "Fampandrenesana mandeha ho azy, alefa any amin'ny adiresin'ny fivarotana. Raha valianao ity hafatra ity dia mankany amin'ny mpanjifa mivantana ny valinteny.",
+      "open": "Hanokatra ny komandy",
+      "customer": "Mpanjifa : {name}, {phone}",
+      "zone": "Faritra : {zone}",
+      "note": "Fanamarihan'ny mpanjifa : {note}",
+      "newOrder": {
+        "subject": "Komandy vaovao {number} : {amount}",
+        "title": "Komandy vaovao {number}",
+        "payMobile": "Fandoavana : {operator}, miandry ny mpanjifa.",
+        "payCod": "Fandoavana : rehefa tonga ny entana, {amount} vola eny an-tanana."
+      },
+      "declared": {
+        "subject": "Fandoavana hamarinina : komandy {number}",
+        "title": "Fandoavana nambaran'ny mpanjifa ho an'ny komandy {number}",
+        "body": "Nilaza ny mpanjifa fa nandefa {amount} tamin'ny {operator}.",
+        "reference": "Référence : {reference}",
+        "number": "Laharana nandefasana : {phone}",
+        "check": "Hamarino amin'ny findainao fa tonga ny vola alohan'ny hanamafisana ny fandoavana. Aza alefa mialoha izany ny entana."
+      }
+    }
   }
 }
