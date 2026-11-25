@@ -58,7 +58,7 @@
     "wishlistAdded": "Ajouté aux favoris.",
     "wishlistRemoved": "Retiré des favoris.",
     "reviewPublished": "Merci, votre avis est publié.",
-    "newsletterDone": "Inscription confirmée. À très vite.",
+    "newsletterDone": "Inscription enregistrée. Nous vous écrirons quand il y aura du nouveau.",
     "referenceSaved": "Référence enregistrée. Nous vérifions votre paiement."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, photo {n}"
   },
   "footer": {
-    "newsletterText": "Une lettre par mois : les nouveautés et les retours en stock. Désinscription en un clic.",
+    "newsletterText": "Les nouveautés et les retours en stock, par e-mail, quand il y en a. Désinscription à tout moment, sur simple demande.",
     "newsletterLabel": "Votre e-mail pour la lettre d'information",
     "subscribe": "S'inscrire",
     "shop": "Boutique",
@@ -677,7 +677,8 @@
       "zoneDeleted": "Zone supprimée.",
       "promoCreated": "Code {code} créé.",
       "promoDeleted": "Code supprimé.",
-      "reviewDeleted": "Avis supprimé."
+      "reviewDeleted": "Avis supprimé.",
+      "newsletterRemoved": "Adresse retirée de la lettre d'information."
     },
     "order": {
       "metaTitle": "Commande",
@@ -870,6 +871,7 @@
       "dashboard": "Tableau de bord",
       "orders": "Commandes",
       "customers": "Clients",
+      "newsletter": "Lettre d'information",
       "products": "Produits",
       "categories": "Catégories",
       "reviews": "Avis",
@@ -992,6 +994,21 @@
       "contact": "Coordonnées",
       "savedAddress": "Adresse enregistrée",
       "noAddress": "Aucune adresse enregistrée."
+    },
+    "newsletter": {
+      "metaTitle": "Lettre d'information",
+      "title": "Lettre d'information",
+      "description": "{count, plural, =0 {Aucune adresse inscrite pour l'instant.} one {# adresse inscrite. Retirez celle d'une personne qui demande à se désinscrire.} other {# adresses inscrites. Retirez celle d'une personne qui demande à se désinscrire.}}",
+      "download": "Télécharger (CSV)",
+      "searchPlaceholder": "Adresse e-mail",
+      "colEmail": "Adresse e-mail",
+      "colSubscribed": "Inscrite le",
+      "remove": "Retirer",
+      "confirmTitle": "Retirer {email} de la lettre ?",
+      "confirmDescription": "Cette adresse ne recevra plus la lettre d'information. La personne pourra se réinscrire depuis le pied de page de la boutique.",
+      "emptyTitle": "Aucune inscription",
+      "emptyText": "Les adresses laissées dans le pied de page de la boutique apparaîtront ici.",
+      "emptyFiltered": "Aucune adresse ne correspond à cette recherche."
     },
     "categories": {
       "metaTitle": "Catégories",

@@ -130,11 +130,12 @@ test.describe("back-office", () => {
     }
   }
 
-  test("activité : tableau de bord, commandes et détail, clients et fiche", async ({ page }) => {
+  test("activité : tableau de bord, commandes et détail, clients et fiche, lettre d'information", async ({ page }) => {
     await checkPages(page, [
       ["tableau de bord", "/fr/admin"],
       ["commandes", "/fr/admin/orders"],
       ["clients", "/fr/admin/customers"],
+      ["lettre d'information", "/fr/admin/newsletter"],
     ]);
     await page.goto("/fr/admin/orders");
     await page.goto((await page.locator('a[href*="/admin/orders/c"]').first().getAttribute("href"))!);

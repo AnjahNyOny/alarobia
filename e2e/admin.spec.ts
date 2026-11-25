@@ -1,6 +1,7 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import { ADMIN, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
+import { ADMIN, expectAccessible, login, watchErrors, CART_ADD_TIMEOUT } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await login(page, ADMIN.email, ADMIN.password);
@@ -16,6 +17,7 @@ test("toutes les pages du back-office s'affichent", async ({ page }) => {
     ["/admin/products/new", "Nouveau produit"],
     ["/admin/categories", "Catégories"],
     ["/admin/customers", "Clients"],
+    ["/admin/newsletter", "Lettre d'information"],
     ["/admin/shipping", "Livraison"],
     ["/admin/promotions", "Codes promo"],
     ["/admin/reviews", "Avis clients"],
@@ -100,4 +102,52 @@ test("zones de livraison : création, validation, visible à la commande, la der
 test("la recherche des produits ignore les majuscules", async ({ page }) => {
   await page.goto("/admin/products?q=TASSE");
   await expect(page.getByRole("row", { name: /Tasse en grès Vato/ })).toBeVisible();
+});
+
+test("lettre d'information : une inscription du pied de page se retrouve dans le back-office, l'export CSV, puis se retire", async ({ page, playwright, baseURL }) => {
+  const check = watchErrors(page);
+  // Adresse propre à ce test : l'inscription est limitée à 10 par heure et par adresse IP.
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": "198.51.100.61" });
+  const email = `lettre-${Date.now()}@exemple.mg`;
+  await page.goto("/");
+  const footer = page.getByRole("contentinfo");
+  await expect(footer.getByText("Désinscription à tout moment, sur simple demande.")).toBeVisible();
+  await footer.getByLabel("Votre e-mail pour la lettre d'information").fill(email);
+  await footer.getByRole("button", { name: "S'inscrire" }).click();
+  await expect(footer.getByRole("status")).toHaveText("Inscription enregistrée. Nous vous écrirons quand il y aura du nouveau.");
+
+  await page.goto("/admin/newsletter");
+  await expect(page.getByRole("heading", { level: 1, name: "Lettre d'information" })).toBeVisible();
+  await expect(page.getByText(/^\d+ adresses? inscrites?\./)).toBeVisible();
+  const row = page.getByRole("row", { name: new RegExp(email) });
+  await expect(row).toBeVisible();
+  // accessibilite.spec.ts contrôle la page vide (le seed n'inscrit personne) ; ici, avec une ligne et son bouton.
+  await expectAccessible(page, "admin lettre d'information, avec une adresse");
+
+  const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Télécharger (CSV)" }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^lettre-inscrits-\d{4}-\d{2}-\d{2}\.csv$/);
+  const csv = await readFile(await download.path(), "utf8");
+  const lines = csv.split("\r\n");
+  expect(lines[0]).toBe("email,inscription");
+  expect(lines).toContainEqual(expect.stringMatching(new RegExp(`^${email.replaceAll(".", "\\.")},\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\+03:00$`)));
+  expect(csv.endsWith("\r\n")).toBe(true);
+
+  // Sans session administrateur, l'export ne révèle rien.
+  const anonymous = await playwright.request.newContext({ baseURL });
+  const res = await anonymous.get("/api/admin/newsletter", { maxRedirects: 0 });
+  expect(res.status()).toBe(404);
+  expect(await res.text()).not.toContain(email);
+  await anonymous.dispose();
+
+  // Demande de désinscription : on peut renoncer, puis on confirme.
+  await row.getByRole("button", { name: `Retirer ${email}` }).click();
+  const dialog = page.getByRole("dialog", { name: `Retirer ${email} de la lettre ?` });
+  await dialog.getByRole("button", { name: "Annuler" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: `Retirer ${email}` }).click();
+  await dialog.getByRole("button", { name: "Retirer", exact: true }).click();
+  await expect(page.getByText("Adresse retirée de la lettre d'information.")).toBeVisible();
+  await expect(row).toHaveCount(0);
+  check();
 });

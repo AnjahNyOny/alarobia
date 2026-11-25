@@ -58,7 +58,7 @@
     "wishlistAdded": "Added to favourites.",
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
-    "newsletterDone": "You're subscribed. See you soon.",
+    "newsletterDone": "You're on the list. We'll write when there's something new.",
     "referenceSaved": "Reference saved. We are checking your payment."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, photo {n}"
   },
   "footer": {
-    "newsletterText": "One letter a month: new arrivals and items back in stock. Unsubscribe in one click.",
+    "newsletterText": "New arrivals and items back in stock, by email, whenever there are some. Unsubscribe at any time: just ask us.",
     "newsletterLabel": "Your email for the newsletter",
     "subscribe": "Subscribe",
     "shop": "Shop",
@@ -677,7 +677,8 @@
       "zoneDeleted": "Zone deleted.",
       "promoCreated": "Code {code} created.",
       "promoDeleted": "Code deleted.",
-      "reviewDeleted": "Review deleted."
+      "reviewDeleted": "Review deleted.",
+      "newsletterRemoved": "Address removed from the newsletter."
     },
     "order": {
       "metaTitle": "Order",
@@ -870,6 +871,7 @@
       "dashboard": "Dashboard",
       "orders": "Orders",
       "customers": "Customers",
+      "newsletter": "Newsletter",
       "products": "Products",
       "categories": "Categories",
       "reviews": "Reviews",
@@ -992,6 +994,21 @@
       "contact": "Contact details",
       "savedAddress": "Saved address",
       "noAddress": "No saved address."
+    },
+    "newsletter": {
+      "metaTitle": "Newsletter",
+      "title": "Newsletter",
+      "description": "{count, plural, =0 {No addresses subscribed yet.} one {# address subscribed. Remove the address of anyone who asks to unsubscribe.} other {# addresses subscribed. Remove the address of anyone who asks to unsubscribe.}}",
+      "download": "Download (CSV)",
+      "searchPlaceholder": "Email address",
+      "colEmail": "Email address",
+      "colSubscribed": "Subscribed",
+      "remove": "Remove",
+      "confirmTitle": "Remove {email} from the newsletter?",
+      "confirmDescription": "This address will no longer receive the newsletter. The person can subscribe again from the shop footer.",
+      "emptyTitle": "No subscribers",
+      "emptyText": "Addresses left in the shop footer will appear here.",
+      "emptyFiltered": "No address matches this search."
     },
     "categories": {
       "metaTitle": "Categories",

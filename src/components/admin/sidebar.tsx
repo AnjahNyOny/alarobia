@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { usePathname } from "@/i18n/navigation";
-import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Menu, MessageSquare, Package, Settings, ShoppingCart, TicketPercent, Truck, Users } from "lucide-react";
+import { ExternalLink, FolderTree, LayoutDashboard, LogOut, Mail, Menu, MessageSquare, Package, Settings, ShoppingCart, TicketPercent, Truck, Users } from "lucide-react";
 import { logout } from "@/actions/auth";
 import { LogoMark } from "@/components/logo";
 import { LanguageSwitcher } from "@/components/store/language-switcher";
@@ -19,6 +19,7 @@ const groups = [
       { href: "/admin", key: "dashboard", icon: LayoutDashboard },
       { href: "/admin/orders", key: "orders", icon: ShoppingCart, badge: true },
       { href: "/admin/customers", key: "customers", icon: Users },
+      { href: "/admin/newsletter", key: "newsletter", icon: Mail },
     ],
   },
   {

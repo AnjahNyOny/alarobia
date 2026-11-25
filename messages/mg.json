@@ -58,7 +58,7 @@
     "wishlistAdded": "Tafiditra ao amin'ny tianko.",
     "wishlistRemoved": "Nesorina tao amin'ny tianko.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
-    "newsletterDone": "Voamarina ny fisoratana anarana. Mandra-pihaona.",
+    "newsletterDone": "Voaray ny fisoratana anarana. Hanoratra aminao izahay rehefa misy vaovao.",
     "referenceSaved": "Voatahiry ny référence. Hamarininay ny fandoavanao."
   },
   "address": {
@@ -254,7 +254,7 @@
     "photoAlt": "{name}, sary {n}"
   },
   "footer": {
-    "newsletterText": "Taratasy iray isam-bolana: entana vaovao sy izay niverina tahiry. Azo ajanona amin'ny tsindry iray.",
+    "newsletterText": "Entana vaovao sy izay niverina tahiry, alefa amin'ny mailaka rehefa misy. Azo ajanona amin'ny fotoana rehetra, angataho aminay fotsiny.",
     "newsletterLabel": "Ny mailakao ho an'ny taratasim-baovao",
     "subscribe": "Hisoratra anarana",
     "shop": "Fivarotana",
@@ -677,7 +677,8 @@
       "zoneDeleted": "Voafafa ny faritra.",
       "promoCreated": "Voaforona ny kaody {code}.",
       "promoDeleted": "Voafafa ny kaody.",
-      "reviewDeleted": "Voafafa ny hevitra."
+      "reviewDeleted": "Voafafa ny hevitra.",
+      "newsletterRemoved": "Nesorina tamin'ny taratasim-baovao ny adiresy."
     },
     "order": {
       "metaTitle": "Komandy",
@@ -870,6 +871,7 @@
       "dashboard": "Topimaso",
       "orders": "Komandy",
       "customers": "Mpanjifa",
+      "newsletter": "Taratasim-baovao",
       "products": "Entana",
       "categories": "Sokajy",
       "reviews": "Hevitra",
@@ -992,6 +994,21 @@
       "contact": "Fifandraisana",
       "savedAddress": "Adiresy voatahiry",
       "noAddress": "Tsy misy adiresy voatahiry."
+    },
+    "newsletter": {
+      "metaTitle": "Taratasim-baovao",
+      "title": "Taratasim-baovao",
+      "description": "{count, plural, =0 {Mbola tsy misy adiresy voasoratra.} other {Adiresy voasoratra: #. Esory ny adiresin'izay mangataka ny hialana.}}",
+      "download": "Alaina (CSV)",
+      "searchPlaceholder": "Adiresy mailaka",
+      "colEmail": "Adiresy mailaka",
+      "colSubscribed": "Nisoratra tamin'ny",
+      "remove": "Esorina",
+      "confirmTitle": "Hanesotra an'i {email} amin'ny taratasim-baovao?",
+      "confirmDescription": "Tsy handray ny taratasim-baovao intsony io adiresy io. Afaka misoratra indray amin'ny farany ambany amin'ny fivarotana ilay olona.",
+      "emptyTitle": "Tsy misy voasoratra",
+      "emptyText": "Eto no hiseho ny adiresy navela teo amin'ny farany ambany amin'ny fivarotana.",
+      "emptyFiltered": "Tsy misy adiresy mifanaraka amin'ity fikarohana ity."
     },
     "categories": {
       "metaTitle": "Sokajy",
