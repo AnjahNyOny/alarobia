@@ -107,17 +107,22 @@ const customerLink = (order: MailOrder, locale: Locale, ctx: MailContext) => `${
 const vendorLink = (order: MailOrder, ctx: MailContext) => `${ctx.base}/fr/admin/orders/${order.id}`;
 const lines = (...parts: (string | null | false | undefined)[]) => parts.filter((part): part is string => !!part).join("\n");
 
+/** Réduction, livraison, total : le passage du prix des articles au total, dans les deux e-mails de commande. */
+function totalLines(order: MailOrder, t: MailT, price: (cents: number) => string) {
+  return lines(
+    order.discountCents > 0 && (order.promoCode ? t("mail.discount", { code: order.promoCode, amount: price(order.discountCents) }) : t("mail.discountNoCode", { amount: price(order.discountCents) })),
+    order.shippingCents > 0 ? t("mail.shipping", { amount: price(order.shippingCents) }) : t("mail.shippingFree"),
+    t("mail.total", { amount: price(order.totalCents) }),
+  );
+}
+
 /** Commande enregistrée (client) : le détail, puis comment payer. */
 export function orderReceivedMail(order: MailOrder, settings: MailSettings, ctx: MailContext): MailMessage {
   const locale = orderLocale(order);
   const { t, price } = tools(locale, settings, ctx);
   const total = price(order.totalCents);
 
-  const totals = lines(
-    order.discountCents > 0 && (order.promoCode ? t("mail.discount", { code: order.promoCode, amount: price(order.discountCents) }) : t("mail.discountNoCode", { amount: price(order.discountCents) })),
-    order.shippingCents > 0 ? t("mail.shipping", { amount: price(order.shippingCents) }) : t("mail.shippingFree"),
-    t("mail.total", { amount: total }),
-  );
+  const totals = totalLines(order, t, price);
 
   const payment: string[] = [];
   let button = { label: t("mail.viewOrder"), url: customerLink(order, locale, ctx) };
@@ -170,8 +175,8 @@ export function newOrderVendorMail(order: MailOrder, settings: MailSettings, ctx
   return message(ctx.vendor, t("mail.vendor.newOrder.subject", { number: order.number, amount: total }), "fr", {
     title: t("mail.vendor.newOrder.title", { number: order.number }),
     paragraphs: [
-      lines(t("mail.total", { amount: total }), payment),
       itemLines(order, t, price),
+      lines(totalLines(order, t, price), payment),
       lines(t("mail.vendor.customer", { name: order.fullName, phone: order.phone }), t("mail.vendor.zone", { zone: order.shippingZone })),
       ...(order.note?.trim() ? [t("mail.vendor.note", { note: order.note.trim() })] : []),
     ],

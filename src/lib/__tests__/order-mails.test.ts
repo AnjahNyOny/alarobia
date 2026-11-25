@@ -198,6 +198,15 @@ describe("newOrderVendorMail (vendeur)", () => {
     expect(mail.html).toContain(`href="${BASE}/fr/admin/orders/cmord123"`);
   });
 
+  it("détaille livraison et réduction avant le total, comme le récapitulatif du client", () => {
+    const text = flat(newOrderVendorMail(order(), settings(), ctx).text);
+    expect(text).toContain("Livraison : 3 000 Ar");
+    expect(text.indexOf("Livraison :")).toBeLessThan(text.indexOf("Total :"));
+    const promo = flat(newOrderVendorMail(order({ discountCents: 270_000, promoCode: "BIENVENUE10", shippingCents: 0, totalCents: 2_130_000 }), settings(), ctx).text);
+    expect(promo).toContain("Réduction (BIENVENUE10) : −2 700 Ar");
+    expect(promo).toContain("Livraison : offerte");
+  });
+
   it("à l'adresse du vendeur donnée par le contexte", () => {
     expect(newOrderVendorMail(order(), settings(), { ...ctx, vendor: "alarobia.shop@gmail.com" }).to).toBe("alarobia.shop@gmail.com");
   });

@@ -58,7 +58,7 @@
     "wishlistAdded": "Added to favourites.",
     "wishlistRemoved": "Removed from favourites.",
     "reviewPublished": "Thank you, your review is published.",
-    "newsletterDone": "Check your inbox: a confirmation email is on its way.",
+    "newsletterDone": "Check your inbox: a confirmation email is on its way. If it does not arrive, check your spam folder.",
     "referenceSaved": "Reference saved. We are checking your payment."
   },
   "address": {
@@ -320,7 +320,7 @@
     "metaTitle": "Order confirmed",
     "thanks": "Thank you, your order is registered.",
     "number": "Order <b>{number}</b>.",
-    "notify": "We will write to {email} as soon as the parcel ships.",
+    "notify": "We email {email} at each step of the order. No email? Check your spam folder.",
     "track": "Track my orders",
     "items": "Items",
     "address": "Delivery address",

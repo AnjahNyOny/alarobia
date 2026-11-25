@@ -58,7 +58,7 @@
     "wishlistAdded": "Tafiditra ao amin'ny tianko.",
     "wishlistRemoved": "Nesorina tao amin'ny tianko.",
     "reviewPublished": "Misaotra, navoaka ny hevitrao.",
-    "newsletterDone": "Jereo ny boaty mailakao: vao nalefa ny mailaka fanamafisana.",
+    "newsletterDone": "Jereo ny boaty mailakao: vao nalefa ny mailaka fanamafisana. Raha tsy tonga izy, jereo ao amin'ny spam.",
     "referenceSaved": "Voatahiry ny référence. Hamarininay ny fandoavanao."
   },
   "address": {
@@ -320,7 +320,7 @@
     "metaTitle": "Voaray ny komandy",
     "thanks": "Misaotra, voaray ny komandinao.",
     "number": "Komandy <b>{number}</b>.",
-    "notify": "Hampandre anao amin'ny {email} izahay raha vao lasa ny entana.",
+    "notify": "Manoratra any amin'ny {email} izahay isaky ny dingana amin'ny komandy. Tsy nahazo mailaka? Jereo ao amin'ny spam.",
     "track": "Hanaraka ny komandiko",
     "items": "Entana",
     "address": "Adiresy fanaterana",

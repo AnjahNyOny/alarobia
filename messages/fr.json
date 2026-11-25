@@ -58,7 +58,7 @@
     "wishlistAdded": "Ajouté aux favoris.",
     "wishlistRemoved": "Retiré des favoris.",
     "reviewPublished": "Merci, votre avis est publié.",
-    "newsletterDone": "Vérifiez votre boîte : un e-mail de confirmation vient de partir.",
+    "newsletterDone": "Vérifiez votre boîte : un e-mail de confirmation vient de partir. S'il n'arrive pas, regardez dans vos indésirables.",
     "referenceSaved": "Référence enregistrée. Nous vérifions votre paiement."
   },
   "address": {
@@ -320,7 +320,7 @@
     "metaTitle": "Commande confirmée",
     "thanks": "Merci, votre commande est enregistrée.",
     "number": "Commande <b>{number}</b>.",
-    "notify": "Nous vous préviendrons à l'adresse {email} dès l'expédition du colis.",
+    "notify": "Nous vous écrivons à l'adresse {email} à chaque étape de la commande. Pas d'e-mail ? Regardez dans vos indésirables.",
     "track": "Suivre mes commandes",
     "items": "Articles",
     "address": "Adresse de livraison",

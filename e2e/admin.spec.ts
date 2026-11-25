@@ -114,7 +114,7 @@ test("lettre d'information : une inscription du pied de page se retrouve dans le
   await expect(footer.getByText("Désinscription à tout moment, par le lien de chaque lettre.")).toBeVisible();
   await footer.getByLabel("Votre e-mail pour la lettre d'information").fill(email);
   await footer.getByRole("button", { name: "S'inscrire" }).click();
-  await expect(footer.getByRole("status")).toHaveText("Vérifiez votre boîte : un e-mail de confirmation vient de partir.");
+  await expect(footer.getByRole("status")).toHaveText("Vérifiez votre boîte : un e-mail de confirmation vient de partir. S'il n'arrive pas, regardez dans vos indésirables.");
 
   await page.goto("/admin/newsletter");
   await expect(page.getByRole("heading", { level: 1, name: "Lettre d'information" })).toBeVisible();
