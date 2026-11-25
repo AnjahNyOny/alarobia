@@ -758,6 +758,29 @@
         "downloadImage": "Image du client"
       }
     },
+    "notify": {
+      "title": "Prévenir le client",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "newTab": "(nouvel onglet)",
+      "language": "Message en {language}, la langue de la commande. Relisez-le avant de l'envoyer.",
+      "names": {
+        "fr": "français",
+        "en": "anglais",
+        "mg": "malgache"
+      },
+      "noPhone": "Numéro de téléphone non reconnu : impossible de préparer un message WhatsApp ou SMS. Écrivez au client par e-mail.",
+      "message": {
+        "awaiting": "Alarobia : votre commande {number} attend votre paiement de {amount} par {operator}. Comment payer et où indiquer la référence :",
+        "declared": "Alarobia : la référence de paiement de la commande {number} nous est parvenue. Nous la vérifions et vous prévenons dès confirmation.",
+        "cod": "Alarobia : votre commande {number} est bien enregistrée. Prévoyez {amount} en espèces pour le livreur.",
+        "paid": "Alarobia : votre paiement de {amount} pour la commande {number} est bien arrivé, merci. Nous la préparons.",
+        "shipped": "Alarobia : votre commande {number} est en route.{hasTracking, select, yes { Numéro de suivi : {tracking}.} other {}}{cod, select, yes { Prévoyez {amount} en espèces pour le livreur.} other {}}",
+        "delivered": "Alarobia : votre commande {number} est livrée. Merci pour votre achat ! Un souci ? Répondez à ce message.",
+        "cancelled": "Alarobia : votre commande {number} est annulée. Une question ? Répondez à ce message.",
+        "refunded": "Alarobia : la commande {number} vous a été remboursée ({amount}). Si l'argent n'est pas arrivé d'ici quelques jours, répondez à ce message."
+      }
+    },
     "orderForm": {
       "status": "Statut",
       "hintClosed": "Commande clôturée : le stock a été remis en vente.",

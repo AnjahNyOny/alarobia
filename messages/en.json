@@ -758,6 +758,29 @@
         "downloadImage": "Customer's image"
       }
     },
+    "notify": {
+      "title": "Notify the customer",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "newTab": "(new tab)",
+      "language": "Message in {language}, the language of the order. Read it before sending.",
+      "names": {
+        "fr": "French",
+        "en": "English",
+        "mg": "Malagasy"
+      },
+      "noPhone": "Phone number not recognised: no WhatsApp or SMS message can be prepared. Write to the customer by email.",
+      "message": {
+        "awaiting": "Alarobia: order {number} is waiting for your payment of {amount} by {operator}. How to pay and where to enter the reference:",
+        "declared": "Alarobia: we have received the payment reference for order {number}. We are checking it and will let you know once confirmed.",
+        "cod": "Alarobia: order {number} is confirmed. Please have {amount} in cash ready for the courier.",
+        "paid": "Alarobia: payment of {amount} received for order {number}, thank you. We are preparing it.",
+        "shipped": "Alarobia: order {number} is on its way.{hasTracking, select, yes { Tracking number: {tracking}.} other {}}{cod, select, yes { Please have {amount} in cash ready for the courier.} other {}}",
+        "delivered": "Alarobia: order {number} has been delivered. Thank you for your purchase! A problem? Reply to this message.",
+        "cancelled": "Alarobia: order {number} has been cancelled. Any question? Reply to this message.",
+        "refunded": "Alarobia: order {number} has been refunded ({amount}). If the money has not arrived within a few days, reply to this message."
+      }
+    },
     "orderForm": {
       "status": "Status",
       "hintClosed": "Order closed: the stock has been put back on sale.",

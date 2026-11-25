@@ -758,6 +758,29 @@
         "downloadImage": "Sarin'ny mpanjifa"
       }
     },
+    "notify": {
+      "title": "Hampandre ny mpanjifa",
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "newTab": "(takelaka vaovao)",
+      "language": "Hafatra amin'ny teny {language}, ny fiteny nampiasaina tamin'ny komandy. Vakio alohan'ny handefasana azy.",
+      "names": {
+        "fr": "frantsay",
+        "en": "anglisy",
+        "mg": "malagasy"
+      },
+      "noPhone": "Tsy fantatra ny laharana finday: tsy azo omanina ny hafatra WhatsApp na SMS. Mandefasa mailaka ho an'ny mpanjifa.",
+      "message": {
+        "awaiting": "Alarobia : mbola miandry ny {amount} aloanao amin'ny {operator} ny komandinao {number}. Ao amin'ity rohy ity ny fomba fandoavana :",
+        "declared": "Alarobia : voaray ny référence-n'ny fandoavanao ho an'ny komandy {number}. Hamarininay izany ary hampandrenesinay ianao avy eo.",
+        "cod": "Alarobia : voaray ny komandinao {number}. Omano ho an'ny mpanatitra ny {amount}, vola eny an-tanana.",
+        "paid": "Alarobia : voaray ny {amount} nalefanao ho an'ny komandy {number}, misaotra. Karakarainay izao ny entana.",
+        "shipped": "Alarobia : efa an-dalana ny komandinao {number}.{hasTracking, select, yes { Laharana fanarahana : {tracking}.} other {}}{cod, select, yes { Omano {amount} ho an'ny mpanatitra.} other {}}",
+        "delivered": "Alarobia : tonga ny komandinao {number}. Misaotra nividy taminay ! Misy olana ? Valio ity hafatra ity.",
+        "cancelled": "Alarobia : nofoanana ny komandinao {number}. Raha misy fanontaniana, valio ity hafatra ity.",
+        "refunded": "Alarobia : naverinay aminao ny {amount} tamin'ny komandy {number}. Raha mbola tsy tonga afaka andro vitsivitsy, valio ity hafatra ity."
+      }
+    },
     "orderForm": {
       "status": "Sata",
       "hintClosed": "Komandy voakatona: naverina amidy ny tahiry.",

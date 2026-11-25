@@ -1,7 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
+import { createDb } from "../src/lib/db";
+import { E2E_DATABASE_URL } from "./database";
 import { ADMIN, CART_ADD_TIMEOUT, login, watchErrors } from "./helpers";
 
 test.describe.configure({ mode: "serial" });
+
+const db = createDb(E2E_DATABASE_URL);
+test.afterAll(() => db.$disconnect());
 
 // Un PNG d'un pixel, choisi par le client comme image à imprimer.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", "base64");
@@ -228,4 +233,52 @@ test("le vendeur annule la commande depuis sa page : il peut renoncer, puis conf
   await expect(cancel).toHaveCount(0);
   expect(await vatoStock(page)).toBe(before + 2);
   check();
+});
+
+/** Texte prérempli d'un lien WhatsApp (`?text=`) ou SMS (`?&body=`), décodé. */
+const prefilled = (href: string, param: "?text=" | "?&body=") => decodeURIComponent(href.slice(href.indexOf(param) + param.length));
+
+test("le vendeur prévient le client par WhatsApp ou par SMS : message prêt, dans la langue de la commande, sans rien envoyer", async ({ page }) => {
+  const check = watchErrors(page);
+  // Commande expédiée du seed, passée pour l'occasion en malgache : le message suit la langue de la commande, l'interface reste en français.
+  const order = await db.order.findFirstOrThrow({ where: { status: "SHIPPED", trackingNumber: { not: null } }, orderBy: { number: "asc" } });
+  await db.order.update({ where: { id: order.id }, data: { locale: "mg" } });
+  try {
+    await login(page, ADMIN.email, ADMIN.password);
+    await page.waitForURL("**/admin");
+    await page.goto(`/admin/orders/${order.id}`);
+    const notify = page.getByRole("region", { name: "Prévenir le client" });
+    const whatsapp = notify.getByRole("link", { name: /^WhatsApp/ });
+    const sms = notify.getByRole("link", { name: /^SMS/ });
+
+    // Forme nationale enregistrée (« 034 88 120 45 ») → indicatif 261 sans le 0.
+    const international = `261${order.phone.replace(/\D/g, "").slice(1)}`;
+    const whatsappHref = (await whatsapp.getAttribute("href")) ?? "";
+    const smsHref = (await sms.getAttribute("href")) ?? "";
+    expect(whatsappHref.startsWith(`https://wa.me/${international}?text=`), whatsappHref).toBe(true);
+    expect(smsHref.startsWith(`sms:+${international}?&body=`), smsHref).toBe(true);
+    // WhatsApp peut s'ouvrir dans WhatsApp Web : nouvel onglet. Le lien SMS ouvre l'application, il reste dans la page.
+    await expect(whatsapp).toHaveAttribute("target", "_blank");
+    await expect(whatsapp).toHaveAttribute("rel", "noopener noreferrer");
+    expect(await sms.getAttribute("target")).toBeNull();
+
+    const text = prefilled(whatsappHref, "?text=");
+    expect(prefilled(smsHref, "?&body=")).toBe(text);
+    expect(text).toMatch(/^Alarobia : efa an-dalana ny komandinao /);
+    expect(text).toContain(order.number);
+    expect(text).toContain(order.trackingNumber!);
+    expect(text.split("\n").at(-1)).toBe(`http://localhost:3100/mg/order/${order.id}`);
+    // Le vendeur relit sous les boutons le texte exact qui partira.
+    expect(await notify.locator("blockquote").textContent()).toBe(text);
+    await expect(notify).toContainText("Message en malgache, la langue de la commande.");
+
+    // Numéro qui n'est pas malgache : aucun lien, une phrase l'explique.
+    await db.order.update({ where: { id: order.id }, data: { phone: "06 12 34 56 78" } });
+    await page.reload();
+    await expect(notify.getByRole("link")).toHaveCount(0);
+    await expect(notify).toContainText("Numéro de téléphone non reconnu");
+    check();
+  } finally {
+    await db.order.update({ where: { id: order.id }, data: { locale: order.locale, phone: order.phone } });
+  }
 });

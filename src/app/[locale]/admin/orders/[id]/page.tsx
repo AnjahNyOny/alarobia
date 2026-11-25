@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Download } from "lucide-react";
+import { Download, MessageCircle, MessageSquareText } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
@@ -16,9 +16,12 @@ import { COLORS, isPrinted, readOrderDesign, type ColorKey } from "@/lib/customi
 import { PRINT_ZONES, printPixels } from "@/lib/customizer/layout";
 import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
+import { translateMail } from "@/lib/mail/translate";
+import { customerMessage, notifyLocale, smsLink, whatsappLink } from "@/lib/notify-links";
 import { itemFile, type ItemFile } from "@/lib/order-files";
 import { canCancel } from "@/lib/order-status";
 import { isMobileMoney, OPERATOR_NAME, paymentState } from "@/lib/payment";
+import { siteBase } from "@/lib/seo";
 import { getSettings } from "@/lib/settings";
 import { requireAdmin } from "@/lib/auth";
 
@@ -40,7 +43,7 @@ function Swatch({ color, name }: { color: ColorKey; name: string }) {
 export default async function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin();
   const { id } = await params;
-  const [order, { currency }, locale, t, tc, tp, colorName, fontName] = await Promise.all([
+  const [order, { currency }, locale, t, tc, tp, colorName, fontName, tn] = await Promise.all([
     // Articles triés par identifiant : la route de téléchargement numérote les fichiers dans le même ordre.
     db.order.findUnique({ where: { id }, include: { items: { orderBy: { id: "asc" } }, user: { select: { id: true, name: true } } } }),
     getSettings(),
@@ -50,6 +53,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
     getTranslations("payment"),
     getTranslations("customizer.colors"),
     getTranslations("customizer.fonts"),
+    getTranslations("admin.notify"),
   ]);
   if (!order) notFound();
   const payment = paymentState(order);
@@ -57,6 +61,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const method = isMobileMoney(order.paymentMethod) ? OPERATOR_NAME[order.paymentMethod] : order.paymentMethod === "COD" ? tp("cod") : order.paymentMethod;
   const reference = (chunks: React.ReactNode) => <span className="font-mono text-foreground">{chunks}</span>;
   const download = (itemId: string, kind: ItemFile) => `/api/admin/orders/${order.id}/items/${itemId}/${kind}`;
+  // Message au client pour WhatsApp ou SMS : dans la langue de la commande, pas dans celle du back-office.
+  const notifyText = customerMessage(order, { translate: translateMail, base: siteBase(), currency });
+  const messageLocale = notifyLocale(order);
+  const whatsapp = notifyText && whatsappLink(order.phone, notifyText);
+  const sms = notifyText && smsLink(order.phone, notifyText);
 
   return (
     <>
@@ -267,6 +276,33 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 <p className="mt-1">{order.shippingZone}</p>
                 {order.estimatedDelivery && <p className="text-muted-foreground">{t("promised", { date: formatDate(order.estimatedDelivery, locale, "weekday") })}</p>}
               </div>
+              {notifyText && (
+                // Rien ne part d'ici : les liens ouvrent WhatsApp ou l'application SMS du vendeur, message déjà écrit.
+                <section aria-labelledby="prevenir-client" className="-mx-5 border-t px-5 pt-4">
+                  <h3 id="prevenir-client" className="text-xs font-medium text-muted-foreground">{tn("title")}</h3>
+                  {whatsapp && sms ? (
+                    <>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <a href={whatsapp} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline", size: "md" })}>
+                          <MessageCircle aria-hidden />
+                          {tn("whatsapp")}
+                          <span className="sr-only"> {tn("newTab")}</span>
+                        </a>
+                        <a href={sms} className={buttonVariants({ variant: "outline", size: "md" })}>
+                          <MessageSquareText aria-hidden />
+                          {tn("sms")}
+                        </a>
+                      </div>
+                      <figure className="mt-3">
+                        <blockquote lang={messageLocale} className="rounded-md bg-muted px-3 py-2.5 leading-relaxed whitespace-pre-line [overflow-wrap:anywhere]">{notifyText}</blockquote>
+                        <figcaption className="mt-1.5 text-xs text-muted-foreground">{tn("language", { language: tn(`names.${messageLocale}`) })}</figcaption>
+                      </figure>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-muted-foreground">{tn("noPhone")}</p>
+                  )}
+                </section>
+              )}
             </div>
           </Card>
         </div>
