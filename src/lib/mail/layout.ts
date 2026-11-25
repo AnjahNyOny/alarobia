@@ -35,6 +35,13 @@ export type MailContent = {
   button?: { label: string; url: string };
   /** Texte libre en bas du message, sous un filet (pourquoi on reçoit ce message, désinscription…). */
   footer?: string;
+  /** Lien sous le pied (« Se désinscrire »), discret, à la différence du bouton. */
+  footerLink?: { label: string; url: string };
+  /**
+   * Adresses http(s) écrites dans les paragraphes rendues cliquables (lettre d'information : texte du vendeur). Faux par
+   * défaut : les e-mails de commande citent le texte d'un client (note, adresse), qui ne doit jamais devenir un lien.
+   */
+  links?: boolean;
 };
 
 /** Échappe les cinq caractères qui ont un sens en HTML, dans le texte comme dans la valeur d'un attribut. */
@@ -45,18 +52,51 @@ export function escapeHtml(s: string): string {
 /** Texte échappé, retours à la ligne rendus par `<br>`. */
 const lines = (s: string) => escapeHtml(s).replace(/\r?\n/g, "<br>");
 
-export function renderMail(locale: Locale, { title, paragraphs, button, footer }: MailContent): { html: string; text: string } {
-  return { html: html(locale, { title, paragraphs, button, footer }), text: text({ title, paragraphs, button, footer }) };
+/**
+ * Adresse écrite en clair : `http://` ou `https://` seulement (jamais `javascript:`, `data:` ni une adresse sans protocole),
+ * jusqu'au premier blanc, chevron ou guillemet. La recherche se fait sur le texte brut ; chaque morceau est échappé ensuite.
+ */
+const URL_IN_TEXT = /https?:\/\/[^\s<>"]+/gi;
+
+/**
+ * Ponctuation qui termine la phrase plutôt que l'adresse : « voir https://exemple.mg. » La parenthèse fermante n'est
+ * retirée que si l'adresse n'en ouvre pas autant (https://fr.wikipedia.org/wiki/Raphia_(fibre) la garde).
+ */
+function trimUrl(url: string): string {
+  let end = url.length;
+  for (;;) {
+    const last = url[end - 1];
+    if (".,;:!?".includes(last)) end--;
+    else if (last === ")" && (url.slice(0, end).match(/\(/g)?.length ?? 0) < (url.slice(0, end).match(/\)/g)?.length ?? 0)) end--;
+    else return url.slice(0, end);
+  }
 }
 
-function text({ title, paragraphs, button, footer }: MailContent) {
+/** Comme `lines`, avec les adresses http(s) en liens. Le texte autour et l'adresse sont échappés chacun. */
+function linkedLines(s: string, style: string): string {
+  let out = "";
+  let from = 0;
+  for (const match of s.matchAll(URL_IN_TEXT)) {
+    const url = trimUrl(match[0]);
+    if (!/^https?:\/\/./i.test(url)) continue;
+    out += lines(s.slice(from, match.index)) + `<a href="${escapeHtml(url)}" style="${style}">${escapeHtml(url)}</a>`;
+    from = match.index + url.length;
+  }
+  return out + lines(s.slice(from));
+}
+
+export function renderMail(locale: Locale, content: MailContent): { html: string; text: string } {
+  return { html: html(locale, content), text: text(content) };
+}
+
+function text({ title, paragraphs, button, footer, footerLink }: MailContent) {
   const blocks = [title, ...paragraphs];
   if (button) blocks.push(`${button.label}\n${button.url}`);
-  blocks.push(`--\n${SHOP_NAME}${footer ? `\n${footer}` : ""}`);
+  blocks.push(`--\n${SHOP_NAME}${footer ? `\n${footer}` : ""}${footerLink ? `\n${footerLink.label}\n${footerLink.url}` : ""}`);
   return `${blocks.join("\n\n")}\n`;
 }
 
-function html(locale: Locale, { title, paragraphs, button, footer }: MailContent) {
+function html(locale: Locale, { title, paragraphs, button, footer, footerLink, links }: MailContent) {
   const cell = (style: string, content: string) => `<tr><td style="${style}">${content}</td></tr>`;
   const side = "padding-left:28px;padding-right:28px;";
 
@@ -65,7 +105,9 @@ function html(locale: Locale, { title, paragraphs, button, footer }: MailContent
 <td style="padding-left:8px;font-family:${FONT};font-size:21px;font-weight:700;line-height:1;color:${COLOR.ink};letter-spacing:-0.01em;">${escapeHtml(SHOP_NAME.toLowerCase())}</td>
 </tr></table>`;
 
-  const body = paragraphs.map((p) => `<p style="margin:0 0 16px 0;font-family:${FONT};font-size:16px;line-height:1.55;color:${COLOR.ink};">${lines(p)}</p>`).join("\n");
+  // Latérite soulignée : contraste de 5,7:1 sur le blanc, et le soulignement dit « lien » sans compter sur la couleur.
+  const link = `color:${COLOR.brand};text-decoration:underline;word-break:break-all;`;
+  const body = paragraphs.map((p) => `<p style="margin:0 0 16px 0;font-family:${FONT};font-size:16px;line-height:1.55;color:${COLOR.ink};">${links ? linkedLines(p, link) : lines(p)}</p>`).join("\n");
 
   const action = button
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 8px 0;"><tr>
@@ -73,7 +115,9 @@ function html(locale: Locale, { title, paragraphs, button, footer }: MailContent
 </tr></table>`
     : "";
 
-  const foot = footer ? cell(`${side}padding-top:20px;padding-bottom:24px;border-top:1px solid ${COLOR.border};font-family:${FONT};font-size:13px;line-height:1.5;color:${COLOR.muted};`, lines(footer)) : "";
+  const footLink = footerLink ? `<a href="${escapeHtml(footerLink.url)}" style="color:${COLOR.muted};text-decoration:underline;">${escapeHtml(footerLink.label)}</a>` : "";
+  const footContent = [footer && lines(footer), footLink].filter(Boolean).join("<br>");
+  const foot = footContent ? cell(`${side}padding-top:20px;padding-bottom:24px;border-top:1px solid ${COLOR.border};font-family:${FONT};font-size:13px;line-height:1.5;color:${COLOR.muted};`, footContent) : "";
 
   return `<!doctype html>
 <html lang="${locale}">
@@ -89,7 +133,7 @@ function html(locale: Locale, { title, paragraphs, button, footer }: MailContent
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:560px;background-color:${COLOR.page};border:1px solid ${COLOR.border};border-radius:6px;text-align:left;">
 ${cell(`${side}padding-top:24px;`, wordmark)}
 ${cell(`${side}padding-top:24px;`, `<h1 style="margin:0;font-family:${FONT};font-size:22px;line-height:1.3;font-weight:700;color:${COLOR.ink};">${escapeHtml(title)}</h1>`)}
-${cell(`${side}padding-top:16px;padding-bottom:${footer ? 8 : 24}px;`, `${body}${action}`)}
+${cell(`${side}padding-top:16px;padding-bottom:${footContent ? 8 : 24}px;`, `${body}${action}`)}
 ${foot}
 </table>
 </td></tr></table>

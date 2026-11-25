@@ -678,7 +678,12 @@
       "promoPercentInvalid": "Isa feno eo anelanelan'ny 1 sy 90 (%).",
       "promoMaxUsesInvalid": "Isa feno lehibe noho ny aotra.",
       "dateInvalid": "Diso ny daty.",
-      "promoCodeTaken": "Efa misy io kaody io."
+      "promoCodeTaken": "Efa misy io kaody io.",
+      "issueSubjectRequired": "Soraty ny lohahevitry ny taratasim-baovao.",
+      "issueBodyRequired": "Soraty ny lahatsoratry ny taratasim-baovao.",
+      "issueLocked": "Efa natomboka ny fandefasana ity taratasim-baovao ity: tsy azo ovaina intsony.",
+      "issueNotFound": "Tsy hita ny taratasim-baovao.",
+      "testFailed": "Tsy lasa ny andrana. Andramo indray afaka minitra vitsy; raha mitohy izany, jereo ny SMTP_USER sy SMTP_PASSWORD ao amin'ny Netlify."
     },
     "notices": {
       "productArchived": "Voatahiry ilay entana (ao anaty komandy izy).",
@@ -696,7 +701,9 @@
       "promoCreated": "Voaforona ny kaody {code}.",
       "promoDeleted": "Voafafa ny kaody.",
       "reviewDeleted": "Voafafa ny hevitra.",
-      "newsletterRemoved": "Nesorina tamin'ny taratasim-baovao ny adiresy."
+      "newsletterRemoved": "Nesorina tamin'ny taratasim-baovao ny adiresy.",
+      "issueUpdated": "Voaova ny taratasim-baovao.",
+      "testSent": "Nalefa tany amin'i {email} ny andrana."
     },
     "order": {
       "metaTitle": "Komandy",
@@ -1016,7 +1023,7 @@
     "newsletter": {
       "metaTitle": "Taratasim-baovao",
       "title": "Taratasim-baovao",
-      "description": "{count, plural, =0 {Mbola tsy misy adiresy voasoratra.} other {Adiresy voasoratra: #. Esory ny adiresin'izay mangataka ny hialana.}}",
+      "description": "{count, plural, =0 {Mbola tsy misy adiresy voasoratra.} other {Adiresy voamafy: {confirmed} amin'ny {count}. Ny adiresy voamafy ihany no mahazo ny taratasim-baovao.}}",
       "download": "Alaina (CSV)",
       "searchPlaceholder": "Adiresy mailaka",
       "colEmail": "Adiresy mailaka",
@@ -1030,7 +1037,52 @@
       "colConfirmed": "Voamafy",
       "confirmedNo": "tsia",
       "confirmedOn": "Voamafy tamin'ny {date}",
-      "notConfirmed": "Tsy voamafy"
+      "notConfirmed": "Tsy voamafy",
+      "write": "Hanoratra taratasim-baovao",
+      "lettersTitle": "Taratasim-baovao",
+      "lettersEmptyTitle": "Mbola tsy misy taratasim-baovao",
+      "lettersEmptyText": "Mandeha any amin'ny adiresy voamafy ny taratasim-baovao, tsikelikely, misy rohy hialana ho an'ny tsirairay.",
+      "subscribersTitle": "Adiresy voasoratra",
+      "subscribersDescription": "Esory ny adiresin'izay mangataka aminao ny hialana.",
+      "colSubject": "Lohahevitra",
+      "colCreated": "Noforonina tamin'ny",
+      "colStatus": "Fandefasana",
+      "statusDraft": "Mbola tsy nalefa",
+      "statusSending": "Efa natomboka ny fandefasana",
+      "statusSent": "Nalefa tamin'ny {date}",
+      "deliveredOf": "{delivered} tonga amin'ny {planned}",
+      "writeTitle": "Hanoratra taratasim-baovao",
+      "writeDescription": "Raketo aloha: avy eo hahita ny topy maso ianao, afaka mandefa andrana ho anao, ary mandefa azy any amin'ny adiresy voamafy.",
+      "subject": "Lohahevitra",
+      "body": "Lahatsoratra",
+      "bodyHint": "Avelao ho banga ny andalana iray eo anelanelan'ny fehintsoratra roa. Lasa rohy ny adiresy manomboka amin'ny https://.",
+      "save": "Raketina",
+      "issueMetaTitle": "Taratasim-baovao",
+      "createdOn": "Noforonina tamin'ny {date}",
+      "previewTitle": "Topy maso",
+      "previewDescription": "Ny mailaka araka izay ho raisin'ny adiresy voasoratra amin'ny teny frantsay. Miova arakaraka ny tenin'ny mpisoratra tsirairay ny farany ambany.",
+      "previewFrame": "Topy mason'ny mailaka « {subject} »",
+      "previewFrom": "Avy amin'i",
+      "previewSubject": "Lohahevitra",
+      "editTitle": "Hanova ny taratasim-baovao",
+      "editDescription": "Azo atao raha mbola tsy natomboka ny fandefasana.",
+      "sendTitle": "Fandefasana",
+      "testButton": "Andefaso andrana aho",
+      "testHint": "Ho an'i {email}, misy « {prefix} » eo alohan'ny lohahevitra. Tsy isaina ho fandefasana ny andrana.",
+      "testPrefix": "[Andrana]",
+      "sendButton": "{count, plural, other {Alefaso amin'ny mpisoratra voamafy #}}",
+      "sendConfirmTitle": "Halefa ve ny « {subject} »?",
+      "sendConfirmDescription": "{count, plural, other {Mandeha any amin'ny adiresy voamafy #}} izy, isaky ny 10, tsy mihoatra ny 300 isaky ny 24 ora. Rehefa natomboka ny fandefasana dia tsy azo ovaina intsony ny taratasim-baovao.",
+      "sendConfirm": "Alefaso",
+      "sendStarted": "Natomboka ny fandefasana.",
+      "progress": "{sent} nalefa amin'ny {total}",
+      "sending": "Eo am-pandefasana. Avelao misokatra ity pejy ity: raha miala ianao dia mijanona ny fandefasana ary hitohy amin'izay nijanonany.",
+      "paused": "Tapaka ny fandefasana. Tohizo: tsy handray ny taratasim-baovao fanindroany ireo adiresy efa nahazo.",
+      "stoppedQuota": "Tratra ny fetra: taratasim-baovao 300 isaky ny 24 ora, mba hanohizan'i Gmail handray ny mailaky ny kaomandy. Tohizo rahampitso ny fandefasana; tsy handray ny taratasim-baovao fanindroany ireo adiresy efa nahazo.",
+      "stoppedError": "Nolavin'i Gmail ny fandefasana iray. Tohizo afaka minitra vitsy; tsy handray ny taratasim-baovao fanindroany ireo adiresy efa nahazo. Raha mitohy izany, jereo ny SMTP_USER sy SMTP_PASSWORD ao amin'ny Netlify.",
+      "resume": "Tohizana ny fandefasana",
+      "sentSummary": "{delivered, plural, =0 {Nalefa tamin'ny {date}. Tsy nisy adiresy nahazo azy.} other {Nalefa tamin'ny {date} ho an'ny adiresy #.}}",
+      "noRecipients": "Mbola tsy misy adiresy voamafy: tsy misy halefa."
     },
     "categories": {
       "metaTitle": "Sokajy",
@@ -1186,6 +1238,10 @@
       "button": "Hamafisina ny fisoratako",
       "ignore": "Raha tsy ianao no nisoratra, aza raharahiana ity hafatra ity: raha tsy misy fanamafisana dia tsy handray na inona na inona ianao.",
       "footer": "Nahazo ity hafatra ity ianao satria nosoratana tao amin'ny takelaka fisoratana amin'ny taratasim-baovaon'i {shop} ity adiresy ity."
+    },
+    "letter": {
+      "footer": "Mahazo ity taratasim-baovao ity ianao satria nisoratra tamin'ny taratasim-baovaon'i {shop} ary nanamafy ny adiresinao.",
+      "unsubscribe": "Hiala"
     }
   }
 }

@@ -146,10 +146,13 @@ export async function settle(page: Page) {
  * Analyse axe de la page dans son état actuel. Échec souple : un parcours analyse tous ses écrans
  * avant d'échouer, et chaque défaut est nommé (écran, règle, élément, résumé).
  * `rules` remplace les critères WCAG par une liste de règles précises (par exemple `target-size`).
+ * `exclude` retire des éléments de l'analyse. Pour un cadre `sandbox=""` (aperçu d'un e-mail) : son origine est opaque,
+ * `axe.runPartial` n'y répond jamais et l'analyse attendrait jusqu'à la fin du délai du test.
  */
-export async function expectAccessible(page: Page, where: string, { rules }: { rules?: string[] } = {}) {
+export async function expectAccessible(page: Page, where: string, { rules, exclude = [] }: { rules?: string[]; exclude?: string[] } = {}) {
   await settle(page);
   const builder = new AxeBuilder({ page });
+  for (const selector of exclude) builder.exclude(selector);
   if (rules) builder.withRules(rules);
   else builder.withTags(WCAG);
   const { violations } = await builder.analyze();

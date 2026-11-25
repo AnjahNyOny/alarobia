@@ -678,7 +678,12 @@
       "promoPercentInvalid": "A whole percentage between 1 and 90.",
       "promoMaxUsesInvalid": "A positive whole number.",
       "dateInvalid": "Invalid date.",
-      "promoCodeTaken": "This code already exists."
+      "promoCodeTaken": "This code already exists.",
+      "issueSubjectRequired": "Enter the newsletter's subject.",
+      "issueBodyRequired": "Write the newsletter's text.",
+      "issueLocked": "Sending of this newsletter has started: it can no longer be edited.",
+      "issueNotFound": "Newsletter not found.",
+      "testFailed": "The test was not sent. Try again in a few minutes; if this keeps happening, check SMTP_USER and SMTP_PASSWORD on Netlify."
     },
     "notices": {
       "productArchived": "Product archived (it appears in orders).",
@@ -696,7 +701,9 @@
       "promoCreated": "Code {code} created.",
       "promoDeleted": "Code deleted.",
       "reviewDeleted": "Review deleted.",
-      "newsletterRemoved": "Address removed from the newsletter."
+      "newsletterRemoved": "Address removed from the newsletter.",
+      "issueUpdated": "Newsletter updated.",
+      "testSent": "Test sent to {email}."
     },
     "order": {
       "metaTitle": "Order",
@@ -1016,7 +1023,7 @@
     "newsletter": {
       "metaTitle": "Newsletter",
       "title": "Newsletter",
-      "description": "{count, plural, =0 {No addresses subscribed yet.} one {# address subscribed. Remove the address of anyone who asks to unsubscribe.} other {# addresses subscribed. Remove the address of anyone who asks to unsubscribe.}}",
+      "description": "{count, plural, =0 {No addresses subscribed yet.} other {{confirmed} confirmed out of {count}. Only confirmed addresses receive the newsletter.}}",
       "download": "Download (CSV)",
       "searchPlaceholder": "Email address",
       "colEmail": "Email address",
@@ -1030,7 +1037,52 @@
       "colConfirmed": "Confirmed",
       "confirmedNo": "no",
       "confirmedOn": "Confirmed {date}",
-      "notConfirmed": "Not confirmed"
+      "notConfirmed": "Not confirmed",
+      "write": "Write a newsletter",
+      "lettersTitle": "Newsletters",
+      "lettersEmptyTitle": "No newsletters yet",
+      "lettersEmptyText": "A newsletter goes to confirmed addresses, in batches, each with its own unsubscribe link.",
+      "subscribersTitle": "Subscribed addresses",
+      "subscribersDescription": "Remove the address of anyone who asks you to unsubscribe them.",
+      "colSubject": "Subject",
+      "colCreated": "Created",
+      "colStatus": "Sending",
+      "statusDraft": "Not sent yet",
+      "statusSending": "Sending started",
+      "statusSent": "Sent {date}",
+      "deliveredOf": "{delivered} delivered out of {planned}",
+      "writeTitle": "Write a newsletter",
+      "writeDescription": "Save it first: you will then see the preview, can send yourself a test, and then send it to confirmed addresses.",
+      "subject": "Subject",
+      "body": "Text",
+      "bodyHint": "Leave a blank line between paragraphs. An address starting with https:// becomes a link.",
+      "save": "Save",
+      "issueMetaTitle": "Newsletter",
+      "createdOn": "Created {date}",
+      "previewTitle": "Preview",
+      "previewDescription": "The email as an address subscribed in French will receive it. The footer follows each subscriber's language.",
+      "previewFrame": "Preview of the email “{subject}”",
+      "previewFrom": "From",
+      "previewSubject": "Subject",
+      "editTitle": "Edit the newsletter",
+      "editDescription": "Possible until sending has started.",
+      "sendTitle": "Sending",
+      "testButton": "Send me a test",
+      "testHint": "To {email}, with “{prefix}” before the subject. The test does not count as a delivery.",
+      "testPrefix": "[Test]",
+      "sendButton": "{count, plural, one {Send to # confirmed subscriber} other {Send to # confirmed subscribers}}",
+      "sendConfirmTitle": "Send “{subject}”?",
+      "sendConfirmDescription": "{count, plural, one {It goes to # confirmed address} other {It goes to # confirmed addresses}}, in batches of 10, never more than 300 per 24 hours. Once sending has started, the newsletter can no longer be edited.",
+      "sendConfirm": "Send",
+      "sendStarted": "Sending started.",
+      "progress": "{sent} sent out of {total}",
+      "sending": "Sending. Keep this page open: if you leave it, sending stops and will pick up where it left off.",
+      "paused": "Sending interrupted. Resume it: addresses already served will not receive the newsletter twice.",
+      "stoppedQuota": "Limit reached: 300 newsletters per 24 hours, so that Gmail keeps accepting order emails. Resume sending tomorrow; addresses already served will not receive the newsletter twice.",
+      "stoppedError": "Gmail refused a message. Resume in a few minutes; addresses already served will not receive the newsletter twice. If this keeps happening, check SMTP_USER and SMTP_PASSWORD on Netlify.",
+      "resume": "Resume sending",
+      "sentSummary": "{delivered, plural, =0 {Sent {date}. No address received it.} one {Sent {date} to # address.} other {Sent {date} to # addresses.}}",
+      "noRecipients": "No confirmed addresses yet: nothing to send."
     },
     "categories": {
       "metaTitle": "Categories",
@@ -1186,6 +1238,10 @@
       "button": "Confirm my subscription",
       "ignore": "If you didn't subscribe, ignore this message: without confirmation, you won't receive anything.",
       "footer": "You are receiving this message because this address was entered in the {shop} newsletter form."
+    },
+    "letter": {
+      "footer": "You are receiving this newsletter because you subscribed to the {shop} newsletter and confirmed your address.",
+      "unsubscribe": "Unsubscribe"
     }
   }
 }

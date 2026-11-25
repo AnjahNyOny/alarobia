@@ -92,6 +92,27 @@ describe("renderMail", () => {
     expect(html).not.toContain("<a ");
     expect(text).toBe("Bonjour\n\nUn\n\nDeux\n\n--\nAlarobia\n");
   });
+
+  it("par défaut, une adresse écrite dans un paragraphe reste du texte (e-mails de commande)", () => {
+    const { html } = renderMail("fr", { title: "Note", paragraphs: ["Voir https://exemple.mg/a"] });
+    expect(html).not.toContain("<a ");
+    expect(html).toContain("Voir https://exemple.mg/a");
+  });
+
+  it("avec `links`, les adresses http(s) des paragraphes deviennent des liens, et seulement elles", () => {
+    const { html, text } = renderMail("fr", { title: "https://titre.mg", paragraphs: ["Voir https://exemple.mg/a?x=1&y=2."], links: true, footer: "https://pied.mg" });
+    expect(html).toContain('<a href="https://exemple.mg/a?x=1&amp;y=2" style="');
+    expect(html).toContain(">https://exemple.mg/a?x=1&amp;y=2</a>.");
+    expect([...html.matchAll(/<a /g)]).toHaveLength(1);
+    expect(text).toContain("Voir https://exemple.mg/a?x=1&y=2.");
+  });
+
+  it("met le lien du pied en lien dans le HTML et en clair dans le texte", () => {
+    const { html, text } = renderMail("fr", { title: "Lettre", paragraphs: ["Texte"], footer: "Vous êtes inscrit.", footerLink: { label: "Se <désinscrire>", url: "https://exemple.mg/u?a=1&b=2" } });
+    expect(html).toContain('href="https://exemple.mg/u?a=1&amp;b=2"');
+    expect(html).toContain(">Se &lt;désinscrire&gt;</a>");
+    expect(text).toBe("Lettre\n\nTexte\n\n--\nAlarobia\nVous êtes inscrit.\nSe <désinscrire>\nhttps://exemple.mg/u?a=1&b=2\n");
+  });
 });
 
 describe("sendMail", () => {

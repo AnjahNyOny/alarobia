@@ -284,15 +284,44 @@ model ShippingZone {
 }
 
 model NewsletterSubscriber {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  createdAt     DateTime  @default(now())
+  id            String               @id @default(cuid())
+  email         String               @unique
+  createdAt     DateTime             @default(now())
   // Jeton des liens de confirmation et de désinscription : 32 octets aléatoires en hexadécimal (src/lib/newsletter.ts).
-  token         String    @unique
+  token         String               @unique
   // Langue de l'inscription : celle des e-mails (confirmation, lettres).
-  locale        String    @default("fr")
+  locale        String               @default("fr")
   // Date du clic sur « Confirmer » ; seules les adresses confirmées reçoivent la lettre.
   confirmedAt   DateTime?
   // Dernier e-mail de confirmation envoyé : un seul par 24 h et par adresse.
   confirmSentAt DateTime?
+  deliveries    NewsletterDelivery[]
+}
+
+// Lettre d'information rédigée dans le back-office (PLAN.md 7.14), écrite dans une seule langue par le vendeur.
+model NewsletterIssue {
+  id         String               @id @default(cuid())
+  subject    String
+  // Texte brut : paragraphes séparés par une ligne vide, adresses http(s) rendues cliquables dans l'e-mail.
+  body       String
+  createdAt  DateTime             @default(now())
+  // Posée quand plus aucun inscrit confirmé n'attend la lettre ; plus rien ne part ensuite.
+  sentAt     DateTime?
+  deliveries NewsletterDelivery[]
+}
+
+// Une lettre à une adresse : la ligne est réservée avant l'envoi (ok faux), puis passée à vrai (src/lib/newsletter-send.ts).
+// La clé primaire empêche tout second envoi de la même lettre à la même adresse. Une désinscription supprime l'inscrit,
+// donc ses livraisons.
+model NewsletterDelivery {
+  issueId      String
+  subscriberId String
+  sentAt       DateTime             @default(now())
+  ok           Boolean              @default(false)
+  issue        NewsletterIssue      @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  subscriber   NewsletterSubscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@id([issueId, subscriberId])
+  // Plafond de 300 envois par 24 h glissantes, toutes lettres comprises.
+  @@index([sentAt])
 }

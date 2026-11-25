@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
-import { Download } from "lucide-react";
+import { Download, PenLine } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { removeNewsletterSubscriber } from "@/actions/admin/newsletter";
 import { ConfirmAction } from "@/components/admin/actions";
@@ -11,17 +11,21 @@ import { formatDate, formatDateTime } from "@/lib/format";
 import { madagascarTime } from "@/lib/shipping";
 import { cn } from "@/lib/utils";
 import { requireAdmin } from "@/lib/auth";
+import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("admin.newsletter");
   return { title: t("metaTitle") };
 }
 const PER_PAGE = 50;
+/** Lettres listées : les plus récentes. Une boutique en écrit quelques-unes par mois. */
+const ISSUES_SHOWN = 30;
 
 /**
- * Adresses laissées dans le pied de page de la boutique, confirmées ou non (PLAN.md 7.13 : seules les adresses
- * confirmées par le lien de l'e-mail recevront la lettre). Le vendeur exporte la liste (CSV) et retire l'adresse d'une
- * personne qui lui demande de se désinscrire.
+ * Lettre d'information. En tête, les lettres rédigées et leur envoi (PLAN.md 7.14) ; dessous, les adresses laissées dans
+ * le pied de page de la boutique, confirmées ou non (PLAN.md 7.13 : seules les adresses confirmées par le lien de
+ * l'e-mail reçoivent la lettre). Le vendeur exporte la liste (CSV) et retire l'adresse d'une personne qui lui demande de
+ * se désinscrire.
  */
 export default async function NewsletterPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   await requireAdmin();
@@ -29,17 +33,30 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
   const q = sp.q?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(sp.page ?? "1") || 1);
   const where: Prisma.NewsletterSubscriberWhereInput = q ? { email: { contains: q, mode: "insensitive" } } : {};
-  const [subscribers, total, all, t, tc, locale] = await Promise.all([
+  const [subscribers, total, all, confirmed, issues, deliveries, t, tc, locale] = await Promise.all([
     db.newsletterSubscriber.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "asc" }], skip: (page - 1) * PER_PAGE, take: PER_PAGE }),
     db.newsletterSubscriber.count({ where }),
     db.newsletterSubscriber.count(),
+    db.newsletterSubscriber.count({ where: { confirmedAt: { not: null } } }),
+    db.newsletterIssue.findMany({ orderBy: [{ createdAt: "desc" }, { id: "asc" }], take: ISSUES_SHOWN, select: { id: true, subject: true, createdAt: true, sentAt: true } }),
+    db.newsletterDelivery.groupBy({ by: ["issueId", "ok"], _count: { _all: true } }),
     getTranslations("admin.newsletter"),
     getTranslations("admin.common"),
     getLocale(),
   ]);
+  // Lignes réservées par lettre (toutes, et réussies). Chacune va à une adresse confirmée encore inscrite (une
+  // désinscription supprime les siennes) : une lettre pas encore entièrement envoyée est prévue pour toutes les adresses
+  // confirmées, une lettre envoyée l'a été pour ses lignes.
+  const counts = new Map<string, { attempted: number; delivered: number }>();
+  for (const d of deliveries) {
+    const c = counts.get(d.issueId) ?? { attempted: 0, delivered: 0 };
+    c.attempted += d._count._all;
+    if (d.ok) c.delivered += d._count._all;
+    counts.set(d.issueId, c);
+  }
   return (
     <>
-      <PageHeader title={t("title")} description={t("description", { count: all })}>
+      <PageHeader title={t("title")} description={t("description", { count: all, confirmed })}>
         {all > 0 && (
           // Simple lien : la route est hors des pages traduites, le Link de next-intl y ajouterait la langue.
           <a href="/api/admin/newsletter" download className={buttonVariants({ variant: "outline", size: "md" })}>
@@ -47,15 +64,59 @@ export default async function NewsletterPage({ searchParams }: { searchParams: P
             {t("download")}
           </a>
         )}
+        <Link href="/admin/newsletter/write" className={buttonVariants({ size: "md" })}>
+          <PenLine aria-hidden />
+          {t("write")}
+        </Link>
       </PageHeader>
-      <Card flush>
+      <Card title={t("lettersTitle")} flush className="mb-6">
+        {issues.length === 0 ? (
+          <div className="border-t">
+            <EmptyState title={t("lettersEmptyTitle")} text={t("lettersEmptyText")} />
+          </div>
+        ) : (
+          <table className="w-full table-fixed">
+            <thead className="border-y bg-muted/40">
+              <tr>
+                <th className={th}>{t("colSubject")}</th>
+                <th className={cn(th, "hidden w-44 md:table-cell")}>{t("colCreated")}</th>
+                <th className={cn(th, "w-36 sm:w-56")}>{t("colStatus")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {issues.map((issue) => {
+                const c = counts.get(issue.id) ?? { attempted: 0, delivered: 0 };
+                const planned = issue.sentAt ? c.attempted : confirmed;
+                const created = formatDate(madagascarTime(issue.createdAt), locale, "medium");
+                const status = issue.sentAt ? t("statusSent", { date: formatDate(madagascarTime(issue.sentAt), locale, "medium") }) : c.attempted > 0 ? t("statusSending") : t("statusDraft");
+                return (
+                  <tr key={issue.id} className="hover:bg-muted/40">
+                    <td className={td}>
+                      <Link href={`/admin/newsletter/issues/${issue.id}`} className="font-medium break-words underline-offset-4 hover:underline">
+                        {issue.subject}
+                      </Link>
+                      <p className="text-xs text-muted-foreground tabular-nums md:hidden">{t("createdOn", { date: created })}</p>
+                    </td>
+                    <td className={cn(td, "hidden text-muted-foreground tabular-nums md:table-cell")}>{created}</td>
+                    <td className={td}>
+                      <p className={cn(issue.sentAt ? "text-foreground" : "text-muted-foreground")}>{status}</p>
+                      {(issue.sentAt || c.attempted > 0) && <p className="text-xs text-muted-foreground tabular-nums">{t("deliveredOf", { delivered: c.delivered, planned })}</p>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </Card>
+      <Card title={t("subscribersTitle")} description={all > 0 ? t("subscribersDescription") : undefined} flush>
         {all > 0 && (
-          <div className="p-3">
+          <div className="border-t p-3">
             <SearchForm action="/admin/newsletter" placeholder={t("searchPlaceholder")} defaultValue={q} />
           </div>
         )}
         {subscribers.length === 0 ? (
-          <div className={cn(all > 0 && "border-t")}>
+          <div className="border-t">
             <EmptyState title={t("emptyTitle")} text={q ? t("emptyFiltered") : t("emptyText")} />
           </div>
         ) : (

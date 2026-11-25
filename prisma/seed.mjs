@@ -34,6 +34,7 @@ async function main() {
   await db.promoCode.deleteMany();
   await db.address.deleteMany();
   await db.user.deleteMany();
+  await db.newsletterIssue.deleteMany(); // et leurs livraisons, en cascade
   await db.newsletterSubscriber.deleteMany();
   await db.shippingZone.deleteMany();
   await db.storeSettings.deleteMany();

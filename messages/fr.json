@@ -678,7 +678,12 @@
       "promoPercentInvalid": "Pourcentage entier entre 1 et 90.",
       "promoMaxUsesInvalid": "Nombre entier positif.",
       "dateInvalid": "Date invalide.",
-      "promoCodeTaken": "Ce code existe déjà."
+      "promoCodeTaken": "Ce code existe déjà.",
+      "issueSubjectRequired": "Indiquez l'objet de la lettre.",
+      "issueBodyRequired": "Écrivez le texte de la lettre.",
+      "issueLocked": "L'envoi de cette lettre a commencé : elle ne peut plus être modifiée.",
+      "issueNotFound": "Lettre introuvable.",
+      "testFailed": "L'essai n'est pas parti. Réessayez dans quelques minutes ; si cela continue, vérifiez SMTP_USER et SMTP_PASSWORD sur Netlify."
     },
     "notices": {
       "productArchived": "Produit archivé (il figure dans des commandes).",
@@ -696,7 +701,9 @@
       "promoCreated": "Code {code} créé.",
       "promoDeleted": "Code supprimé.",
       "reviewDeleted": "Avis supprimé.",
-      "newsletterRemoved": "Adresse retirée de la lettre d'information."
+      "newsletterRemoved": "Adresse retirée de la lettre d'information.",
+      "issueUpdated": "Lettre modifiée.",
+      "testSent": "Essai envoyé à {email}."
     },
     "order": {
       "metaTitle": "Commande",
@@ -1016,7 +1023,7 @@
     "newsletter": {
       "metaTitle": "Lettre d'information",
       "title": "Lettre d'information",
-      "description": "{count, plural, =0 {Aucune adresse inscrite pour l'instant.} one {# adresse inscrite. Retirez celle d'une personne qui demande à se désinscrire.} other {# adresses inscrites. Retirez celle d'une personne qui demande à se désinscrire.}}",
+      "description": "{count, plural, =0 {Aucune adresse inscrite pour l'instant.} other {{confirmed, plural, one {# adresse confirmée} other {# adresses confirmées}} sur {count}. Seules les adresses confirmées reçoivent la lettre.}}",
       "download": "Télécharger (CSV)",
       "searchPlaceholder": "Adresse e-mail",
       "colEmail": "Adresse e-mail",
@@ -1030,7 +1037,52 @@
       "colConfirmed": "Confirmée",
       "confirmedNo": "non",
       "confirmedOn": "Confirmée le {date}",
-      "notConfirmed": "Non confirmée"
+      "notConfirmed": "Non confirmée",
+      "write": "Rédiger une lettre",
+      "lettersTitle": "Lettres",
+      "lettersEmptyTitle": "Aucune lettre pour l'instant",
+      "lettersEmptyText": "Une lettre part aux adresses confirmées, par lots, avec un lien de désinscription pour chacune.",
+      "subscribersTitle": "Adresses inscrites",
+      "subscribersDescription": "Retirez celle d'une personne qui vous demande de la désinscrire.",
+      "colSubject": "Objet",
+      "colCreated": "Créée le",
+      "colStatus": "Envoi",
+      "statusDraft": "Pas encore envoyée",
+      "statusSending": "Envoi commencé",
+      "statusSent": "Envoyée le {date}",
+      "deliveredOf": "{delivered} réussis sur {planned}",
+      "writeTitle": "Rédiger une lettre",
+      "writeDescription": "Enregistrez-la d'abord : vous verrez ensuite l'aperçu, pourrez vous envoyer un essai, puis l'envoyer aux adresses confirmées.",
+      "subject": "Objet",
+      "body": "Texte",
+      "bodyHint": "Laissez une ligne vide entre deux paragraphes. Une adresse qui commence par https:// devient un lien.",
+      "save": "Enregistrer",
+      "issueMetaTitle": "Lettre d'information",
+      "createdOn": "Créée le {date}",
+      "previewTitle": "Aperçu",
+      "previewDescription": "L'e-mail tel que le recevra une adresse inscrite en français. Le pied change avec la langue de chaque inscrit.",
+      "previewFrame": "Aperçu de l'e-mail « {subject} »",
+      "previewFrom": "De",
+      "previewSubject": "Objet",
+      "editTitle": "Modifier la lettre",
+      "editDescription": "Possible tant que l'envoi n'a pas commencé.",
+      "sendTitle": "Envoi",
+      "testButton": "M'envoyer un essai",
+      "testHint": "À {email}, avec « {prefix} » devant l'objet. L'essai ne compte pas dans les envois.",
+      "testPrefix": "[Essai]",
+      "sendButton": "{count, plural, one {Envoyer à # inscrit confirmé} other {Envoyer aux # inscrits confirmés}}",
+      "sendConfirmTitle": "Envoyer « {subject} » ?",
+      "sendConfirmDescription": "{count, plural, one {Elle part à # adresse confirmée} other {Elle part à # adresses confirmées}}, par lots de 10, sans dépasser 300 envois par 24 heures. Une fois l'envoi commencé, la lettre ne peut plus être modifiée.",
+      "sendConfirm": "Envoyer",
+      "sendStarted": "Envoi commencé.",
+      "progress": "{sent, plural, one {# envoyé} other {# envoyés}} sur {total}",
+      "sending": "Envoi en cours. Gardez cette page ouverte : si vous la quittez, l'envoi s'arrête et reprendra où il en était.",
+      "paused": "Envoi interrompu. Reprenez-le : les adresses déjà servies ne recevront pas la lettre une seconde fois.",
+      "stoppedQuota": "Plafond atteint : 300 lettres par 24 heures, pour que Gmail continue d'accepter les e-mails de commande. Reprenez l'envoi demain ; les adresses déjà servies ne recevront pas la lettre une seconde fois.",
+      "stoppedError": "Gmail a refusé un envoi. Reprenez dans quelques minutes ; les adresses déjà servies ne recevront pas la lettre une seconde fois. Si cela continue, vérifiez SMTP_USER et SMTP_PASSWORD sur Netlify.",
+      "resume": "Reprendre l'envoi",
+      "sentSummary": "{delivered, plural, =0 {Envoyée le {date}. Aucune adresse ne l'a reçue.} one {Envoyée le {date} à # adresse.} other {Envoyée le {date} à # adresses.}}",
+      "noRecipients": "Aucune adresse confirmée pour l'instant : rien à envoyer."
     },
     "categories": {
       "metaTitle": "Catégories",
@@ -1186,6 +1238,10 @@
       "button": "Confirmer mon inscription",
       "ignore": "Si vous n'êtes pas à l'origine de cette inscription, ignorez ce message : sans confirmation, vous ne recevrez rien.",
       "footer": "Vous recevez ce message parce que cette adresse a été saisie dans le formulaire de la lettre d'information de {shop}."
+    },
+    "letter": {
+      "footer": "Vous recevez cette lettre parce que vous vous êtes inscrit à la lettre d'information de {shop} et avez confirmé votre adresse.",
+      "unsubscribe": "Se désinscrire"
     }
   }
 }

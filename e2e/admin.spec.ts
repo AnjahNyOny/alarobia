@@ -118,7 +118,7 @@ test("lettre d'information : une inscription du pied de page se retrouve dans le
 
   await page.goto("/admin/newsletter");
   await expect(page.getByRole("heading", { level: 1, name: "Lettre d'information" })).toBeVisible();
-  await expect(page.getByText(/^\d+ adresses? inscrites?\./)).toBeVisible();
+  await expect(page.getByText(/^\d+ adresses? confirmées? sur \d+\./)).toBeVisible();
   const row = page.getByRole("row", { name: new RegExp(email) });
   await expect(row).toBeVisible();
   // Pas encore confirmée : la confirmation se fait par le lien de l'e-mail (lettre.spec.ts).

@@ -48,3 +48,26 @@ export function zoneSchema(t: ErrorT) {
     .refine((zone) => zone.maxDays >= zone.minDays, { path: ["maxDays"], message: t("daysOrder") })
     .transform(({ price, active, ...zone }) => ({ ...zone, priceCents: price, active: active === "on" }));
 }
+
+export const ISSUE_SUBJECT_MAX = 150;
+export const ISSUE_BODY_MAX = 20_000;
+
+/**
+ * Lettre d'information rédigée dans le back-office (PLAN.md 7.14). `t` : traducteur de « admin.errors ». L'objet devient
+ * un en-tête d'e-mail : ses retours à la ligne (formulaire bricolé) sont ramenés à des espaces. Le texte garde ses lignes
+ * vides, qui séparent les paragraphes ; les fins de ligne Windows sont unifiées.
+ */
+export function issueSchema(t: ErrorT) {
+  return z.object({
+    subject: z
+      .string()
+      .default("")
+      .transform((s) => s.replace(/\s+/g, " ").trim())
+      .pipe(z.string().min(1, t("issueSubjectRequired")).max(ISSUE_SUBJECT_MAX, t("tooLong", { max: ISSUE_SUBJECT_MAX }))),
+    body: z
+      .string()
+      .default("")
+      .transform((s) => s.replace(/\r\n?/g, "\n").trim())
+      .pipe(z.string().min(1, t("issueBodyRequired")).max(ISSUE_BODY_MAX, t("tooLong", { max: ISSUE_BODY_MAX }))),
+  });
+}

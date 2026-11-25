@@ -27,6 +27,8 @@ vi.mock("../auth", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
 vi.mock("next-intl/server", () => ({ getTranslations: async () => (key: string) => key }));
+// Les actions de la lettre redirigent après la rédaction (src/actions/admin/newsletter.ts) : pas de navigation de Next ici.
+vi.mock("@/i18n/server", () => ({ redirectTo: vi.fn() }));
 
 let database: ReturnType<typeof createTestDatabase>;
 let db: Db;
