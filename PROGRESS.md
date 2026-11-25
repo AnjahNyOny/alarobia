@@ -707,6 +707,6 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 ### Point de reprise (25/11/2026, nuit)
 
 - Branche `preview` locale, en avance sur `main` de 7.10, 7.11 et 7.12, toutes vérifiées et committées. `verificateur` (7.12) : lint, types, 587 tests unitaires, 150 parcours navigateur sur 150 (charge 6 à 7), nodemailer absent du JavaScript du navigateur, `tsconfig.json` intact ; deux « Paiement à vérifier » pour une même commande = référence déclarée puis corrigée (voulu).
-- `origin/preview` est à `56be1c2` (7.10) ; 7.11 et 7.12 ne sont pas encore envoyées. La production a 7.6 à 7.9.
+- `preview` envoyée sur GitHub (7.10 à 7.12) ; contrôle en ligne de l'aperçu 22 sur 22 après l'envoi. Netlify ne publie pas de statut de déploiement sur GitHub : on ne peut pas suivre un déploiement par `gh`, seulement par le site. La production a 7.6 à 7.9. Aucun e-mail réel n'a encore été envoyé (l'aperçu a les variables SMTP : une commande passée sur l'aperçu enverrait de vrais e-mails).
 - **Suite** : 7.13 (lettre : confirmation et désinscription), 7.14 (rédaction et envoi par lots), 7.15 (liens WhatsApp et SMS), puis l'essai réel sur l'aperçu avec le propriétaire, puis fusion dans `main`.
 - Base de développement : colonne `Order.locale` déjà ajoutée (`db push`).
