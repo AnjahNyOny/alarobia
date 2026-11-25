@@ -21,3 +21,10 @@
 #   changée) : « Clear cache and deploy », ou un build hook, que `ignore` n'annule jamais
 #   (https://docs.netlify.com/build/configure-builds/ignore-builds/).
   ignore = '''if [ -z "$CACHED_COMMIT_REF" ] || [ "$CACHED_COMMIT_REF" = "$COMMIT_REF" ] || ! git cat-file -e "$CACHED_COMMIT_REF^{commit}" 2>/dev/null; then false; else git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- . ':(exclude,glob)*.md' ':(exclude)docs' ':(exclude)e2e' ':(exclude).claude' ':(exclude).github' ':(exclude,glob)playwright*.config.ts' ':(exclude)scripts'; fi'''
+
+# Analyse des secrets de Netlify : SMTP_USER est l'adresse d'envoi de la boutique, publique (elle signe chaque e-mail et
+# figure dans PLAN.md et les tests), pas un secret. Sans cette exclusion, Netlify la trouve dans le dépôt et refuse de
+# publier (compilation de 3308fb0 sur `preview`, 25/11/2026). SMTP_PASSWORD, lui, reste analysé.
+# https://docs.netlify.com/build/environment-variables/secrets-controller/
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "SMTP_USER"
