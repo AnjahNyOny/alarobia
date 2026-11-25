@@ -46,16 +46,16 @@ export default async function HelpPage() {
             {t("delivery")}
           </h2>
           <div className="relative mt-5 overflow-x-auto border-y-2 border-foreground">
-            <table className="w-full min-w-[420px] text-left">
+            <table className="w-full text-left">
               <thead className="text-sm text-muted-foreground">
                 <tr className="border-b">
-                  <th scope="col" className="py-2.5 pr-4 font-normal">
+                  <th scope="col" className="py-2.5 pr-2 font-normal sm:pr-4">
                     {t("zone")}
                   </th>
-                  <th scope="col" className="px-4 py-2.5 font-normal">
+                  <th scope="col" className="px-2 py-2.5 font-normal sm:px-4">
                     {t("delay")}
                   </th>
-                  <th scope="col" className="py-2.5 pl-4 text-right font-normal">
+                  <th scope="col" className="py-2.5 pl-2 text-right font-normal sm:pl-4">
                     {t("cost")}
                   </th>
                 </tr>
@@ -63,11 +63,11 @@ export default async function HelpPage() {
               <tbody className="divide-y">
                 {zones.map((zone) => (
                   <tr key={zone.id}>
-                    <th scope="row" className="display-sm py-3 pr-4 text-xl">
+                    <th scope="row" className="display-sm py-3 pr-2 text-xl sm:pr-4">
                       {zoneName(zone, locale)}
                     </th>
-                    <td className="px-4 py-3">{zone.minDays === zone.maxDays ? td("delaySingle", { days: zone.maxDays }) : td("delayRange", { min: zone.minDays, max: zone.maxDays })}</td>
-                    <td className="py-3 pl-4 text-right font-medium whitespace-nowrap tabular-nums">{zone.priceCents === 0 ? td("free") : formatPrice(zone.priceCents, s.currency, locale)}</td>
+                    <td className="px-2 py-3 sm:px-4">{zone.minDays === zone.maxDays ? td("delaySingle", { days: zone.maxDays }) : td("delayRange", { min: zone.minDays, max: zone.maxDays })}</td>
+                    <td className="py-3 pl-2 text-right font-medium whitespace-nowrap sm:pl-4 tabular-nums">{zone.priceCents === 0 ? td("free") : formatPrice(zone.priceCents, s.currency, locale)}</td>
                   </tr>
                 ))}
               </tbody>
