@@ -2,9 +2,9 @@
 
 Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à jour à la fin de chaque tâche : case cochée, ce qui a été vérifié, décisions prises.
 
-**État au 19/11/2026** : phases 0 à 6 faites. **Phase 7A faite : la boutique est en ligne sur `https://alarobia-shop.netlify.app`** (offre gratuite de Netlify, base Neon), un seul produit publié (la tasse) en attendant que le propriétaire corrige et publie les autres.
+**État au 25/11/2026** : phases 0 à 6 faites, phase 7A faite, tâches 7.6 à 7.9 faites et **en ligne** sur `https://alarobia-shop.netlify.app` (aperçus sur `https://preview--alarobia-shop.netlify.app`). Un seul produit publié (la tasse) ; les autres restent en brouillon (décision du 24/11/2026).
 
-**Prochaine action** (24/11/2026) : tâche 7.9 (lettre d'information), puis envoi de `preview` et fusion dans `main` (une mise en ligne, autorisée par le propriétaire le 24/11/2026). Ensuite, plan de la 7B (e-mails par un compte Gmail dédié, SMS par un téléphone Android : services gratuits). Reste de la 7A : région des fonctions Netlify à relever.
+**Prochaine action** : plan de la 7B (e-mails par un compte Gmail dédié à la boutique, SMS par un téléphone Android avec SIM : services gratuits), qui attend du propriétaire le compte Gmail (validation en deux étapes) et le téléphone. Décision attendue : garder ou non le bouton « Annuler la commande » sur une commande livrée. Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
@@ -678,3 +678,5 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - **7.9, lettre d'information** (`developpeur`) : `src/lib/newsletter-csv.ts` (16 tests), action `removeNewsletterSubscriber` et route `/api/admin/newsletter` (CSV, 404 sans session admin ; 6 tests sur schéma temporaire, vus rouges, dont un contre-essai sans `requireAdmin`), page `/admin/newsletter` (50 par page, recherche, date sous l'adresse sur téléphone), entrée « Lettre d'information » dans la barre latérale. Textes : `footer.newsletterText` « Les nouveautés et les retours en stock, par e-mail, quand il y en a. Désinscription à tout moment, sur simple demande. », `notices.newsletterDone` « Inscription enregistrée. Nous vous écrirons quand il y aura du nouveau. » ; politique de confidentialité inchangée (déjà juste). Pas de BOM dans le CSV (adresses en ASCII). Envoi des lettres et lien de désinscription par jeton : avec la 7B.
   - Clés mg à relire : `footer.newsletterText`, `notices.newsletterDone`, `admin.nav.newsletter`, `admin.notices.newsletterRemoved`, tout l'espace `admin.newsletter` (termes incertains : « hialana », « Esorina », « farany ambany amin'ny fivarotana »).
   - `verificateur` : lint et types propres, 507 tests unitaires, **145 parcours navigateur sur 145** sans relance (charge 8 à 11), budgets de poids passés, `tsconfig.json` intact.
+- Commits `e98cfa4` (7.8), `4932258` (7.7), `f4d7a60` (7.9). **Envoi de `preview`** : aperçu publié en 60 s, contrôle en ligne 22 sur 22, export CSV 404 sans session, page des inscrits redirigée vers la connexion.
+- **Fusion dans `main`** (autorisée par le propriétaire le 24/11/2026), en avance rapide `c15f138..f4d7a60` : 7.6, correctif des images, 7.7, 7.8, 7.9 en une seule mise en ligne (15 crédits), en ligne en 70 s. **Contrôle en ligne de la production : 22 sur 22** (23 avant : la route `/api/cron/adresse` est retirée). `robots.txt` ouvert et aucun `X-Robots-Tag` : la production reste indexable ; image absente 404 en 0,3 s ; export CSV 404 sans session.
