@@ -1,9 +1,14 @@
 import type { OrderStatus } from "./constants";
-import type { Tx } from "./db";
+import type { Db, Tx } from "./db";
 import { isMobileMoney } from "./payment";
 import { releaseStock } from "./stock";
 
 const VOID: string[] = ["CANCELLED", "REFUNDED"];
+
+/** Commande annulée ou remboursée : son stock est déjà remis en vente, elle ne peut plus que passer de l'un à l'autre. */
+export function isClosed(status: string) {
+  return VOID.includes(status);
+}
 
 type OrderSnapshot = {
   id: string;
@@ -36,4 +41,31 @@ export async function transitionOrder(
     await releaseStock(tx, lines);
   }
   return true;
+}
+
+/** Issue d'un changement de statut ; l'action serveur en fait un message. */
+export type StatusChange = "ok" | "notFound" | "closed" | "changed";
+
+/**
+ * Relit la commande et change son statut (liste « Statut » du back-office). Une commande close ne peut que passer
+ * d'annulée à remboursée ou l'inverse ; avec `openOnly`, elle est refusée dans tous les cas.
+ * `trackingNumber` absent : le numéro de suivi enregistré est gardé.
+ */
+export async function changeOrderStatus(
+  db: Db,
+  id: string,
+  next: { status: OrderStatus; trackingNumber?: string | null },
+  { openOnly = false } = {},
+): Promise<StatusChange> {
+  const order = await db.order.findUnique({ where: { id }, include: { items: true } });
+  if (!order) return "notFound";
+  if (isClosed(order.status) && (openOnly || !isClosed(next.status))) return "closed";
+  const trackingNumber = next.trackingNumber === undefined ? order.trackingNumber : next.trackingNumber;
+  const changed = await db.$transaction((tx) => transitionOrder(tx, order, { status: next.status, trackingNumber }));
+  return changed ? "ok" : "changed";
+}
+
+/** Bouton « Annuler la commande » : toute commande encore ouverte, livrée comprise, comme la liste « Statut ». */
+export function cancelOrder(db: Db, id: string) {
+  return changeOrderStatus(db, id, { status: "CANCELLED" }, { openOnly: true });
 }

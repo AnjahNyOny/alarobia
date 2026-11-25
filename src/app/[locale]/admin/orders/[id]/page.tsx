@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
-import { markPaid } from "@/actions/admin/orders";
+import { cancelOrder, markPaid } from "@/actions/admin/orders";
 import { ConfirmAction } from "@/components/admin/actions";
 import { OrderForm } from "@/components/admin/order-form";
 import { Card, PageHeader } from "@/components/admin/ui";
@@ -17,6 +17,7 @@ import { PRINT_ZONES, printPixels } from "@/lib/customizer/layout";
 import { db } from "@/lib/db";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
 import { itemFile, type ItemFile } from "@/lib/order-files";
+import { isClosed } from "@/lib/order-status";
 import { isMobileMoney, OPERATOR_NAME, paymentState } from "@/lib/payment";
 import { getSettings } from "@/lib/settings";
 import { requireAdmin } from "@/lib/auth";
@@ -60,7 +61,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <PageHeader title={t("title", { number: order.number })} description={t("placed", { date: formatDateTime(order.createdAt, locale) })} back={{ href: "/admin/orders", label: t("back") }}>
-        <OrderStatus status={order.status} />
+        {/* Reçoit le focus après « Annuler la commande » (le bouton a disparu) : le nouveau statut est la confirmation lue. */}
+        <span id="commande-statut" tabIndex={-1} className="rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+          <OrderStatus status={order.status} />
+        </span>
       </PageHeader>
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="grid min-w-0 content-start gap-4">
@@ -172,6 +176,30 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         <div className="grid min-w-0 content-start gap-4">
           <Card title={t("processing")}>
             <OrderForm id={order.id} status={order.status} trackingNumber={order.trackingNumber} unpaid={payment === "awaiting" || payment === "declared"} />
+            {!isClosed(order.status) && (
+              // Chemin direct pour annuler, séparé du formulaire : même règle et même remise en stock que la liste « Statut ».
+              <div className="-mx-5 mt-5 border-t px-5 pt-4">
+                <ConfirmAction
+                  action={cancelOrder.bind(null, order.id)}
+                  title={t("cancelTitle", { number: order.number })}
+                  description={
+                    <>
+                      <span className="block">{t("cancelDescription")}</span>
+                      {/* Mobile Money confirmé : l'argent est chez le vendeur, le site ne peut pas le rendre. Seule chose à faire soi-même : à part. */}
+                      {payment === "received" && isMobileMoney(order.paymentMethod) && <span className="mt-2 block font-medium text-foreground">{t("cancelRefund", { amount: price(order.totalCents), method })}</span>}
+                    </>
+                  }
+                  confirmLabel={t("cancelOrder")}
+                  cancelLabel={t("cancelKeep")}
+                  variant="destructive"
+                  size="md"
+                  className="w-full"
+                  focusAfter="commande-statut"
+                >
+                  {t("cancelOrder")}
+                </ConfirmAction>
+              </div>
+            )}
           </Card>
           <Card title={t("payment")}>
             <div className="grid gap-3 text-sm">

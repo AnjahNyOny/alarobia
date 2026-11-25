@@ -4,18 +4,17 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 
 **État au 19/11/2026** : phases 0 à 6 faites. **Phase 7A faite : la boutique est en ligne sur `https://alarobia-shop.netlify.app`** (offre gratuite de Netlify, base Neon), un seul produit publié (la tasse) en attendant que le propriétaire corrige et publie les autres.
 
-**Prochaine action** : tâche 7.6 (aperçus sans crédits), qui demande d'abord au propriétaire une branche Neon `preview` et des valeurs de variables par contexte sur Netlify. Restes de la 7A : vérifier le premier vrai passage du nettoyage (20/11, 01:00 UTC, `gh run list --workflow=nettoyage.yml`), retirer `/api/cron/adresse` et reporter les paramètres Neon dans `.env.example` au prochain lot de code, région des fonctions Netlify à relever. Rien n'a été poussé vers GitHub depuis la phase 4.
+**Prochaine action** (24/11/2026) : tâche 7.9 (lettre d'information), puis envoi de `preview` et fusion dans `main` (une mise en ligne, autorisée par le propriétaire le 24/11/2026). Ensuite, plan de la 7B (e-mails par un compte Gmail dédié, SMS par un téléphone Android : services gratuits). Reste de la 7A : région des fonctions Netlify à relever.
 
 ## Décisions en attente
 
-- **Malgache des textes de la 7.4b** (19/11/2026) : `help.a4Cod`, phrase entièrement nouvelle, à relire en priorité ; `catalog.emptyAisle*`, `emptyAll*`, `emptySale*`, `payment.operators`, `home.steps.s2textCod`, `about.p3textCod`.
-- **Malgache du back-office** : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
-- **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Soit le propriétaire les traduit depuis le formulaire, soit Claude les rédige pour relecture.
+- **Malgache des textes de la 7.4b** (relu par le propriétaire) (19/11/2026) : `help.a4Cod`, phrase entièrement nouvelle, à relire en priorité ; `catalog.emptyAisle*`, `emptyAll*`, `emptySale*`, `payment.operators`, `home.steps.s2textCod`, `about.p3textCod`.
+- **Malgache du back-office** (relu par le propriétaire) : tout l'espace `admin` de `messages/mg.json` est rédigé par Claude, à relire (termes incertains listés au journal du 15/11/2026).
+- **Caractéristiques des produits en malgache** : non traduites dans le catalogue de démonstration, si bien que 27 produits sur 28 affichent « À traduire : mg » dans le back-office. Le propriétaire les traduit lui-même (24/11/2026).
 
 - **Texte « Qui sommes-nous »** (D3) : proposé par Claude dans `messages/*.json`, espace `about`. À corriger ou valider.
 - **Retours** : la page d'aide annonce une reprise de l'article « convenue avec vous » et un remboursement par Mobile Money sous 5 jours ouvrés. Ce sont des hypothèses de Claude, à confirmer. (L'exception des articles personnalisés est réglée : voir les décisions du 18/11/2026.)
 - **Lettre d'information** : le texte promet « une lettre par mois » et une désinscription en un clic ; les adresses sont enregistrées, mais rien n'envoie de lettre et il n'y a pas de désinscription. Soit retirer ces promesses, soit les tenir (phase 7, e-mails).
-- **Préfixe « AL- »** des numéros de commande et des références : à confirmer.
 - **Carnet et sac en toile** (D5) : les deux gabarits 3D existent et sont vérifiés, mais aucun produit du catalogue de démonstration ne les utilise, faute de photo. Le propriétaire peut maintenant les ajouter lui-même depuis le back-office (fiche produit, carte « Personnalisation »).
 - **« Taille » dans la tâche 4.5** : compris comme la taille du texte et de l'image sur l'objet (curseurs). Si le propriétaire pensait à des tailles de produit (S, M, L, contenance), c'est un autre chantier : il n'y a pas de variantes de produit dans le modèle de données.
 - **Polices proposées au client** : Archivo étroite (« Enseigne »), Baloo 2 (« Ronde »), Lora (« Classique »), Caveat (« Manuscrite »). Choix de Claude, à changer librement.
@@ -46,6 +45,11 @@ Le plan est dans [PLAN.md](PLAN.md). Ce fichier dit où on en est. Il est mis à
 | 18/11/2026 | Prénom de la démonstration de l'accueil : « Anjah » (au lieu de « Miora »), photo fixe refaite. |
 | 19/11/2026 | Envois sur GitHub : la branche `preview` peut recevoir les lots vérifiés sans demander ; `main` seulement à la demande du propriétaire (chaque mise en ligne coûte 15 crédits). |
 | 19/11/2026 | Catalogue de départ en production : `init-production.mjs` crée les 27 produits **en brouillon**, sauf la tasse personnalisable (`tasse-en-gres-vato`), en ligne pour le contrôle de l'envoi d'image (7.5). Le propriétaire publie ensuite les produits qu'il garde, après avoir corrigé prix et stock. Écarté : tout publier puis retirer à la main. |
+| 24/11/2026 | Malgache : le propriétaire relit et corrige lui-même tous les textes (interface, back-office, caractéristiques des produits). Claude rédige le malgache des nouveaux textes et en donne la liste. |
+| 24/11/2026 | Produits en brouillon : on les garde tels quels en production. |
+| 24/11/2026 | Préfixe « AL- » des numéros de commande et des références : validé. |
+| 24/11/2026 | Lettre d'information confiée à Claude. E-mails et SMS (7B) : services gratuits uniquement. |
+| 24/11/2026 | Lot autorisé : bouton « Annuler la commande », tableau des zones à 390 px, `.env.example`, lettre d'information, puis fusion de `preview` dans `main` (une mise en ligne). |
 
 ## Avancement
 
@@ -121,7 +125,11 @@ Phase 7A, mise en ligne gratuite sur Netlify (détail dans `PLAN.md`) :
 
 - [x] 7.6 Aperçus sur la branche `preview`, sans crédits (proposé par le propriétaire le 19/11/2026) : https://preview--alarobia-shop.netlify.app, base Neon `preview`, secrets distincts, images dans `uploads-preview`, `noindex` ; contrôle en ligne 22 sur 22 ; premier usage : défaut des images absentes corrigé et vérifié sur l'aperçu
 
-7B (e-mails et SMS), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
+- [x] 7.7 Bouton « Annuler la commande » dans le back-office, avec confirmation (rappel du remboursement à la main si Mobile Money confirmé), même chemin de remise en stock que la liste « Statut » (`changeOrderStatus`, `src/lib/order-status.ts`). Vérifié : lint et types propres, 483 tests unitaires, 142 parcours navigateur sur 144 (2 délais dépassés sous charge 10 à 17, hors du code touché, repassés seuls), captures relues
+- [x] 7.8 Tableau des zones de la page d'aide lisible sur téléphone (tarifs visibles sans défilement, fr, en, mg à 390 px) ; paramètres des adresses Neon dans `.env.example`. Mêmes contrôles que 7.7
+- [ ] 7.9 Lettre d'information : promesses du pied de page alignées sur ce que le site fait, liste des inscrits dans le back-office (suppression, export CSV)
+
+7B (e-mails et SMS, services gratuits uniquement), 7C (Mobile Money par API) et 7D (avant d'annoncer le site) : à détailler quand le propriétaire les demande.
 
 ## Points de vigilance (voir PLAN.md)
 
@@ -656,3 +664,15 @@ Travail arrêté à un point stable, à la demande du propriétaire. Repris et f
 - Commit `4cced01` sur `preview`, aperçu publié en 40 s. **Vérifié en ligne sur l'aperçu** : image absente 404 en 0,2 à 0,3 s (3,7 s au premier appel, démarrage de la fonction), 404 gardé par le réseau Netlify (`cache-status … stored`) ; contrôle en ligne 22 sur 22. **La production a encore le défaut** jusqu'à la fusion de `preview` dans `main` (15 crédits, à la demande du propriétaire).
 - **Prochain lot sur `preview`** (proposé) : bouton « Annuler la commande » avec confirmation dans le back-office ; colonne des tarifs du tableau des zones visible à 390 px sur la page d'aide. Puis fusion dans `main` avec le correctif des images, en une seule mise en ligne.
 
+
+### 24/11/2026
+
+- **Décisions du propriétaire** (tableau) : il relit lui-même le malgache ; brouillons gardés ; préfixe « AL- » validé ; lettre d'information confiée à Claude ; e-mails et SMS par des services gratuits ; lot autorisé jusqu'à la fusion dans `main`.
+- **Nettoyage quotidien** : réussi chaque jour du 20 au 24/11 (GitHub le lance avec 6 à 9 h de retard sur 01:00 UTC, sans conséquence).
+- **`node_modules` et les navigateurs de Playwright avaient disparu** de la machine : `npm ci` (Node 22, client Prisma régénéré) et `npx playwright install chromium`. Versions inchangées (fichier de verrouillage).
+- **7.7, bouton « Annuler la commande »** (`developpeur`) : `isClosed`, `changeOrderStatus` et `cancelOrder` dans `src/lib/order-status.ts` (10 tests sur schéma temporaire, vus rouges d'abord) ; `updateOrder` passe par la même fonction ; `ConfirmAction` réutilisé ; focus rendu au statut après l'annulation ; deux confirmations simultanées : une seule passe, stock rendu une fois. Clés mg à relire : `admin.order.cancelOrder`, `cancelTitle`, `cancelDescription`, `cancelRefund`, `cancelKeep`, `admin.notices.orderCancelled`, `admin.errors.orderAlreadyClosed`.
+  - **À valider par le propriétaire** : le bouton annule aussi une commande livrée et remet ses articles en stock (comme la liste « Statut » le permettait déjà), alors qu'un colis livré ne revient pas forcément.
+- **7.8** (`executant`) : `min-w-[420px]` retiré, marges des cellules réduites sous `sm` ; mesuré à 390 px en fr, en, mg (`scrollWidth` = `clientWidth` = 358 sur le tableau) ; test ajouté dans `e2e/mobile.spec.ts` (aurait échoué avant : 420 px de large dans un écran de 412).
+- `verificateur` (7.7 et 7.8) : lint et types propres, 483 tests unitaires, **142 parcours navigateur sur 144**. Échecs : `clavier.spec.ts:300` (titre de la fiche produit non trouvé en 5 s) et `mobile-accessibilite.spec.ts:14` (analyse axe au-delà de 60 s), charge de 10 à 17 ; les deux fichiers repassent seuls (11 sur 11, 2 sur 2). Aucun ne touche le code modifié. `tsconfig.json` intact.
+- **Délai propre pour une panne de Netlify Blobs** : décidé de ne rien ajouter (une vraie panne donne une 502 au bout du délai de la fonction ; rare, acceptable).
+- **7B, recherche** : sans nom de domaine, Brevo réécrit l'expéditeur Gmail (DMARC) et Resend demande un domaine vérifié ; proposition : envoi SMTP par un compte Gmail dédié à la boutique (mot de passe d'application, environ 500 par jour). SMS : aucun service gratuit pour Madagascar ; proposition : SMS Gateway for Android (libre) sur un téléphone de la boutique, seul le forfait de l'opérateur compte.

@@ -162,3 +162,59 @@ test("un article ordinaire, de cette commande ou d'une autre, n'a aucun bloc de 
   await expect(page.getByText("Zone imprimable")).toHaveCount(0);
   check();
 });
+
+/** Stock de la tasse Vato, lu dans la liste des produits du back-office. */
+async function vatoStock(page: Page) {
+  await page.goto("/admin/products?q=Tasse en grès Vato");
+  const row = page.getByRole("row").filter({ has: page.getByRole("link", { name: "Tasse en grès Vato", exact: true }) });
+  return Number(await row.getByRole("cell").nth(3).textContent());
+}
+
+test("une commande payée par Mobile Money prévient que le remboursement se fait à la main", async ({ page }) => {
+  await login(page, ADMIN.email, ADMIN.password);
+  await page.waitForURL("**/admin");
+  // Commandes de démonstration « payées » : toutes en Mobile Money (un paiement à la livraison n'est payé qu'à la remise).
+  await page.goto("/admin/orders?status=PAID");
+  await page.getByRole("link", { name: /^AL-/ }).first().click();
+  await page.waitForURL(/\/admin\/orders\/c/);
+  await page.getByRole("button", { name: "Annuler la commande" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText(/Le client a payé .+ par (MVola|Orange Money|Airtel Money) : remboursez-le vous-même/);
+  await dialog.getByRole("button", { name: "Garder la commande" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.locator("#commande-statut")).toHaveText("Payée");
+});
+
+test("le vendeur annule la commande depuis sa page : il peut renoncer, puis confirme, et le stock revient", async ({ page }) => {
+  const check = watchErrors(page);
+  await openOrder(page);
+  const before = await vatoStock(page);
+  await page.goto(orderPath);
+  const cancel = page.getByRole("button", { name: "Annuler la commande" });
+  const dialog = page.getByRole("dialog", { name: `Annuler la commande ${orderNumber} ?` });
+
+  // Renoncer : la fenêtre se referme, le focus revient au bouton, rien ne change.
+  await cancel.click();
+  await expect(dialog).toContainText("ses articles retournent en stock");
+  await expect(dialog).toContainText("C'est définitif");
+  await expect(dialog).not.toContainText("remboursez-le"); // payée à la livraison, rien n'a été encaissé
+  await dialog.getByRole("button", { name: "Garder la commande" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(cancel).toBeFocused();
+  await page.reload();
+  await expect(page.locator("#commande-statut")).toHaveText("En attente");
+  expect(await vatoStock(page)).toBe(before);
+
+  // Confirmer au clavier.
+  await page.goto(orderPath);
+  await cancel.focus();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Annuler la commande" }).click();
+  await expect(page.getByText("Commande annulée : les articles sont de retour en stock.")).toBeVisible();
+  await expect(page.locator("#commande-statut")).toHaveText("Annulée");
+  await expect(page.locator("#commande-statut")).toBeFocused();
+  await expect(cancel).toHaveCount(0);
+  expect(await vatoStock(page)).toBe(before + 2);
+  check();
+});

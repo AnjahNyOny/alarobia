@@ -7,9 +7,10 @@ import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { ORDER_STATUSES } from "@/lib/constants";
 import type { FormState } from "@/lib/form";
-import { transitionOrder } from "@/lib/order-status";
+import { cancelOrder as cancel, changeOrderStatus, type StatusChange } from "@/lib/order-status";
 
-const VOID = ["CANCELLED", "REFUNDED"];
+/** Clé de `admin.errors` pour chaque refus. */
+const REFUSAL: Record<Exclude<StatusChange, "ok">, string> = { notFound: "orderNotFound", closed: "orderClosed", changed: "orderChanged" };
 
 export async function updateOrder(id: string, _: FormState, formData: FormData): Promise<FormState> {
   await requireAdmin();
@@ -20,14 +21,22 @@ export async function updateOrder(id: string, _: FormState, formData: FormData):
   if (!parsed.success) return { error: t("orderInvalid") };
   const { status, trackingNumber } = parsed.data;
 
-  const order = await db.order.findUnique({ where: { id }, include: { items: true } });
-  if (!order) return { error: t("orderNotFound") };
-  if (VOID.includes(order.status) && !VOID.includes(status)) return { error: t("orderClosed") };
-
-  const changed = await db.$transaction((tx) => transitionOrder(tx, order, { status, trackingNumber: trackingNumber || null }));
-  if (!changed) return { error: t("orderChanged") };
+  const result = await changeOrderStatus(db, id, { status, trackingNumber: trackingNumber || null });
+  if (result !== "ok") return { error: t(REFUSAL[result]) };
   revalidatePath("/admin", "layout");
   return { ok: true, message: n("orderUpdated") };
+}
+
+/** Bouton « Annuler la commande » : même chemin que la liste « Statut », refusé si la commande est déjà close. */
+export async function cancelOrder(id: string): Promise<FormState> {
+  await requireAdmin();
+  const [t, n] = await Promise.all([getTranslations("admin.errors"), getTranslations("admin.notices")]);
+  const result = await cancel(db, id);
+  if (result === "closed") return { error: t("orderAlreadyClosed") };
+  if (result !== "ok") return { error: t(REFUSAL[result]) };
+  // Toute la mise en page : le compteur des commandes à traiter et l'espace du client changent aussi.
+  revalidatePath("/", "layout");
+  return { ok: true, message: n("orderCancelled") };
 }
 
 /** Le vendeur a vérifié sur son téléphone que l'argent est arrivé : la commande passe d'« en attente » à « payée ». */

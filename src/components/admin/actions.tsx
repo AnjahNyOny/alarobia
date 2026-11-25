@@ -27,10 +27,12 @@ export function ConfirmAction({
   danger = true,
   redirectTo,
   focusAfter,
+  className,
 }: {
   action: () => Promise<FormState>;
   title: string;
-  description: string;
+  /** Texte ou phrases en ligne (`<span className="block">`) : il est rendu dans un paragraphe. */
+  description: React.ReactNode;
   /** Bouton qui exécute l'action ; « Supprimer » par défaut. */
   confirmLabel?: string;
   /** Bouton qui referme la fenêtre sans rien faire ; « Annuler » par défaut. */
@@ -46,6 +48,8 @@ export function ConfirmAction({
    * son propre bouton (« Paiement reçu ») : sans lui, le focus retomberait sur la page.
    */
   focusAfter?: string;
+  /** Classes du bouton qui ouvre la fenêtre (largeur, place dans la carte). */
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
@@ -65,7 +69,7 @@ export function ConfirmAction({
 
   return (
     <>
-      <Button type="button" variant={variant} size={size} onClick={() => setOpen(true)}>
+      <Button type="button" variant={variant} size={size} className={className} onClick={() => setOpen(true)}>
         {children}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
